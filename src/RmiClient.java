@@ -21,8 +21,8 @@ public class RmiClient {
         Scanner scanner = new Scanner(System.in);
         User user = new User();
         System.out.println("Login");
-        System.out.print("Email: ");
-        user.email = scanner.nextLine();
+        System.out.print("Username: ");
+        user.username = scanner.nextLine();
         System.out.print("Password: ");
         user.password = scanner.nextLine();
         scanner.close();

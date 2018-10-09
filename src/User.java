@@ -1,8 +1,9 @@
 public class User extends Model {
     String name;
-    String email;
+    String username;
     String password;
     boolean password_encrypted;
+    boolean isEditor = false;
 
     void create() throws CustomException {
         this.prepare();
@@ -25,6 +26,10 @@ public class User extends Model {
             // Encrypt
             this.password_encrypted = true;
         }
+    }
+
+    private void becomeEditor() {
+        isEditor = true;
     }
 
     void prepare() throws CustomException {
