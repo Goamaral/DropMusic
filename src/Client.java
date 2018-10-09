@@ -1,16 +1,18 @@
 import java.io.IOException;
 import java.util.Scanner;
 
-public class RmiClient {
+public class Client {
     UserController userController;
 
-    public static void RmiClient() {
-        RmiClient rmiClient = new RmiClient();
+    public static void main() {
+        Client client = new Client();
 
-        rmiClient.connect();
-        rmiClient.clearScreen();
-        rmiClient.displayLogin();
+        client.connect();
+        client.clearScreen();
+        client.displayLogin();
     }
+
+    public Client() {}
 
     // Connect to RMI server
     void connect() {
