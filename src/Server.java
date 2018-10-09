@@ -1,8 +1,14 @@
-import java.rmi.RemoteException;
-import java.util.ArrayList;
+public class Server implements UserInterface {
+    public static void main() {
+        Server server = new Server();
+        UserInterface
+        Naming.rebind("Server");
 
-public class UserController implements UserInterface {
-    // Controller
+    }
+
+    public Server() throws RemoteException {}
+
+    // UserController
     public void login(User user) throws RemoteException, CustomException {
         user.prepare();
         User fetched_user = this.findByEmail(user.email);
