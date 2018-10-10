@@ -1,5 +1,4 @@
 public class User extends Model {
-    String name;
     String username;
     String password;
     boolean password_encrypted;
@@ -9,12 +8,15 @@ public class User extends Model {
         this.prepare();
     }
 
+    void read() throws CustomException {
+
+    }
+
     void update() throws CustomException {
         this.prepare();
     }
 
-    // ADD delete exception?
-    void delete() /*throws DeleteException*/ {
+    void delete() throws CustomException {
     }
 
     void validator() throws CustomException {
