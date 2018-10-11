@@ -107,6 +107,7 @@ class Database {
             }
         }
 
+        if  (this.users.size() == 0) user.becomeEditor();
         this.users.add(user);
     } 
 }

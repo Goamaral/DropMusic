@@ -69,7 +69,7 @@ public class User implements Serializable {
         if (this.password.length() < MIN_SIZE) throw new CustomException("Password has to be at minimum 6 characters long");
     }
 
-    private void becomeEditor() {
+    void becomeEditor() {
         isEditor = true;
     }
 
