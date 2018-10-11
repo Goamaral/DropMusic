@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -11,9 +10,11 @@ public class Client {
     int connectAttemps = 0;
     int maxAttemps = 10;
     int serverPort = 8000;
+    Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         Client client = new Client();
+        int option;
 
         try {
             if (args.length == 1) {
@@ -23,9 +24,18 @@ public class Client {
 
         Boolean successful = client.connect();
         if (!successful) client.reconnect();
+        System.out.println("Connected to the server");
 
         client.clearScreen();
-        client.displayLogin();
+        option = client.displayAuth(false);
+
+        if (option == 0) {
+            client.displayRegister();
+        } else {
+            client.displayLogin();
+        }
+
+        client.scanner.close();
     }
 
     public Client() {}
@@ -61,73 +71,80 @@ public class Client {
         this.connectAttemps = 0;
     }
 
-    void displayLogin() {
-        Scanner scanner = new Scanner(System.in);
-        User user = new User();
-        boolean retry = true;
+    // Views
+    int displayAuth(boolean repeated) {
+        String option;
+
+        System.out.println("Auth");
+        System.out.println("[0] Create account");
+        System.out.println("[1] Log in");
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (!option.matches("0|1")) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return displayAuth(true);
+        }
+
+        return Integer.parseInt(option);
+    }
+
+    void displayLogin() throws NoSuchAlgorithmException {
+        User user;
+        String username;
+        String password;
 
         System.out.println("Login");
         System.out.print("Username: ");
-        user.username = scanner.nextLine();
+        username = scanner.nextLine();
         System.out.print("Password: ");
-        user.password = scanner.nextLine();
+        password = scanner.nextLine();
 
-        try {
-            user.encrypt_password();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        user = new User(username, password);
 
-        while(retry) {
+        while(true) {
             try {
                 userInterface.login(user);
-                retry = false;
+                break;
             } catch (CustomException ce) {
                 this.clearScreen();
                 ce.printErrors();
                 this.displayLogin();
-                retry = false;
+                break;
             } catch (RemoteException re) {
                 System.out.println(re.getMessage());
                 this.reconnect();
             }
         }
-
-        scanner.close();
     }
 
-    void displayRegister() {
-        Scanner scanner = new Scanner(System.in);
-        User user = new User();
-        boolean retry = true;
+    void displayRegister() throws NoSuchAlgorithmException {
+        User user;
+        String password, username;
 
         System.out.println("Register");
         System.out.print("Username: ");
-        user.username = scanner.nextLine();
+        username = scanner.nextLine();
         System.out.print("Password: ");
-        user.password = scanner.nextLine();
+        password = scanner.nextLine();
 
-        try {
-            user.encrypt_password();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        user = new User(username, password);
 
-        while(retry) {
+        while(true) {
             try {
                 userInterface.register(user);
-                retry = false;
+                break;
             } catch (CustomException ce) {
                 this.clearScreen();
                 ce.printErrors();
                 this.displayRegister();
-                retry = false;
+                break;
             } catch (RemoteException re) {
                 this.reconnect();
             }
         }
-
-        scanner.close();
     }
 
     void clearScreen() {

@@ -6,7 +6,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class Server implements UserInterface {
-    public static void main(String[] args) {
+    ArrayList<User> users = new ArrayList<>();
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         Server server = new Server();
         int port = 8000;
 
@@ -22,24 +24,38 @@ public class Server implements UserInterface {
 
             registry.rebind("UserInterface", userInterface);
             System.out.println("Server online at port " + port);
+            while (true);
         } catch (RemoteException re) {
             System.out.println("Couldnt create registry or export interface");
         }
     }
 
-    public Server() {}
+    // SIMULATION
+    public Server() throws NoSuchAlgorithmException {
+        // BEGIN SIMULATION
+        this.users.add(new User("goamaral", "rooted"));
+        // END SIMULATION
+    }
 
     // UserController
     public void login(User user) throws CustomException {
+        User fetched_user;
+
         System.out.println("Action login: " + user.toString());
 
-        User fetched_user = this.user_findByUsername(user.username);
+        try {
+            fetched_user = this.user_findByUsername(user.username);
+        } catch (CustomException ce) {
+            throw new CustomException("Invalid credentials");
+        }
+
 
         if (!fetched_user.password.equals(user.password)) {
-            ArrayList<String> errors = new ArrayList<>(1);
-            errors.add("Invalid credentials");
-            throw new CustomException(errors);
+            System.out.println("Invalid password");
+            throw new CustomException("Invalid credentials");
         }
+
+        System.out.println("Login successful");
     }
 
     public void register(User user) throws CustomException {
@@ -47,30 +63,25 @@ public class Server implements UserInterface {
     }
 
     // ORM
-    // SIMULATED
+    // SIMULATION
     private User user_findByUsername(String username) throws CustomException {
-        System.out.println("Find user by username: " + username);
+        User user = null;
 
-        // Simulated User
-        User fakeUser = new User();
-        fakeUser.username = "goamaral";
-        fakeUser.password = "secret";
+        System.out.print("Find user by username (" + username + ")");
 
-        try {
-            fakeUser.encrypt_password();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        // START SIMULATION
+        for (User user_i : this.users) {
+            user = user_i;
+            if (user_i.username.equals(username)) break;
         }
-
-        if (fakeUser.username.equals(username)) {
-            return fakeUser;
-        } else {
-            // Not found
-            ArrayList<String> errors = new ArrayList<>(1);
-            errors.add("Username not found");
-            throw new CustomException(errors);
+        if (user == null) {
+            System.out.println(" not found");
+            throw new CustomException();
         }
+        // END SIMULATION
 
+        System.out.println(" found");
+        return user;
     }
 
     private void user_save(User user) throws CustomException {

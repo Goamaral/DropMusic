@@ -7,6 +7,12 @@ public class User extends Model {
     boolean password_encrypted;
     boolean isEditor = false;
 
+    public User(String username, String password) throws NoSuchAlgorithmException {
+        this.username = username;
+        this.password = password;
+        this.encrypt_password();
+    }
+
     void create() throws CustomException {
         this.prepare();
     }
@@ -23,11 +29,11 @@ public class User extends Model {
     }
 
     void validator() throws CustomException {
-        throw new CustomException(null);
+        throw new CustomException("User validation failed");
     }
 
     // https://stackoverflow.com/questions/6592010/encrypt-and-decrypt-a-password-in-java
-    void encrypt_password() throws NoSuchAlgorithmException {
+    private void encrypt_password() throws NoSuchAlgorithmException {
         if (!this.password_encrypted) {
             MessageDigest encrypter = MessageDigest.getInstance("MD5");
             encrypter.reset();
