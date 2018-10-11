@@ -2,6 +2,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class Server implements UserInterface {
@@ -30,7 +31,8 @@ public class Server implements UserInterface {
 
     // UserController
     public void login(User user) throws CustomException {
-        System.out.println("HIT");
+        System.out.println("Action login: " + user.toString());
+
         User fetched_user = this.user_findByUsername(user.username);
 
         if (!fetched_user.password.equals(user.password)) {
@@ -45,11 +47,30 @@ public class Server implements UserInterface {
     }
 
     // ORM
+    // SIMULATED
     private User user_findByUsername(String username) throws CustomException {
-        // Not found
-        ArrayList<String> errors = new ArrayList<>(1);
-        errors.add("Username not found");
-        throw new CustomException(errors);
+        System.out.println("Find user by username: " + username);
+
+        // Simulated User
+        User fakeUser = new User();
+        fakeUser.username = "goamaral";
+        fakeUser.password = "secret";
+
+        try {
+            fakeUser.encrypt_password();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        if (fakeUser.username.equals(username)) {
+            return fakeUser;
+        } else {
+            // Not found
+            ArrayList<String> errors = new ArrayList<>(1);
+            errors.add("Username not found");
+            throw new CustomException(errors);
+        }
+
     }
 
     private void user_save(User user) throws CustomException {

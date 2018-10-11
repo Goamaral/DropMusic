@@ -1,3 +1,6 @@
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class User extends Model {
     String username;
     String password;
@@ -23,9 +26,19 @@ public class User extends Model {
         throw new CustomException(null);
     }
 
-    private void encrypt_password() {
+    // https://stackoverflow.com/questions/6592010/encrypt-and-decrypt-a-password-in-java
+    void encrypt_password() throws NoSuchAlgorithmException {
         if (!this.password_encrypted) {
-            // Encrypt
+            MessageDigest encrypter = MessageDigest.getInstance("MD5");
+            encrypter.reset();
+            byte[] digested = encrypter.digest(this.password.getBytes());
+
+            StringBuffer sb = new StringBuffer();
+            for(int i=0;i<digested.length;i++){
+                sb.append(Integer.toHexString(0xff & digested[i]));
+            }
+
+            this.password = sb.toString();
             this.password_encrypted = true;
         }
     }
@@ -36,6 +49,10 @@ public class User extends Model {
 
     void prepare() throws CustomException {
         this.validator();
-        this.encrypt_password();
+        //this.encrypt_password();
+    }
+
+    public String toString() {
+        return "User: { username: " + this.username + ", password: " + this.password + " }";
     }
 }

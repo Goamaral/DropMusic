@@ -3,6 +3,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 public class Client {
@@ -11,7 +12,7 @@ public class Client {
     int maxAttemps = 10;
     int serverPort = 8000;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         Client client = new Client();
 
         try {
@@ -71,6 +72,12 @@ public class Client {
         System.out.print("Password: ");
         user.password = scanner.nextLine();
 
+        try {
+            user.encrypt_password();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
         while(retry) {
             try {
                 userInterface.login(user);
@@ -99,7 +106,12 @@ public class Client {
         user.username = scanner.nextLine();
         System.out.print("Password: ");
         user.password = scanner.nextLine();
-        scanner.close();
+
+        try {
+            user.encrypt_password();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         while(retry) {
             try {
@@ -114,17 +126,11 @@ public class Client {
                 this.reconnect();
             }
         }
+
+        scanner.close();
     }
 
     void clearScreen() {
-        try {
-            if (System.getProperty("os.name").contains("Windows")) {
-                Runtime.getRuntime().exec("cls");
-            } else {
-                Runtime.getRuntime().exec("clear");
-            }
-        } catch (IOException e) {
-            for (int i = 0; i < 50; ++i) System.out.println();
-        }
+        System.out.print("\033[H\033[2J");
     }
 }
