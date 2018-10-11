@@ -1,7 +1,9 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.io.Serializable;
 
-public class User extends Model {
+public class User implements Serializable {
     String username;
     String password;
     boolean password_encrypted;
@@ -10,30 +12,10 @@ public class User extends Model {
     public User(String username, String password) throws NoSuchAlgorithmException {
         this.username = username;
         this.password = password;
-        this.encrypt_password();
-    }
-
-    void create() throws CustomException {
-        this.prepare();
-    }
-
-    void read() throws CustomException {
-
-    }
-
-    void update() throws CustomException {
-        this.prepare();
-    }
-
-    void delete() throws CustomException {
-    }
-
-    void validator() throws CustomException {
-        throw new CustomException("User validation failed");
     }
 
     // https://stackoverflow.com/questions/6592010/encrypt-and-decrypt-a-password-in-java
-    private void encrypt_password() throws NoSuchAlgorithmException {
+    void encrypt_password() throws NoSuchAlgorithmException {
         if (!this.password_encrypted) {
             MessageDigest encrypter = MessageDigest.getInstance("MD5");
             encrypter.reset();
@@ -49,13 +31,46 @@ public class User extends Model {
         }
     }
 
-    private void becomeEditor() {
-        isEditor = true;
+    void validate() throws CustomException, NoSuchAlgorithmException {
+        ArrayList<String> errors = new ArrayList();
+
+        try {
+            this.username_validator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        try {
+            this.password_validator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        if (errors.size() > 0) throw new CustomException(errors);
+
+        this.encrypt_password();
     }
 
-    void prepare() throws CustomException {
-        this.validator();
-        //this.encrypt_password();
+    private void username_validator() throws CustomException {
+        this.username.replaceAll("\\s","");
+
+        // Not null
+        if (this.username == null) throw new CustomException("Username can't be empty");
+    }
+
+    private void password_validator() throws CustomException {
+        this.password.replaceAll("\\s","");
+
+        // Not null
+        if (this.password == null) throw new CustomException("Password can't be empty");
+
+        // Minimum size MIN_SIZE
+        int MIN_SIZE = 6;
+        if (this.password.length() < MIN_SIZE) throw new CustomException("Password has to be at minimum 6 characters long");
+    }
+
+    private void becomeEditor() {
+        isEditor = true;
     }
 
     public String toString() {

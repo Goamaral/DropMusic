@@ -6,9 +6,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class Server implements UserInterface {
-    ArrayList<User> users = new ArrayList<>();
+    Database database = new Database();
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
+    public static void main(String[] args)  {
         Server server = new Server();
         int port = 8000;
 
@@ -24,21 +24,18 @@ public class Server implements UserInterface {
 
             registry.rebind("UserInterface", userInterface);
             System.out.println("Server online at port " + port);
+
             while (true);
         } catch (RemoteException re) {
             System.out.println("Couldnt create registry or export interface");
         }
     }
 
-    // SIMULATION
-    public Server() throws NoSuchAlgorithmException {
-        // BEGIN SIMULATION
-        this.users.add(new User("goamaral", "rooted"));
-        // END SIMULATION
-    }
+    public Server() {}
 
     // UserController
-    public void login(User user) throws CustomException {
+    public void login(User user) throws CustomException, NoSuchAlgorithmException {
+        user.encrypt_password();
         User fetched_user;
 
         System.out.println("Action login: " + user.toString());
@@ -49,7 +46,6 @@ public class Server implements UserInterface {
             throw new CustomException("Invalid credentials");
         }
 
-
         if (!fetched_user.password.equals(user.password)) {
             System.out.println("Invalid password");
             throw new CustomException("Invalid credentials");
@@ -58,36 +54,59 @@ public class Server implements UserInterface {
         System.out.println("Login successful");
     }
 
-    public void register(User user) throws CustomException {
+    public void register(User user) throws CustomException, NoSuchAlgorithmException {
         this.user_save(user);
     }
 
     // ORM
-    // SIMULATION
     private User user_findByUsername(String username) throws CustomException {
-        User user = null;
-
         System.out.print("Find user by username (" + username + ")");
 
-        // START SIMULATION
-        for (User user_i : this.users) {
-            user = user_i;
-            if (user_i.username.equals(username)) break;
-        }
-        if (user == null) {
+        try {
+            User user = this.database.user_findByUsername(username);
+            System.out.println(" found");
+            return user;
+        } catch (CustomException ce) {
             System.out.println(" not found");
-            throw new CustomException();
+            throw ce;
         }
-        // END SIMULATION
-
-        System.out.println(" found");
-        return user;
     }
 
-    private void user_save(User user) throws CustomException {
-        // Failed to save
-        ArrayList<String> errors = new ArrayList<>(1);
-        errors.add("Username not found");
-        throw new CustomException(errors);
+    private void user_save(User user) throws CustomException, NoSuchAlgorithmException {
+        System.out.print("Save user (" + user.username + ")");
+
+        try {
+            user.validate();
+            this.database.user_save(user);
+        } catch(CustomException ce) {
+            System.out.println(" failed");
+            throw ce;
+        }
+        
+        System.out.println(" success");
     }
+}
+
+class Database {
+    ArrayList<User> users = new ArrayList<>();
+
+    User user_findByUsername(String username) throws CustomException {
+        for (User user : this.users) {
+            if (user.username.equals(username)) {
+                return user;
+            }
+        }
+
+        throw new CustomException("Username not found");
+    }
+
+    void user_save(User user) throws CustomException {
+        for (User user_i : this.users) {
+            if (user_i.username.equals(user.username)) {
+                throw new CustomException("Username already exists");
+            }
+        }
+
+        this.users.add(user);
+    } 
 }

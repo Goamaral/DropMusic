@@ -2,9 +2,6 @@ import java.util.ArrayList;
 
 public class CustomException extends Exception {
     ArrayList<String> errors;
-    String error;
-
-    CustomException() { }
 
     CustomException(ArrayList<String> errors) {
         super();
@@ -13,22 +10,17 @@ public class CustomException extends Exception {
 
     CustomException(String error) {
         super();
-        this.error = error;
+        this.errors = new ArrayList<>(1);
+        this.errors.add(error);
     }
 
     void printErrors() {
-        if (this.errors == null && this.error == null) return;
+        if (this.errors == null) return;
 
         System.out.println("Errors:");
 
-        if (this.error != null) {
-            System.out.println("-> " + this.error);
-        }
-
-        if (this.errors != null) {
-            for (String error : this.errors) {
-                System.out.println("-> " + error);
-            }
+        for (String error : this.errors) {
+            System.out.println("-> " + error);
         }
     }
 }

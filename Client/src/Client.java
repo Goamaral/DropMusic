@@ -1,4 +1,5 @@
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -8,11 +9,16 @@ import java.util.Scanner;
 public class Client {
     UserInterface userInterface;
     int connectAttemps = 0;
-    int maxAttemps = 10;
+    int maxAttemps = 30;
     int serverPort = 8000;
     Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
+    static final int EXIT = 0;
+    static final int AUTH = 1;
+    static final int REGISTER = 2;
+    static final int LOGIN = 3;
+
+    public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
         int option;
 
@@ -22,18 +28,9 @@ public class Client {
             }
         } catch (NumberFormatException nfe) {}
 
-        Boolean successful = client.connect();
-        if (!successful) client.reconnect();
-        System.out.println("Connected to the server");
+        client.connect();
 
-        client.clearScreen();
-        option = client.displayAuth(false);
-
-        if (option == 0) {
-            client.displayRegister();
-        } else {
-            client.displayLogin();
-        }
+        client.redirect(Client.AUTH, null);
 
         client.scanner.close();
     }
@@ -41,57 +38,100 @@ public class Client {
     public Client() {}
 
     // Connect to RMI server
-    Boolean connect() {
+    void connect() throws InterruptedException {
         try {
             Registry registry = LocateRegistry.getRegistry(serverPort);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
         } catch (RemoteException re) {
-           return false;
+            this.connectAttemps += 1;
+            if (this.connectAttemps == this.maxAttemps) {
+                System.out.println("Cant connect to the server");
+                System.exit(0);
+            }
+            Thread.sleep(1000);
+            this.connect();
         } catch (NotBoundException nbe) {
             System.out.println("Cant connect to server");
             System.exit(0);
         }
 
-        return true;
-    }
-
-    void reconnect() {
-        Boolean successful = false;
-
-        while(!successful) {
-            this.connectAttemps += 1;
-            if (this.connectAttemps == this.maxAttemps) {
-                // Failure disconnect
-                System.out.println("Cant connect to server");
-                System.exit(0);
-            }
-            successful = this.connect();
-        }
-
         this.connectAttemps = 0;
     }
 
+    void retry(int method_id, Object resource) throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        this.connect();
+
+        try {
+            switch (method_id) {
+                case Client.LOGIN:
+                    userInterface.login((User)resource);
+                    break;
+            }
+        } catch(RemoteException re) {
+            this.connectAttemps += 1;
+            if (this.connectAttemps == this.maxAttemps) {
+                System.out.println("Cant connect to the server");
+                System.exit(0);
+            }
+            Thread.sleep(1000);
+            retry(method_id, resource);
+        }
+    }
+
+    // Routes
+    void redirect(int route, CustomException errorException) throws InterruptedException, NoSuchAlgorithmException {
+        this.clearScreen();
+
+        try {
+            errorException.printErrors();
+        } catch(NullPointerException npe) {}
+
+        switch (route) {
+            case Client.EXIT: return;
+            case Client.AUTH:
+                redirect(this.displayAuth(), null);
+                return;
+            case Client.REGISTER:
+                try {
+                    this.displayRegister();
+                    redirect(Client.AUTH, null);
+                } catch (CustomException ce) {
+                    redirect(Client.AUTH, ce);
+                }
+                return;
+            case Client.LOGIN:
+                try {
+                    this.displayLogin();
+                    redirect(Client.EXIT, null);
+                } catch (CustomException ce) {
+                    redirect(Client.AUTH, ce);
+                }
+                return;
+        }
+    }
+
     // Views
-    int displayAuth(boolean repeated) {
+    int displayAuth() {
         String option;
 
         System.out.println("Auth");
-        System.out.println("[0] Create account");
-        System.out.println("[1] Log in");
+        System.out.println("[2] Create account");
+        System.out.println("[3] Log in");
+        System.out.println("[0] Exit");
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("0|1")) {
+        if (!option.matches("[023]")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
-            return displayAuth(true);
+            return displayAuth();
         }
 
         return Integer.parseInt(option);
     }
 
-    void displayLogin() throws NoSuchAlgorithmException {
+    void displayLogin() throws NoSuchAlgorithmException, InterruptedException, CustomException {
         User user;
         String username;
         String password;
@@ -104,23 +144,14 @@ public class Client {
 
         user = new User(username, password);
 
-        while(true) {
-            try {
-                userInterface.login(user);
-                break;
-            } catch (CustomException ce) {
-                this.clearScreen();
-                ce.printErrors();
-                this.displayLogin();
-                break;
-            } catch (RemoteException re) {
-                System.out.println(re.getMessage());
-                this.reconnect();
-            }
+        try {
+            userInterface.login(user);
+        } catch (RemoteException re) {
+            this.retry(Client.LOGIN, user);
         }
     }
 
-    void displayRegister() throws NoSuchAlgorithmException {
+    void displayRegister() throws NoSuchAlgorithmException, CustomException, InterruptedException {
         User user;
         String password, username;
 
@@ -132,18 +163,11 @@ public class Client {
 
         user = new User(username, password);
 
-        while(true) {
-            try {
-                userInterface.register(user);
-                break;
-            } catch (CustomException ce) {
-                this.clearScreen();
-                ce.printErrors();
-                this.displayRegister();
-                break;
-            } catch (RemoteException re) {
-                this.reconnect();
-            }
+        try {
+            userInterface.register(user);
+        } catch (RemoteException re) {
+            System.out.println(re.getMessage());
+            this.retry(Client.LOGIN, user);
         }
     }
 
