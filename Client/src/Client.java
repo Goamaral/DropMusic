@@ -1,5 +1,4 @@
 import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -76,6 +75,9 @@ public class Client {
             switch (method_id) {
                 case Client.LOGIN:
                     userInterface.login((User)resource);
+                    break;
+                case Client.REGISTER:
+                    userInterface.register((User)resource);
                     break;
             }
         } catch(RemoteException re) {
@@ -177,8 +179,7 @@ public class Client {
         try {
             userInterface.register(user);
         } catch (RemoteException re) {
-            System.out.println(re.getMessage());
-            this.retry(Client.LOGIN, user);
+            this.retry(Client.REGISTER, user);
         }
     }
 
