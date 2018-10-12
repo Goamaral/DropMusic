@@ -10,7 +10,8 @@ public class Client {
     UserInterface userInterface;
     int connectAttemps = 0;
     int maxAttemps = 30;
-    int serverPort = 8000;
+    int primaryServerPort = 8000;
+    int secundaryServerPort = 8001;
     Scanner scanner = new Scanner(System.in);
 
     static final int EXIT = 0;
@@ -23,8 +24,11 @@ public class Client {
         int option;
 
         try {
-            if (args.length == 1) {
-                client.serverPort = Integer.parseInt(args[0]);
+            if (args.length >= 1) {
+                client.primaryServerPort = Integer.parseInt(args[0]);
+            }
+            if (args.length >= 2) {
+                client.secundaryServerPort = Integer.parseInt(args[1]);
             }
         } catch (NumberFormatException nfe) {}
 
@@ -39,8 +43,14 @@ public class Client {
 
     // Connect to RMI server
     void connect() throws InterruptedException {
+        int port = this.primaryServerPort;
+
+        if (this.connectAttemps % 2 == 1) {
+            port = this.secundaryServerPort;
+        }
+
         try {
-            Registry registry = LocateRegistry.getRegistry(serverPort);
+            Registry registry = LocateRegistry.getRegistry(port);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
         } catch (RemoteException re) {
             this.connectAttemps += 1;
@@ -48,6 +58,7 @@ public class Client {
                 System.out.println("Cant connect to the server");
                 System.exit(0);
             }
+
             Thread.sleep(1000);
             this.connect();
         } catch (NotBoundException nbe) {
