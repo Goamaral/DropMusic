@@ -14,6 +14,8 @@ public class Server implements ServerInterface {
     int maxAttemps = 5;
     int connectAttemps = 0;
 
+    Database database = new Database();
+
     public Server() {}
 
     public static void main(String[] args) throws InterruptedException {
@@ -75,9 +77,13 @@ public class Server implements ServerInterface {
             ServerInterface serverInterface = (ServerInterface) UnicastRemoteObject.exportObject(this, this.currentPort);
             registry.rebind("ServerInterface", serverInterface);
 
-            UserController userController = new UserController();
+            UserController userController = new UserController(this);
             UserInterface userInterface = (UserInterface) UnicastRemoteObject.exportObject(userController, this.currentPort);
             registry.rebind("UserInterface", userInterface);
+
+            AlbumController albumController = new AlbumController(this);
+            AlbumInterface albumInterface = (AlbumInterface) UnicastRemoteObject.exportObject(albumController, this.currentPort);
+            registry.rebind("AlbumInterface", albumInterface);
 
         } catch(RemoteException re) {
             this.connectAttemps += 1;

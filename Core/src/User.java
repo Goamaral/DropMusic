@@ -36,13 +36,13 @@ public class User implements Serializable {
         ArrayList<String> errors = new ArrayList();
 
         try {
-            this.username_validator();
+            this.usernameValidator();
         } catch (CustomException ce) {
             errors.add(ce.errors.get(0));
         }
 
         try {
-            this.password_validator();
+            this.passwordValidator();
         } catch (CustomException ce) {
             errors.add(ce.errors.get(0));
         }
@@ -52,14 +52,16 @@ public class User implements Serializable {
         this.encrypt_password();
     }
 
-    private void username_validator() throws CustomException {
+    private void usernameValidator() throws CustomException {
         this.username.replaceAll("\\s","");
 
         // Not null
-        if (this.username == null) throw new CustomException("Username can't be empty");
+        if (this.username == null || this.username.length() == 0) {
+            throw new CustomException("Username can't be empty");
+        }
     }
 
-    private void password_validator() throws CustomException {
+    private void passwordValidator() throws CustomException {
         this.password.replaceAll("\\s","");
 
         // Not null

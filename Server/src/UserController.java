@@ -1,13 +1,11 @@
-import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 public class UserController implements UserInterface {
-    Database database = new Database();
+    Server server;
 
-    public UserController() {}
+    public UserController(Server server) { this.server = server; }
 
-    // UserController
+    // Controller
     public void login(User user) throws CustomException, NoSuchAlgorithmException {
         user.encrypt_password();
         User fetched_user;
@@ -37,7 +35,7 @@ public class UserController implements UserInterface {
         System.out.print("Find user by username (" + username + ")");
 
         try {
-            User user = this.database.user_findByUsername(username);
+            User user = this.server.database.user_findByUsername(username);
             System.out.println(" found");
             return user;
         } catch (CustomException ce) {
@@ -51,7 +49,7 @@ public class UserController implements UserInterface {
 
         try {
             user.validate();
-            this.database.user_save(user);
+            this.server.database.user_save(user);
         } catch(CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -61,32 +59,3 @@ public class UserController implements UserInterface {
     }
 }
 
-class Database {
-    ArrayList<User> users = new ArrayList<>();
-    int next_user_id = 0;
-
-    User user_findByUsername(String username) throws CustomException {
-        for (User user : this.users) {
-            if (user.username.equals(username)) {
-                return user;
-            }
-        }
-
-        throw new CustomException("Username not found");
-    }
-
-    void user_save(User user) throws CustomException {
-        for (User user_i : this.users) {
-            if (user_i.username.equals(user.username)) {
-                throw new CustomException("Username already exists");
-            }
-        }
-
-        if  (this.users.size() == 0) user.becomeEditor();
-
-        user.id = next_user_id;
-
-        this.users.add(user);
-        next_user_id += 1;
-    }
-}
