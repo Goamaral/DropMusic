@@ -36,7 +36,7 @@ public class Server implements ServerInterface {
 
         // Check if alternative is online
         try {
-            System.out.println("Checking second server at " + server.alternativePort);
+            System.out.println("Checking the alternative server at " + server.alternativePort);
             server.connect();
             // Online -> Become secundary and ping primary
             try {

@@ -14,7 +14,7 @@ public class Client {
     Scanner scanner = new Scanner(System.in);
 
     static final int EXIT = 0;
-    static final int AUTH = 1;
+    static final int START = 1;
     static final int REGISTER = 2;
     static final int LOGIN = 3;
 
@@ -33,7 +33,7 @@ public class Client {
 
         client.connect();
 
-        client.redirect(Client.AUTH, null);
+        client.redirect(Client.START, null);
 
         client.scanner.close();
     }
@@ -81,12 +81,6 @@ public class Client {
                     break;
             }
         } catch(RemoteException re) {
-            this.connectAttemps += 1;
-            if (this.connectAttemps == this.maxAttemps) {
-                System.out.println("Cant connect to the server");
-                System.exit(0);
-            }
-            Thread.sleep(1000);
             retry(method_id, resource);
         }
     }
@@ -101,15 +95,15 @@ public class Client {
 
         switch (route) {
             case Client.EXIT: return;
-            case Client.AUTH:
-                redirect(this.displayAuth(), null);
+            case Client.START:
+                redirect(this.displayStart(), null);
                 return;
             case Client.REGISTER:
                 try {
                     this.displayRegister();
-                    redirect(Client.AUTH, null);
+                    redirect(Client.START, null);
                 } catch (CustomException ce) {
-                    redirect(Client.AUTH, ce);
+                    redirect(Client.START, ce);
                 }
                 return;
             case Client.LOGIN:
@@ -117,17 +111,17 @@ public class Client {
                     this.displayLogin();
                     redirect(Client.EXIT, null);
                 } catch (CustomException ce) {
-                    redirect(Client.AUTH, ce);
+                    redirect(Client.START, ce);
                 }
                 return;
         }
     }
 
     // Views
-    int displayAuth() {
+    int displayStart() {
         String option;
 
-        System.out.println("Auth");
+        System.out.println("Start");
         System.out.println("[2] Create account");
         System.out.println("[3] Log in");
         System.out.println("[0] Exit");
@@ -138,7 +132,7 @@ public class Client {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
-            return displayAuth();
+            return displayStart();
         }
 
         return Integer.parseInt(option);

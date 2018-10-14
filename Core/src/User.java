@@ -65,7 +65,7 @@ public class User implements Serializable {
         this.password.replaceAll("\\s","");
 
         // Not null
-        if (this.password == null) throw new CustomException("Password can't be empty");
+        if (this.password == null || this.password.length() == 0) throw new CustomException("Password can't be empty");
 
         // Minimum size MIN_SIZE
         int MIN_SIZE = 6;
