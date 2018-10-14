@@ -63,6 +63,7 @@ public class UserController implements UserInterface {
 
 class Database {
     ArrayList<User> users = new ArrayList<>();
+    int next_user_id = 0;
 
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
@@ -82,6 +83,10 @@ class Database {
         }
 
         if  (this.users.size() == 0) user.becomeEditor();
+
+        user.id = next_user_id;
+
         this.users.add(user);
+        next_user_id += 1;
     }
 }

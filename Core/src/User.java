@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.io.Serializable;
 
 public class User implements Serializable {
+    int id;
     String username;
     String password;
     boolean password_encrypted;
