@@ -260,7 +260,14 @@ public class Client {
 
         if (option.equals("B")) { return Client.DASHBOARD; }
 
-        this.resource_id = Integer.parseInt(option);
+        try {
+            this.resource_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbums();
+        }
 
         return Client.ALBUM;
     }
