@@ -1,4 +1,5 @@
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumController implements AlbumInterface {
@@ -7,8 +8,8 @@ public class AlbumController implements AlbumInterface {
     AlbumController(Server server) { this.server = server; }
 
     // Controller
-    public List<Album> index() throws RemoteException {
-        return null;
+    public ArrayList<Album> index() {
+        return server.database.album_all();
     }
 
     public void create(Album album) throws RemoteException, CustomException {

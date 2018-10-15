@@ -6,14 +6,14 @@ public class UserController implements UserInterface {
     public UserController(Server server) { this.server = server; }
 
     // Controller
-    public void login(User user) throws CustomException, NoSuchAlgorithmException {
+    public User login(User user) throws CustomException, NoSuchAlgorithmException {
         user.encrypt_password();
         User fetched_user;
 
         System.out.println("Action login: " + user.toString());
 
         try {
-            fetched_user = this.user_findByUsername(user.username);
+            fetched_user = this.findByUsername(user.username);
         } catch (CustomException ce) {
             throw new CustomException("Invalid credentials");
         }
@@ -24,14 +24,16 @@ public class UserController implements UserInterface {
         }
 
         System.out.println("Login successful");
+
+        return fetched_user;
     }
 
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
-        this.user_save(user);
+        this.save(user);
     }
 
     // ORM
-    private User user_findByUsername(String username) throws CustomException {
+    private User findByUsername(String username) throws CustomException {
         System.out.print("Find user by username (" + username + ")");
 
         try {
@@ -44,7 +46,7 @@ public class UserController implements UserInterface {
         }
     }
 
-    private void user_save(User user) throws CustomException, NoSuchAlgorithmException {
+    private void save(User user) throws CustomException, NoSuchAlgorithmException {
         System.out.print("Save user (" + user.username + ")");
 
         try {

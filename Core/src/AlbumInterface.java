@@ -1,9 +1,9 @@
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
+import java.util.ArrayList;
 
 public interface AlbumInterface extends Remote {
-    List<Album> index() throws  RemoteException;
+    ArrayList<Album> index() throws  RemoteException;
     void create(Album album) throws RemoteException, CustomException;
     Album read(int album_id) throws RemoteException, CustomException;
     void update(int album_id, Album new_album) throws RemoteException, CustomException;

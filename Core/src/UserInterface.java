@@ -4,6 +4,6 @@ import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 
 public interface UserInterface extends Remote {
-    void login(User user) throws RemoteException, CustomException, NoSuchAlgorithmException;
+    User login(User user) throws RemoteException, CustomException, NoSuchAlgorithmException;
     void register(User user) throws RemoteException, CustomException, NoSuchAlgorithmException;
 }

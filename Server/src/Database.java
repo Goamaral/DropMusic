@@ -4,6 +4,10 @@ public class Database {
     ArrayList<User> users = new ArrayList<>();
     int next_user_id = 0;
 
+    ArrayList<Album> albums = new ArrayList<>();
+    int next_album_id = 0;
+
+    // USER
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
             if (user.username.equals(username)) {
@@ -27,5 +31,10 @@ public class Database {
 
         this.users.add(user);
         next_user_id += 1;
+    }
+
+    // ALBUM
+    ArrayList<Album> album_all() {
+        return this.albums;
     }
 }
