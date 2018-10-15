@@ -44,4 +44,12 @@ public class Database {
         this.albums.add(album);
         this.next_album_id += 1;
     }
+
+    Album album_find(int id) throws CustomException {
+        for(Album album : this.albums) {
+            if (album.id == id) return album;
+        }
+
+        throw new CustomException("Album not found");
+    }
 }

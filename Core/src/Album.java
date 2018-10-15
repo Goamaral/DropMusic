@@ -10,7 +10,7 @@ public class Album implements Serializable {
     String name;
     String info;
     Date releaseDate;
-    String realeaseDateString;
+    String releaseDateString;
     DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     // Relationships
@@ -22,7 +22,7 @@ public class Album implements Serializable {
     Album(String name, String info, String releaseDateString) {
         this.name = name;
         this.info = info;
-        this.realeaseDateString = releaseDateString;
+        this.releaseDateString = releaseDateString;
     }
 
     public void validate() throws CustomException {
@@ -31,7 +31,7 @@ public class Album implements Serializable {
 
     public void dateValidator() throws CustomException {
         try {
-            this.releaseDate = this.dateFormat.parse(this.realeaseDateString);
+            this.releaseDate = this.dateFormat.parse(this.releaseDateString);
         } catch (ParseException pe) {
             throw new CustomException("Invalid date format");
         }
@@ -46,6 +46,6 @@ public class Album implements Serializable {
     public void addArtist(int artist_id) { this.artists.add(artist_id); }
 
     public String toString() {
-        return "Album: { name: " + this.name + ", info: " + this.info + ", " + this.releaseDate.toString() + " }";
+        return "Album: { name: " + this.name + ", info: " + this.info + ", release_date: " + this.releaseDateString + " }";
     }
 }

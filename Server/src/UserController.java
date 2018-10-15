@@ -29,12 +29,14 @@ public class UserController implements UserInterface {
     }
 
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
+        System.out.println("Action register: " + user.toString());
+
         this.save(user);
     }
 
     // ORM
     private User findByUsername(String username) throws CustomException {
-        System.out.print("Find user by username (" + username + ")");
+        System.out.print("Action findByUsername: " + username);
 
         try {
             User user = this.server.database.user_findByUsername(username);
@@ -47,7 +49,7 @@ public class UserController implements UserInterface {
     }
 
     private void save(User user) throws CustomException, NoSuchAlgorithmException {
-        System.out.print("Create user (" + user.username + ")");
+        System.out.print("Action save: " + user.toString());
 
         try {
             user.validate();

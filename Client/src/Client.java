@@ -12,6 +12,7 @@ public class Client {
 
     User user;
     int resource_id;
+    Object resource;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -28,6 +29,12 @@ public class Client {
     static final int ALBUMS = 5;
     static final int ALBUM = 6;
     static final int ALBUM_CREATE = 7;
+    static final int ALBUM_CRITICS = 8;
+    static final int ALBUM_GENRES = 9;
+    static final int ALBUM_ARTISTS = 10;
+    static final int ALBUM_SONGS = 11;
+    static final int ALBUM_UPDATE = 12;
+    static final int ALBUM_DELETE = 13;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -90,16 +97,20 @@ public class Client {
                     this.user = userInterface.login((User)resource);
                     break;
                 case Client.REGISTER:
+                    System.out.println("LOG1");
                     userInterface.register((User)resource);
+                    System.out.println("LOG2");
                     break;
                 case Client.ALBUMS:
                     return albumInterface.index();
                 case Client.ALBUM_CREATE:
                     this.albumInterface.create((Album)resource);
                     break;
+                case Client.ALBUM:
+                    return this.albumInterface.read((int)resource);
             }
         } catch(RemoteException re) {
-            retry(method_id, resource);
+            this.retry(method_id, resource);
         }
 
         return null;
@@ -152,6 +163,13 @@ public class Client {
                     this.redirect(Client.ALBUMS, ce);
                 }
                 break;
+            case Client.ALBUM:
+                try {
+                    this.redirect(this.displayAlbum(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUMS, ce);
+                }
+                break;
         }
     }
 
@@ -175,6 +193,7 @@ public class Client {
 
         return Integer.parseInt(option);
     }
+
 
     void displayLogin() throws NoSuchAlgorithmException, InterruptedException, CustomException {
         User user;
@@ -215,6 +234,7 @@ public class Client {
         }
     }
 
+
     int displayDashboard() {
         String option;
 
@@ -234,22 +254,18 @@ public class Client {
         return Integer.parseInt(option);
     }
 
+
     int displayAlbums() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String option;
         ArrayList<Album> albums;
-
-        System.out.println("Albums");
 
         try {
             albums = this.albumInterface.index();
         } catch (RemoteException re) {
             albums = (ArrayList<Album>) this.retry(Client.ALBUMS, null);
-        } catch (NumberFormatException nfe) {
-            this.clearScreen();
-            System.out.println("Errors:");
-            System.out.println("-> Invalid option");
-            return this.displayDashboard();
         }
+
+        System.out.println("Albums");
 
         if (albums.size() == 0) {
             System.out.println("No albums available");
@@ -306,6 +322,43 @@ public class Client {
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_CREATE, album);
         }
+    }
+
+    int displayAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Album album;
+        String option;
+
+        try {
+            album = this.albumInterface.read(resource_id);
+        } catch (RemoteException re) {
+            album = (Album)this.retry(Client.ALBUM, resource_id);
+        }
+
+        this.resource = album;
+
+        System.out.println("Album");
+        System.out.println("Name: " + album.name);
+        System.out.println("Info: " + album.info);
+        System.out.println("Release date: " + album.releaseDateString);
+        System.out.println("[" + Client.ALBUM_CRITICS + "] See album critics");
+        System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
+        System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
+        System.out.println("[" + Client.ALBUM_ARTISTS + "] See album artists");
+        System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
+        System.out.println("[" + Client.ALBUM_DELETE + "] Delete album");
+        System.out.println("[" + Client.ALBUMS + "] Back");
+        System.out.print("Option: ");
+
+        option = this.scanner.nextLine();
+
+        if (!option.matches("[" + Client.ALBUM_CRITICS + Client.ALBUM_GENRES + Client.ALBUM_SONGS + Client.ALBUM_ARTISTS + Client.ALBUM_UPDATE + Client.ALBUM_DELETE + Client.ALBUMS + "]")) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbum();
+        }
+
+        return Integer.parseInt(option);
     }
 
     void clearScreen() {
