@@ -47,11 +47,11 @@ public class UserController implements UserInterface {
     }
 
     private void save(User user) throws CustomException, NoSuchAlgorithmException {
-        System.out.print("Save user (" + user.username + ")");
+        System.out.print("Create user (" + user.username + ")");
 
         try {
             user.validate();
-            this.server.database.user_save(user);
+            this.server.database.user_create(user);
         } catch(CustomException ce) {
             System.out.println(" failed");
             throw ce;

@@ -9,11 +9,24 @@ public class AlbumController implements AlbumInterface {
 
     // Controller
     public ArrayList<Album> index() {
-        return server.database.album_all();
+        ArrayList<Album> albums = server.database.album_all();
+        System.out.print("List " + albums.size() + " albums");
+
+        return albums;
     }
 
-    public void create(Album album) throws RemoteException, CustomException {
+    public void create(Album album) throws CustomException {
+        System.out.println("Create album " + album.name);
 
+        try {
+            album.validate();
+            server.database.album_create(album);
+        } catch (CustomException ce) {
+            System.out.println(" failed");
+            throw ce;
+        }
+
+        System.out.println(" success");
     }
 
 

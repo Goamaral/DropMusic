@@ -18,7 +18,7 @@ public class Database {
         throw new CustomException("Username not found");
     }
 
-    void user_save(User user) throws CustomException {
+    void user_create(User user) throws CustomException {
         for (User user_i : this.users) {
             if (user_i.username.equals(user.username)) {
                 throw new CustomException("Username already exists");
@@ -27,14 +27,21 @@ public class Database {
 
         if  (this.users.size() == 0) user.becomeEditor();
 
-        user.id = next_user_id;
+        user.id = this.next_user_id;
 
         this.users.add(user);
-        next_user_id += 1;
+        this.next_user_id += 1;
     }
 
     // ALBUM
     ArrayList<Album> album_all() {
         return this.albums;
+    }
+
+    void album_create(Album album) {
+        album.id = this.next_album_id;
+
+        this.albums.add(album);
+        this.next_album_id += 1;
     }
 }

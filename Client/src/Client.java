@@ -93,6 +93,9 @@ public class Client {
                     break;
                 case Client.ALBUMS:
                     return albumInterface.index();
+                case Client.ALBUM_CREATE:
+                    this.albumInterface.create((Album)resource);
+                    break;
             }
         } catch(RemoteException re) {
             retry(method_id, resource);
@@ -138,6 +141,14 @@ public class Client {
                     this.redirect(this.displayAlbums(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUMS, ce);
+                }
+                break;
+            case Client.ALBUM_CREATE:
+                try {
+                    this.displayAlbumCreate();
+                    this.redirect(Client.ALBUMS, null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_CREATE, ce);
                 }
                 break;
         }
@@ -270,6 +281,30 @@ public class Client {
         }
 
         return Client.ALBUM;
+    }
+
+    void displayAlbumCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        String name, info, realeaseDateString;
+        Album album;
+
+        System.out.println("Create album");
+
+        System.out.print("Name: ");
+        name = scanner.nextLine();
+
+        System.out.print("Info: ");
+        info = scanner.nextLine();
+
+        System.out.print("Release date(dd/mm/yyyy): ");
+        realeaseDateString = scanner.nextLine();
+
+        album = new Album(name, info, realeaseDateString);
+
+        try {
+            this.albumInterface.create(album);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_CREATE, album);
+        }
     }
 
     void clearScreen() {
