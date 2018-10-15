@@ -15,8 +15,8 @@ public class Client {
 
     int connectAttemps = 0;
     int maxAttemps = 30;
-    int primaryServerPort = 8000;
-    int secundaryServerPort = 8001;
+    int port1;
+    int port2;
 
     Scanner scanner = new Scanner(System.in);
 
@@ -31,16 +31,17 @@ public class Client {
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
-        int option;
 
         try {
-            if (args.length >= 1) {
-                client.primaryServerPort = Integer.parseInt(args[0]);
-            }
-            if (args.length >= 2) {
-                client.secundaryServerPort = Integer.parseInt(args[1]);
-            }
-        } catch (NumberFormatException nfe) {}
+            System.out.print("Server port 1: ");
+            client.port1 = Integer.parseInt(client.scanner.nextLine());
+
+            System.out.print("Server port 2: ");
+            client.port2 = Integer.parseInt(client.scanner.nextLine());
+        } catch (NumberFormatException nfe) {
+            System.out.println("Invalid port");
+            System.exit(0);
+        }
 
         client.connect();
 
@@ -53,10 +54,10 @@ public class Client {
 
     // Connect to RMI server
     void connect() throws InterruptedException {
-        int port = this.primaryServerPort;
+        int port = this.port1;
 
         if (this.connectAttemps % 2 == 1) {
-            port = this.secundaryServerPort;
+            port = this.port2;
         }
 
         try {
@@ -148,7 +149,7 @@ public class Client {
                     this.displayAlbumCreate();
                     this.redirect(Client.ALBUMS, null);
                 } catch (CustomException ce) {
-                    this.redirect(Client.ALBUM_CREATE, ce);
+                    this.redirect(Client.ALBUMS, ce);
                 }
                 break;
         }

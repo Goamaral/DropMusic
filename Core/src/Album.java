@@ -1,4 +1,7 @@
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -8,6 +11,7 @@ public class Album implements Serializable {
     String info;
     Date releaseDate;
     String realeaseDateString;
+    DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     // Relationships
     ArrayList<Integer> critics = new ArrayList<>();
@@ -26,7 +30,11 @@ public class Album implements Serializable {
     }
 
     public void dateValidator() throws CustomException {
-        // TODO
+        try {
+            this.releaseDate = this.dateFormat.parse(this.realeaseDateString);
+        } catch (ParseException pe) {
+            throw new CustomException("Invalid date format");
+        }
     }
 
     public void addCritic(int critic_id) { this.critics.add(critic_id); }
