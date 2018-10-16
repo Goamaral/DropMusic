@@ -29,8 +29,18 @@ public class AlbumController implements AlbumInterface {
     }
 
 
-    public void update(int album_id, Album new_album) throws RemoteException, CustomException {
+    public void update(Album new_album) throws CustomException {
+        System.out.print("Action update: " + new_album.toString());
 
+        try {
+            new_album.validate();
+            server.database.album_update(new_album);
+        } catch (CustomException ce) {
+            System.out.println(" failed");
+            throw ce;
+        }
+
+        System.out.println(" success");
     }
 
     public Album read(int album_id) throws CustomException {

@@ -52,4 +52,17 @@ public class Database {
 
         throw new CustomException("Album not found");
     }
+
+    void album_update(Album new_album) throws CustomException {
+        int position = -1;
+
+        for(Album album : this.albums) {
+            position += 1;
+            if (album.id == new_album.id) break;
+        }
+
+        if (position == -1) throw new CustomException("Album not found");
+
+        this.albums.set(position, new_album);
+    }
 }

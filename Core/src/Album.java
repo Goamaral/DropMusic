@@ -26,10 +26,42 @@ public class Album implements Serializable {
     }
 
     public void validate() throws CustomException {
-        this.dateValidator();
+        ArrayList<String> errors = new ArrayList();
+
+        try {
+            this.nameValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        try {
+            this.infoValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        try {
+            this.dateValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        if (errors.size() > 0) throw new CustomException(errors);
     }
 
-    public void dateValidator() throws CustomException {
+    private void nameValidator() throws CustomException {
+        this.name.replaceAll("\\s","");
+
+        if (this.name.length() == 0) throw new CustomException("Name can't be empty");
+    }
+
+    private void infoValidator() throws CustomException {
+        this.info.replaceAll("\\s","");
+
+        if (this.info.length() == 0) throw new CustomException("Info can't be empty");
+    }
+
+    private void dateValidator() throws CustomException {
         try {
             this.releaseDate = this.dateFormat.parse(this.releaseDateString);
         } catch (ParseException pe) {

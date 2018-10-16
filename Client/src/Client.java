@@ -11,8 +11,8 @@ public class Client {
     AlbumInterface albumInterface;
 
     User user;
-    int resource_id;
-    Object resource;
+    int current_resource_id;
+    Object current_resource;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -108,6 +108,9 @@ public class Client {
                     break;
                 case Client.ALBUM:
                     return this.albumInterface.read((int)resource);
+                case Client.ALBUM_UPDATE:
+                    this.albumInterface.update((Album)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -170,6 +173,13 @@ public class Client {
                     this.redirect(Client.ALBUMS, ce);
                 }
                 break;
+            case Client.ALBUM_UPDATE:
+                try {
+                    this.displayAlbumUpdate();
+                    redirect(Client.ALBUM, null);
+                } catch (CustomException ce) {
+                    redirect(Client.ALBUM, ce);
+                }
         }
     }
 
@@ -289,7 +299,7 @@ public class Client {
         if (option.equals("B")) { return Client.DASHBOARD; }
 
         try {
-            this.resource_id = Integer.parseInt(option);
+            this.current_resource_id = Integer.parseInt(option);
         } catch (NumberFormatException nfe) {
             this.clearScreen();
             System.out.println("Errors:");
@@ -329,12 +339,12 @@ public class Client {
         String option;
 
         try {
-            album = this.albumInterface.read(resource_id);
+            album = this.albumInterface.read(this.current_resource_id);
         } catch (RemoteException re) {
-            album = (Album)this.retry(Client.ALBUM, resource_id);
+            album = (Album)this.retry(Client.ALBUM, this.current_resource_id);
         }
 
-        this.resource = album;
+        this.current_resource = album;
 
         System.out.println("Album");
         System.out.println("Name: " + album.name);
@@ -351,7 +361,7 @@ public class Client {
 
         option = this.scanner.nextLine();
 
-        if (!option.matches("[" + Client.ALBUM_CRITICS + Client.ALBUM_GENRES + Client.ALBUM_SONGS + Client.ALBUM_ARTISTS + Client.ALBUM_UPDATE + Client.ALBUM_DELETE + Client.ALBUMS + "]")) {
+        if (!option.matches("(" + Client.ALBUM_CRITICS + "|" + Client.ALBUM_GENRES + "|" + Client.ALBUM_SONGS + "|" + Client.ALBUM_ARTISTS + "|" + Client.ALBUM_UPDATE + "|" + Client.ALBUM_DELETE + "|" + Client.ALBUMS + ")")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
@@ -360,6 +370,39 @@ public class Client {
 
         return Integer.parseInt(option);
     }
+
+    void displayAlbumUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Album album = (Album)this.current_resource;
+        Album new_album;
+        String name;
+        String info;
+        String releaseDate;
+
+        System.out.println("Edit album");
+        System.out.println("Leave fields empty if you don't want to change them");
+
+        System.out.print("Name(" + album.name + "): ");
+        name = this.scanner.nextLine();
+        if (name.length() == 0) name = album.name;
+
+        System.out.print("Info(" + album.info + "): ");
+        info = this.scanner.nextLine();
+        if (info.length() == 0) info = album.info;
+
+        System.out.print("Release date(" + album.releaseDateString + "): ");
+        releaseDate = this.scanner.nextLine();
+        if (releaseDate.length() == 0) releaseDate = album.releaseDateString;
+
+        new_album = new Album(name, info, releaseDate);
+        new_album.id = album.id;
+
+        try {
+            this.albumInterface.update(new_album);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_UPDATE, new_album);
+        }
+    }
+
 
     void clearScreen() {
         System.out.print("\033[H\033[2J");
