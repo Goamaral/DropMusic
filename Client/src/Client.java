@@ -111,6 +111,9 @@ public class Client {
                 case Client.ALBUM_UPDATE:
                     this.albumInterface.update((Album)resource);
                     break;
+                case Client.ALBUM_DELETE:
+                    this.albumInterface.delete((int)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -180,6 +183,19 @@ public class Client {
                 } catch (CustomException ce) {
                     redirect(Client.ALBUM, ce);
                 }
+            case Client.ALBUM_DELETE:
+                try {
+                    try {
+                        this.albumInterface.delete(this.current_resource_id);
+                    } catch (RemoteException re) {
+                        this.retry(Client.ALBUM_DELETE, this.current_resource_id);
+                    }
+
+                    this.redirect(Client.ALBUMS, null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUMS, ce);
+                }
+                break;
         }
     }
 

@@ -65,4 +65,17 @@ public class Database {
 
         this.albums.set(position, new_album);
     }
+
+    void album_delete(int id) {
+        int position = -1;
+
+        for(Album album : this.albums) {
+            position += 1;
+            if(album.id == id) break;
+        }
+
+        if(position != -1) {
+            this.albums.remove(position);
+        }
+    }
 }

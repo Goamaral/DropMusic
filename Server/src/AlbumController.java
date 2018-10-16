@@ -28,6 +28,18 @@ public class AlbumController implements AlbumInterface {
         System.out.println(" success");
     }
 
+    public Album read(int id) throws CustomException {
+        System.out.print("Action read: " + id);
+
+        try {
+            Album album = this.server.database.album_find(id);
+            System.out.println(" found");
+            return album;
+        } catch (CustomException ce) {
+            System.out.println(" not found");
+            throw ce;
+        }
+    }
 
     public void update(Album new_album) throws CustomException {
         System.out.print("Action update: " + new_album.toString());
@@ -43,21 +55,10 @@ public class AlbumController implements AlbumInterface {
         System.out.println(" success");
     }
 
-    public Album read(int album_id) throws CustomException {
-        System.out.print("Action read: " + album_id);
+    public void delete(int id) {
+        System.out.print("Action delete: " + id);
 
-        try {
-            Album album = this.server.database.album_find(album_id);
-            System.out.println(" found");
-            return album;
-        } catch (CustomException ce) {
-            System.out.println(" not found");
-            throw ce;
-        }
-    }
-
-    public void delete(int album_id) throws RemoteException, CustomException {
-
+        server.database.album_delete(id);
     }
 
     // ORM
