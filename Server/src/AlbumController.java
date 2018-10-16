@@ -9,13 +9,13 @@ public class AlbumController implements AlbumInterface {
     // Controller
     public ArrayList<Album> index() {
         ArrayList<Album> albums = server.database.album_all();
-        System.out.println("Action index: " + albums.size() + " albums");
+        System.out.println("Action album index: " + albums.size() + " albums");
 
         return albums;
     }
 
     public void create(Album album) throws CustomException {
-        System.out.print("Action create: " + album.toString());
+        System.out.print("Action album create: " + album.toString());
 
         try {
             album.validate();
@@ -29,7 +29,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     public Album read(int id) throws CustomException {
-        System.out.print("Action read: " + id);
+        System.out.print("Action album read: " + id);
 
         try {
             Album album = this.server.database.album_find(id);
@@ -42,7 +42,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void update(Album new_album) throws CustomException {
-        System.out.print("Action update: " + new_album.toString());
+        System.out.print("Action album update: " + new_album.toString());
 
         try {
             new_album.validate();
@@ -56,10 +56,18 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void delete(int id) {
-        System.out.print("Action delete: " + id);
+        System.out.println("Action album delete: " + id);
 
         server.database.album_delete(id);
     }
+
+    public ArrayList<Critic> critics(int album_id) throws CustomException {
+        ArrayList<Critic> critics = this.server.database.album_critics(album_id);
+        System.out.println("Action album critics: " + album_id + " " + critics.size() + " critics");
+
+        return critics;
+    }
+
 
     // ORM
 }

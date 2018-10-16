@@ -10,7 +10,7 @@ public class UserController implements UserInterface {
         user.encrypt_password();
         User fetched_user;
 
-        System.out.println("Action login: " + user.toString());
+        System.out.println("Action user login: " + user.toString());
 
         try {
             fetched_user = this.findByUsername(user.username);
@@ -29,14 +29,14 @@ public class UserController implements UserInterface {
     }
 
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
-        System.out.println("Action register: " + user.toString());
+        System.out.println("Action user register: " + user.toString());
 
         this.save(user);
     }
 
     // ORM
     private User findByUsername(String username) throws CustomException {
-        System.out.print("Action findByUsername: " + username);
+        System.out.print("Action user findByUsername: " + username);
 
         try {
             User user = this.server.database.user_findByUsername(username);
@@ -49,7 +49,7 @@ public class UserController implements UserInterface {
     }
 
     private void save(User user) throws CustomException, NoSuchAlgorithmException {
-        System.out.print("Action save: " + user.toString());
+        System.out.print("Action user save: " + user.toString());
 
         try {
             user.validate();

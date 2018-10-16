@@ -10,9 +10,10 @@ public class Client {
     UserInterface userInterface;
     AlbumInterface albumInterface;
 
-    User user;
-    int current_resource_id;
-    Object current_resource;
+    User current_user;
+    Album current_album;
+    int current_album_id;
+    int current_critic_id;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -35,6 +36,8 @@ public class Client {
     static final int ALBUM_SONGS = 11;
     static final int ALBUM_UPDATE = 12;
     static final int ALBUM_DELETE = 13;
+    static final int ALBUM_CRITIC = 14;
+    static final int ALBUM_CRITIC_CREATE = 15;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -88,13 +91,14 @@ public class Client {
         this.connectAttemps = 0;
     }
 
+    // FailOver
     Object retry(int method_id, Object resource) throws InterruptedException, CustomException, NoSuchAlgorithmException {
         this.connect();
 
         try {
             switch (method_id) {
                 case Client.LOGIN:
-                    this.user = userInterface.login((User)resource);
+                    this.current_user = userInterface.login((User)resource);
                     break;
                 case Client.REGISTER:
                     System.out.println("LOG1");
@@ -114,6 +118,8 @@ public class Client {
                 case Client.ALBUM_DELETE:
                     this.albumInterface.delete((int)resource);
                     break;
+                case Client.ALBUM_CRITICS:
+                    return albumInterface.critics((int)resource);
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -186,9 +192,9 @@ public class Client {
             case Client.ALBUM_DELETE:
                 try {
                     try {
-                        this.albumInterface.delete(this.current_resource_id);
+                        this.albumInterface.delete(this.current_album_id);
                     } catch (RemoteException re) {
-                        this.retry(Client.ALBUM_DELETE, this.current_resource_id);
+                        this.retry(Client.ALBUM_DELETE, this.current_album_id);
                     }
 
                     this.redirect(Client.ALBUMS, null);
@@ -196,6 +202,12 @@ public class Client {
                     this.redirect(Client.ALBUMS, ce);
                 }
                 break;
+            case Client.ALBUM_CRITICS:
+                try {
+                    this.redirect(this.displayAlbumCritics(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUMS, ce);
+                }
         }
     }
 
@@ -235,7 +247,7 @@ public class Client {
         user = new User(username, password);
 
         try {
-            this.user = userInterface.login(user);
+            this.current_user = userInterface.login(user);
         } catch (RemoteException re) {
             this.retry(Client.LOGIN, user);
         }
@@ -301,7 +313,7 @@ public class Client {
             }
         }
 
-        if (this.user.isEditor) {
+        if (this.current_user.isEditor) {
             System.out.println("[C] Create album");
         }
 
@@ -310,12 +322,12 @@ public class Client {
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (option.equals("C")) { return Client.ALBUM_CREATE; }
+        if (option.equals("C")) return Client.ALBUM_CREATE;
 
-        if (option.equals("B")) { return Client.DASHBOARD; }
+        if (option.equals("B")) return Client.DASHBOARD;
 
         try {
-            this.current_resource_id = Integer.parseInt(option);
+            this.current_album_id = Integer.parseInt(option);
         } catch (NumberFormatException nfe) {
             this.clearScreen();
             System.out.println("Errors:");
@@ -355,12 +367,12 @@ public class Client {
         String option;
 
         try {
-            album = this.albumInterface.read(this.current_resource_id);
+            album = this.albumInterface.read(this.current_album_id);
         } catch (RemoteException re) {
-            album = (Album)this.retry(Client.ALBUM, this.current_resource_id);
+            album = (Album)this.retry(Client.ALBUM, this.current_album_id);
         }
 
-        this.current_resource = album;
+        this.current_album = album;
 
         System.out.println("Album");
         System.out.println("Name: " + album.name);
@@ -371,7 +383,7 @@ public class Client {
         System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
         System.out.println("[" + Client.ALBUM_ARTISTS + "] See album artists");
 
-        if (this.user.isEditor) {
+        if (this.current_user.isEditor) {
             System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
             System.out.println("[" + Client.ALBUM_DELETE + "] Delete album");
         }
@@ -392,7 +404,7 @@ public class Client {
     }
 
     void displayAlbumUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
-        Album album = (Album)this.current_resource;
+        Album album = this.current_album;
         Album new_album;
         String name;
         String info;
@@ -423,6 +435,46 @@ public class Client {
         }
     }
 
+    int displayAlbumCritics() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Critic> critics;
+        String option;
+
+        try {
+            critics = this.albumInterface.critics(current_album_id);
+        } catch (RemoteException re) {
+            critics = (ArrayList<Critic>)this.retry(Client.ALBUM_CRITICS, null);
+        }
+
+        System.out.println("Critics");
+        if (critics.size() == 0) {
+            System.out.println("No critics available");
+        } else {
+            for (Critic critic : critics) {
+                System.out.println("[" + critic.id + "] By " + critic.author.username + " with " + critic.rating + " / 5");
+            }
+        }
+
+        System.out.println("[C] Add critic");
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("C")) return Client.ALBUM_CRITIC_CREATE;
+
+        if (option.equals("B")) return Client.ALBUM;
+
+        try {
+            this.current_critic_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbumCritics();
+        }
+
+        return Client.ALBUM_CRITIC;
+    }
 
     void clearScreen() {
         System.out.print("\033[H\033[2J");

@@ -78,4 +78,12 @@ public class Database {
             this.albums.remove(position);
         }
     }
+
+    ArrayList<Critic> album_critics(int album_id) throws CustomException {
+        for(Album album : this.albums) {
+            if (album.id == album_id) return album.critics;
+        }
+
+        throw new CustomException("Album not found");
+    }
 }

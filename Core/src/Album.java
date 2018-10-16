@@ -10,11 +10,12 @@ public class Album implements Serializable {
     String name;
     String info;
     Date releaseDate;
+    int points = 0;
     String releaseDateString;
     DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     // Relationships
-    ArrayList<Integer> critics = new ArrayList<>();
+    ArrayList<Critic> critics = new ArrayList<>();
     ArrayList<Integer> genres = new ArrayList<>();
     ArrayList<Integer> songs = new ArrayList<>();
     ArrayList<Integer> artists = new ArrayList<>();
@@ -69,7 +70,13 @@ public class Album implements Serializable {
         }
     }
 
-    public void addCritic(int critic_id) { this.critics.add(critic_id); }
+    public float getRating() {
+        if (this.critics.size() != 0) return this.points / (float)this.critics.size();
+
+        return 0;
+    }
+
+    public void addCritic(Critic critic) { this.critics.add(critic); }
 
     public void addGenre(int genre_id) { this.genres.add(genre_id); }
 
@@ -78,6 +85,11 @@ public class Album implements Serializable {
     public void addArtist(int artist_id) { this.artists.add(artist_id); }
 
     public String toString() {
-        return "Album: { name: " + this.name + ", info: " + this.info + ", release_date: " + this.releaseDateString + " }";
+        return "Album: { "
+                + "name: " + this.name + ", "
+                + "info: " + this.info + ", "
+                + "release_date: " + this.releaseDateString + ", "
+                + "rating: " + String.format("%.2f", this.getRating()) + " / 5"
+                + " }";
     }
 }
