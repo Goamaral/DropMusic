@@ -354,8 +354,12 @@ public class Client {
         System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
         System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
         System.out.println("[" + Client.ALBUM_ARTISTS + "] See album artists");
-        System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
-        System.out.println("[" + Client.ALBUM_DELETE + "] Delete album");
+
+        if (this.user.isEditor) {
+            System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
+            System.out.println("[" + Client.ALBUM_DELETE + "] Delete album");
+        }
+
         System.out.println("[" + Client.ALBUMS + "] Back");
         System.out.print("Option: ");
 
