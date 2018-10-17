@@ -235,7 +235,6 @@ public class Client {
                     if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUMS, ce);
                     } else {
-
                         this.redirect(Client.ALBUM_CRITICS, ce);
                     }
                 }

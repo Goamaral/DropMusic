@@ -28,7 +28,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     public Album read(int id) throws CustomException {
-        System.out.print("Action album read: " + id);
+        System.out.print("Action album(" + id + ") read: ");
 
         try {
             Album album = this.server.database.album_find(id);
@@ -41,7 +41,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void update(Album new_album) throws CustomException {
-        System.out.print("Action album update: " + new_album.toString());
+        System.out.print("Action album(" + new_album.id + ") update: " + new_album.toString());
 
         try {
             new_album.validate();
@@ -55,14 +55,14 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void delete(int id) {
-        System.out.println("Action album delete: " + id);
+        System.out.println("Action album(" + id + ") delete: ");
 
         server.database.album_delete(id);
     }
 
     public ArrayList<Critic> critics(int album_id) throws CustomException {
         ArrayList<Critic> critics = this.server.database.album_critics(album_id);
-        System.out.println("Action album critics: " + album_id + " " + critics.size() + " critics");
+        System.out.println("Action album(" + album_id +") critics: " + critics.size() + " critics");
 
         return critics;
     }
