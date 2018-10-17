@@ -11,9 +11,10 @@ public class Client {
     AlbumInterface albumInterface;
 
     User current_user;
-    Album current_album;
     int current_album_id;
+    Album current_album;
     int current_critic_id;
+    Critic current_critic;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -123,6 +124,8 @@ public class Client {
                 case Client.ALBUM_CRITIC_CREATE:
                     this.albumInterface.critic_create((Critic)resource);
                     break;
+                case Client.ALBUM_CRITIC:
+                    return this.albumInterface.critic(this.current_album_id, (int)resource);
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -220,6 +223,19 @@ public class Client {
                     if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUMS, ce);
                     } else {
+                        this.redirect(Client.ALBUM_CRITICS, ce);
+                    }
+                }
+                break;
+            case Client.ALBUM_CRITIC:
+                try {
+                    this.displayAlbumCritic();
+                    this.redirect(Client.ALBUM_CRITICS, null);
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else {
+
                         this.redirect(Client.ALBUM_CRITICS, ce);
                     }
                 }
@@ -379,21 +395,19 @@ public class Client {
     }
 
     int displayAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
-        Album album;
         String option;
 
         try {
-            album = this.albumInterface.read(this.current_album_id);
+            this.current_album = this.albumInterface.read(this.current_album_id);
         } catch (RemoteException re) {
-            album = (Album)this.retry(Client.ALBUM, this.current_album_id);
+            this.current_album = (Album)this.retry(Client.ALBUM, this.current_album_id);
         }
 
-        this.current_album = album;
-
         System.out.println("Album");
-        System.out.println("Name: " + album.name);
-        System.out.println("Info: " + album.info);
-        System.out.println("Release date: " + album.releaseDateString);
+        System.out.println("Name: " + this.current_album.name);
+        System.out.println("Rating: " + this.current_album.getRating() + "/5");
+        System.out.println("Info: " + this.current_album.info);
+        System.out.println("Release date: " + this.current_album.releaseDateString);
         System.out.println("[" + Client.ALBUM_CRITICS + "] See album critics");
         System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
         System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
@@ -521,6 +535,24 @@ public class Client {
         } catch(RemoteException re) {
             this.retry(Client.ALBUM_CRITIC_CREATE, critic);
         }
+    }
+
+    void displayAlbumCritic() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        try {
+            this.current_critic = this.albumInterface.critic(this.current_album_id, this.current_critic_id);
+        } catch (RemoteException re) {
+            this.current_critic = (Critic) this.retry(Client.ALBUM_CRITIC, this.current_critic_id);
+        }
+
+        System.out.println("Critic");
+        System.out.println("Album: " + this.current_critic.album.name);
+        System.out.println("Author: " + this.current_critic.author.username);
+        System.out.println("Rating: " + this.current_critic.rating + "/5");
+        System.out.println("Justification: " + this.current_critic.justification);
+        System.out.println("[B] Back");
+        System.out.print("Option: ");
+
+        this.scanner.nextLine();
     }
 
     void clearScreen() {

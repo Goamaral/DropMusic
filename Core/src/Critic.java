@@ -35,12 +35,17 @@ public class Critic implements Serializable {
     }
 
     private void ratingValidator() throws CustomException {
-        if (this.rating > 5) throw new CustomException("Rating can't be bigger than 5");
+        if (this.rating < 0 || this.rating > 5) throw new CustomException("Rating has to be between 0 and 5");
     }
 
     private void justificationValidator() throws CustomException {
+        this.justification.replaceAll("\\s","");
+
         if (this.justification.length() > 300)
-            throw  new CustomException("Justification can't be bigger than 200 characters");
+            throw  new CustomException("Justification can't be bigger than 300 characters");
+
+        if (this.justification.length() == 0)
+            throw new CustomException("Justification can't be empty");
     }
 
     public String toString() {

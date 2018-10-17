@@ -101,6 +101,19 @@ public class Database {
             throw ce;
         }
 
+        this.albums.get(position).points += critic.rating;
         this.albums.get(position).addCritic(critic);
+    }
+
+    Critic album_critic_find(int album_id, int critic_pos) throws CustomException {
+        try {
+            Album album = this.album_find(album_id);
+            return album.critics.get(critic_pos);
+        } catch (CustomException ce) {
+            ce.extraFlag = 1;
+            throw ce;
+        } catch (IndexOutOfBoundsException ioobe) {
+            throw new CustomException("Critic not found");
+        }
     }
 }

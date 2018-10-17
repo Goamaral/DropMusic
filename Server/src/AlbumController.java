@@ -1,4 +1,3 @@
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class AlbumController implements AlbumInterface {
@@ -69,12 +68,25 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void critic_create(Critic critic) throws CustomException {
-        System.out.print("Action album critic create: ");
+        System.out.print("Action album critic create:");
 
         try {
             critic.validate();
             this.server.database.album_critic_create(critic);
             System.out.println(" success");
+        } catch (CustomException ce) {
+            System.out.println(" failed");
+            throw ce;
+        }
+    }
+
+    public Critic critic(int album_id, int critic_pos) throws CustomException {
+        System.out.print("Action album(" + album_id + ") critic(" + critic_pos + ") read:");
+
+        try {
+            Critic critic = this.server.database.album_critic_find(album_id, critic_pos);
+            System.out.println(" success");
+            return critic;
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
