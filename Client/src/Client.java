@@ -120,6 +120,9 @@ public class Client {
                     break;
                 case Client.ALBUM_CRITICS:
                     return albumInterface.critics((int)resource);
+                case Client.ALBUM_CRITIC_CREATE:
+                    this.albumInterface.critic_create((Critic)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -187,7 +190,7 @@ public class Client {
                     this.displayAlbumUpdate();
                     redirect(Client.ALBUM, null);
                 } catch (CustomException ce) {
-                    redirect(Client.ALBUM, ce);
+                    redirect(Client.ALBUMS, ce);
                 }
             case Client.ALBUM_DELETE:
                 try {
@@ -208,6 +211,19 @@ public class Client {
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUMS, ce);
                 }
+                break;
+            case Client.ALBUM_CRITIC_CREATE:
+                try {
+                    this.displayAlbumCriticCreate();
+                    this.redirect(Client.ALBUM_CRITICS, null);
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else {
+                        this.redirect(Client.ALBUM_CRITICS, ce);
+                    }
+                }
+                break;
         }
     }
 
@@ -449,8 +465,10 @@ public class Client {
         if (critics.size() == 0) {
             System.out.println("No critics available");
         } else {
+            int i = 0;
             for (Critic critic : critics) {
-                System.out.println("[" + critic.id + "] By " + critic.author.username + " with " + critic.rating + " / 5");
+                System.out.println("[" + i + "] By " + critic.author.username + " with " + critic.rating + "/5 rating");
+                i += 1;
             }
         }
 
@@ -474,6 +492,35 @@ public class Client {
         }
 
         return Client.ALBUM_CRITIC;
+    }
+
+    void displayAlbumCriticCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Critic critic;
+        int rating;
+        String ratingString;
+        String justification;
+
+        System.out.println("Add critic");
+
+        System.out.print("Rating(x/5): ");
+        ratingString = this.scanner.nextLine();
+
+        try {
+            rating = Integer.parseInt(ratingString);
+        } catch (NumberFormatException nfe) {
+            throw new CustomException("Invalid rating");
+        }
+
+        System.out.print("Justification: ");
+        justification = this.scanner.nextLine();
+
+        critic = new Critic(rating, justification, this.current_album, this.current_user);
+
+        try {
+            this.albumInterface.critic_create(critic);
+        } catch(RemoteException re) {
+            this.retry(Client.ALBUM_CRITIC_CREATE, critic);
+        }
     }
 
     void clearScreen() {

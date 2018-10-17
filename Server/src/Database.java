@@ -54,27 +54,27 @@ public class Database {
     }
 
     void album_update(Album new_album) throws CustomException {
-        int position = -1;
+        int position = 0;
 
         for(Album album : this.albums) {
-            position += 1;
             if (album.id == new_album.id) break;
+            position += 1;
         }
 
-        if (position == -1) throw new CustomException("Album not found");
+        if (position == this.albums.size()) throw new CustomException("Album not found");
 
         this.albums.set(position, new_album);
     }
 
     void album_delete(int id) {
-        int position = -1;
+        int position = 0;
 
         for(Album album : this.albums) {
-            position += 1;
             if(album.id == id) break;
+            position += 1;
         }
 
-        if(position != -1) {
+        if(position != this.albums.size()) {
             this.albums.remove(position);
         }
     }
@@ -85,5 +85,22 @@ public class Database {
         }
 
         throw new CustomException("Album not found");
+    }
+
+    void album_critic_create(Critic critic) throws CustomException {
+        int position = 0;
+
+        for (Album album : this.albums) {
+            if (album.id == critic.album.id) break;
+            position += 1;
+        }
+
+        if (position == this.albums.size()) {
+            CustomException ce = new CustomException("Album does not exist");
+            ce.extraFlag = 1;
+            throw ce;
+        }
+
+        this.albums.get(position).addCritic(critic);
     }
 }

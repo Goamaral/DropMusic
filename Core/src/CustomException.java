@@ -2,6 +2,7 @@ import java.util.ArrayList;
 
 public class CustomException extends Exception {
     ArrayList<String> errors;
+    int extraFlag = 0;
 
     CustomException(ArrayList<String> errors) {
         super();

@@ -2,7 +2,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Critic implements Serializable {
-    int id;
     int rating;
     String justification;
 
@@ -21,12 +20,22 @@ public class Critic implements Serializable {
         ArrayList<String> errors = new ArrayList();
 
         try {
+            this.ratingValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        try {
             this.justificationValidator();
         } catch (CustomException ce) {
             errors.add(ce.errors.get(0));
         }
 
         if (errors.size() > 0) throw new CustomException(errors);
+    }
+
+    private void ratingValidator() throws CustomException {
+        if (this.rating > 5) throw new CustomException("Rating can't be bigger than 5");
     }
 
     private void justificationValidator() throws CustomException {
@@ -36,7 +45,7 @@ public class Critic implements Serializable {
 
     public String toString() {
         return "Critic: { "
-                + "rating: " + this.rating + " / 5, "
+                + "rating: " + this.rating + "/5, "
                 + "justification: " + this.justification + ", "
                 + "album: " + this.album.name + ", "
                 + "author_id: " + this.author.username
