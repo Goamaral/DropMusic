@@ -7,6 +7,9 @@ public class Database {
     ArrayList<Album> albums = new ArrayList<>();
     int next_album_id = 0;
 
+    ArrayList<Song> songs = new ArrayList<>();
+    int next_song_id = 0;
+
     // USER
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
@@ -116,4 +119,6 @@ public class Database {
             throw new CustomException("Critic not found");
         }
     }
+
+    ArrayList<Song> song_all() { return this.songs; }
 }

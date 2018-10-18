@@ -1,3 +1,4 @@
+import javax.crypto.Cipher;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -9,12 +10,14 @@ import java.util.Scanner;
 public class Client {
     UserInterface userInterface;
     AlbumInterface albumInterface;
+    SongInterface songInterface;
 
     User current_user;
     int current_album_id;
     Album current_album;
     int current_critic_id;
     Critic current_critic;
+    int current_song_id;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -39,6 +42,10 @@ public class Client {
     static final int ALBUM_DELETE = 13;
     static final int ALBUM_CRITIC = 14;
     static final int ALBUM_CRITIC_CREATE = 15;
+    static final int SONGS = 16;
+    static final int SONG_ARTISTS_TO_STRING = 17;
+    static final int SONG_CREATE = 18;
+    static final int SONG = 19;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -75,6 +82,7 @@ public class Client {
             Registry registry = LocateRegistry.getRegistry(port);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
             this.albumInterface = (AlbumInterface) registry.lookup("AlbumInterface");
+            this.songInterface = (SongInterface) registry.lookup("SongInterface");
         } catch (RemoteException re) {
             this.connectAttemps += 1;
             if (this.connectAttemps == this.maxAttemps) {
@@ -126,6 +134,10 @@ public class Client {
                     break;
                 case Client.ALBUM_CRITIC:
                     return this.albumInterface.critic(this.current_album_id, (int)resource);
+                case Client.SONGS:
+                    return this.songInterface.index();
+                case Client.SONG_ARTISTS_TO_STRING:
+                    return this.songInterface.artistsToString((int)resource);
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -239,10 +251,18 @@ public class Client {
                     }
                 }
                 break;
+            case Client.SONGS:
+                try {
+                    this.redirect(this.displaySongs(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.SONGS, ce);
+                }
+                break;
         }
     }
 
     // Views
+    // Start
     int displayStart() {
         String option;
 
@@ -263,7 +283,7 @@ public class Client {
         return Integer.parseInt(option);
     }
 
-
+    // Auth
     void displayLogin() throws NoSuchAlgorithmException, InterruptedException, CustomException {
         User user;
         String username;
@@ -303,17 +323,18 @@ public class Client {
         }
     }
 
-
+    // Dashboard
     int displayDashboard() {
         String option;
 
         System.out.println("Dashboard");
         System.out.println("[" + Client.ALBUMS + "] Albums");
+        System.out.println("[" + Client.SONGS + "] Songs");
         System.out.println("[" + Client.START + "] Logout");
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("[" + Client.ALBUMS + Client.START + "]")) {
+        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + "|" + Client.SONGS + ")")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
@@ -323,7 +344,7 @@ public class Client {
         return Integer.parseInt(option);
     }
 
-
+    // Albums
     int displayAlbums() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String option;
         ArrayList<Album> albums;
@@ -353,7 +374,9 @@ public class Client {
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (option.equals("C")) return Client.ALBUM_CREATE;
+        if (this.current_user.isEditor) {
+            if (option.equals("C")) return Client.ALBUM_CREATE;
+        }
 
         if (option.equals("B")) return Client.DASHBOARD;
 
@@ -429,6 +452,13 @@ public class Client {
             return this.displayAlbum();
         }
 
+        if (!this.current_user.isEditor && option.matches("(" + Client.ALBUM_UPDATE + "|" + Client.ALBUM_DELETE +")")) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbum();
+        }
+
         return Integer.parseInt(option);
     }
 
@@ -464,6 +494,7 @@ public class Client {
         }
     }
 
+    // Album critics
     int displayAlbumCritics() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         ArrayList<Critic> critics;
         String option;
@@ -552,6 +583,66 @@ public class Client {
         System.out.print("Option: ");
 
         this.scanner.nextLine();
+    }
+
+    // Songs
+    int displaySongs() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Song> songs;
+        ArrayList<String> artists = new ArrayList<>();
+        String artistsString;
+        String option;
+
+        try {
+            songs = this.songInterface.index();
+        } catch (RemoteException re) {
+            songs = (ArrayList<Song>)this.retry(Client.SONGS, null);
+        }
+
+        for (Song song : songs) {
+            try {
+                artistsString = this.songInterface.artistsToString(song.id);
+            } catch (RemoteException re) {
+                artistsString = (String)this.retry(Client.SONG_ARTISTS_TO_STRING, song.id);
+            }
+
+            artists.add(artistsString);
+        }
+
+        System.out.println("Songs");
+
+        if (songs.size() == 0) {
+            System.out.println("No songs available");
+        } else {
+            for (int i = 0; i < songs.size(); ++i) {
+                Song song = songs.get(i);
+                artistsString = artists.get(i);
+
+                System.out.println("[" + song.id + "] " + song.name + " by " + artistsString);
+            }
+        }
+
+        if (this.current_user.isEditor) System.out.println("[C] Add song");
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if(this.current_user.isEditor) {
+            if (option.equals("C")) return Client.SONG_CREATE;
+        }
+
+        if (option.equals("B")) return Client.DASHBOARD;
+
+        try {
+            this.current_song_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displaySongs();
+        }
+
+        return Client.SONG;
     }
 
     void clearScreen() {
