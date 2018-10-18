@@ -10,7 +10,6 @@ import java.util.Scanner;
 public class Client {
     UserInterface userInterface;
     AlbumInterface albumInterface;
-    SongInterface songInterface;
 
     User current_user;
     int current_album_id;
@@ -42,10 +41,8 @@ public class Client {
     static final int ALBUM_DELETE = 13;
     static final int ALBUM_CRITIC = 14;
     static final int ALBUM_CRITIC_CREATE = 15;
-    static final int SONGS = 16;
-    static final int SONG_ARTISTS_TO_STRING = 17;
-    static final int SONG_CREATE = 18;
-    static final int SONG = 19;
+    static final int ALBUM_SONG_CREATE = 16;
+    static final int ALBUM_SONG = 17;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -82,7 +79,6 @@ public class Client {
             Registry registry = LocateRegistry.getRegistry(port);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
             this.albumInterface = (AlbumInterface) registry.lookup("AlbumInterface");
-            this.songInterface = (SongInterface) registry.lookup("SongInterface");
         } catch (RemoteException re) {
             this.connectAttemps += 1;
             if (this.connectAttemps == this.maxAttemps) {
@@ -134,10 +130,8 @@ public class Client {
                     break;
                 case Client.ALBUM_CRITIC:
                     return this.albumInterface.critic(this.current_album_id, (int)resource);
-                case Client.SONGS:
-                    return this.songInterface.index();
-                case Client.SONG_ARTISTS_TO_STRING:
-                    return this.songInterface.artistsToString((int)resource);
+                case Client.ALBUM_SONGS:
+                    return this.albumInterface.songs((int)resource);
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -251,11 +245,11 @@ public class Client {
                     }
                 }
                 break;
-            case Client.SONGS:
+            case Client.ALBUM_SONGS:
                 try {
-                    this.redirect(this.displaySongs(), null);
+                    this.redirect(this.displayAlbumSongs(), null);
                 } catch (CustomException ce) {
-                    this.redirect(Client.SONGS, ce);
+                    this.redirect(Client.ALBUM_SONGS, ce);
                 }
                 break;
         }
@@ -329,12 +323,11 @@ public class Client {
 
         System.out.println("Dashboard");
         System.out.println("[" + Client.ALBUMS + "] Albums");
-        System.out.println("[" + Client.SONGS + "] Songs");
         System.out.println("[" + Client.START + "] Logout");
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + "|" + Client.SONGS + ")")) {
+        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + ")")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
@@ -431,8 +424,8 @@ public class Client {
         System.out.println("Info: " + this.current_album.info);
         System.out.println("Release date: " + this.current_album.releaseDateString);
         System.out.println("[" + Client.ALBUM_CRITICS + "] See album critics");
-        System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
         System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
+        System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
         System.out.println("[" + Client.ALBUM_ARTISTS + "] See album artists");
 
         if (this.current_user.isEditor) {
@@ -585,53 +578,39 @@ public class Client {
         this.scanner.nextLine();
     }
 
-    // Songs
-    int displaySongs() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+    // Album songs
+    int displayAlbumSongs() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         ArrayList<Song> songs;
-        ArrayList<String> artists = new ArrayList<>();
-        String artistsString;
         String option;
 
         try {
-            songs = this.songInterface.index();
+            songs = this.albumInterface.songs(this.current_album_id);
         } catch (RemoteException re) {
-            songs = (ArrayList<Song>)this.retry(Client.SONGS, null);
+            songs = (ArrayList<Song>) this.retry(Client.ALBUM_SONGS, null);
         }
 
-        for (Song song : songs) {
-            try {
-                artistsString = this.songInterface.artistsToString(song.id);
-            } catch (RemoteException re) {
-                artistsString = (String)this.retry(Client.SONG_ARTISTS_TO_STRING, song.id);
-            }
-
-            artists.add(artistsString);
-        }
-
-        System.out.println("Songs");
-
+        System.out.println("Album songs");
         if (songs.size() == 0) {
             System.out.println("No songs available");
         } else {
-            for (int i = 0; i < songs.size(); ++i) {
-                Song song = songs.get(i);
-                artistsString = artists.get(i);
-
-                System.out.println("[" + song.id + "] " + song.name + " by " + artistsString);
+            for (Song song : songs) {
+                System.out.println("[" + song.id + "] " + song.name + " by " + song.artists);
             }
         }
 
-        if (this.current_user.isEditor) System.out.println("[C] Add song");
+        if (this.current_user.isEditor) {
+            System.out.println("[C] Add song");
+        }
+
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
+
         option = this.scanner.nextLine();
 
-        if(this.current_user.isEditor) {
-            if (option.equals("C")) return Client.SONG_CREATE;
-        }
+        if (this.current_user.isEditor && option.equals("C")) return Client.ALBUM_SONG_CREATE;
 
-        if (option.equals("B")) return Client.DASHBOARD;
+        if (option.equals("B")) return Client.ALBUM;
 
         try {
             this.current_song_id = Integer.parseInt(option);
@@ -639,10 +618,10 @@ public class Client {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
-            return this.displaySongs();
+            return this.displayAlbumSongs();
         }
 
-        return Client.SONG;
+        return Client.ALBUM_SONG;
     }
 
     void clearScreen() {

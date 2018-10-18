@@ -10,7 +10,7 @@ public class Database {
     ArrayList<Song> songs = new ArrayList<>();
     int next_song_id = 0;
 
-    // USER
+    // User
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
             if (user.username.equals(username)) {
@@ -36,7 +36,7 @@ public class Database {
         this.next_user_id += 1;
     }
 
-    // ALBUM
+    // Album
     ArrayList<Album> album_all() {
         return this.albums;
     }
@@ -82,6 +82,7 @@ public class Database {
         }
     }
 
+    // Critic
     ArrayList<Critic> album_critics(int album_id) throws CustomException {
         for(Album album : this.albums) {
             if (album.id == album_id) return album.critics;
@@ -120,5 +121,27 @@ public class Database {
         }
     }
 
-    ArrayList<Song> song_all() { return this.songs; }
+    // Song
+    ArrayList<Song> album_song_all(int album_id) throws CustomException {
+        ArrayList<Song> songs = new ArrayList<>();
+        Album album = this.album_find(album_id);
+
+        for (int song_id : album.song_ids) {
+            try {
+                songs.add(this.song_find(song_id));
+            } catch (CustomException ce) {
+                System.out.println("WARNING: Album songs data inconsistency: song(" + song_id + ")");
+            }
+        }
+
+        return songs;
+    }
+
+    Song song_find(int id) throws CustomException {
+        for (Song song : this.songs) {
+            if (song.id == id) return song;
+        }
+
+        throw new CustomException("Song not found");
+    }
 }

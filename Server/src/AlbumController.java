@@ -60,6 +60,7 @@ public class AlbumController implements AlbumInterface {
         server.database.album_delete(id);
     }
 
+    // Critic
     public ArrayList<Critic> critics(int album_id) throws CustomException {
         ArrayList<Critic> critics = this.server.database.album_critics(album_id);
         System.out.println("Action album(" + album_id +") critics: " + critics.size() + " critics");
@@ -91,6 +92,14 @@ public class AlbumController implements AlbumInterface {
             System.out.println(" failed");
             throw ce;
         }
+    }
+
+    // Song
+    public ArrayList<Song> songs(int album_id) throws CustomException {
+        ArrayList<Song> songs = this.server.database.album_song_all(album_id);
+        System.out.println("Action album(" + album_id + ") song index: " + songs.size() + " songs");
+
+        return songs;
     }
 
 

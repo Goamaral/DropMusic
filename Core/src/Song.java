@@ -1,12 +1,14 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Song {
+public class Song implements Serializable {
     int id;
     String name;
     String info;
+    String artists = "";
 
     // Relationships
-    ArrayList<Integer> album_ids;
+    int album_id;
     ArrayList<Integer> artist_ids;
 
     Song(String name, String info) {
@@ -38,7 +40,14 @@ public class Song {
         this.artist_ids.add(artist_id);
     }
 
-    void addAlbum(int album_id) {
-        this.album_ids.add(album_id);
+    void bindAlbum(int album_id) {
+        this.album_id = album_id;
+    }
+
+    public String toString() {
+        return "Song: { "
+                + "name: " + this.name + ", "
+                + "info: " + this.info
+                + " }";
     }
 }

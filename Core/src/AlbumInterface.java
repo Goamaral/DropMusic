@@ -8,7 +8,12 @@ public interface AlbumInterface extends Remote {
     Album read(int id) throws RemoteException, CustomException;
     void update(Album new_album) throws RemoteException, CustomException;
     void delete(int id) throws RemoteException;
+
+    // Critic
     ArrayList<Critic> critics(int album_id) throws RemoteException, CustomException;
     void critic_create(Critic critic) throws RemoteException, CustomException;
     Critic critic(int album_id, int critic_pos) throws RemoteException, CustomException;
+
+    // Song
+    ArrayList<Song> songs(int album_id) throws RemoteException, CustomException;
 }
