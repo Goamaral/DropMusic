@@ -1,3 +1,4 @@
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class AlbumController implements AlbumInterface {
@@ -103,7 +104,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void song_create(int album_id, Song song) throws CustomException {
-        System.out.print("Action album(" + album_id + ") song create: ");
+        System.out.print("Action album(" + album_id + ") song create:");
 
         try {
             song.validate();
@@ -113,6 +114,29 @@ public class AlbumController implements AlbumInterface {
             System.out.println(" failed");
             throw ce;
         }
+    }
+
+    public Song song(int album_id, int song_id) throws RemoteException, CustomException {
+        Album album;
+
+        System.out.println("Action album(" + album_id + ") song(" + song_id +") read:");
+
+        try {
+            album = this.server.database.album_find(album_id);
+        } catch (CustomException ce) {
+            System.out.println(" failed");
+            ce.extraFlag = 1;
+            throw ce;
+        }
+
+        if (song_id >= album.songs.size()) {
+            System.out.println(" failed");
+            throw new CustomException("Song not found");
+        }
+
+        System.out.println(" success");
+
+        return album.songs.get(song_id);
     }
 
 

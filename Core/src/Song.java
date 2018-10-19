@@ -2,7 +2,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Song implements Serializable {
-    int id;
     String name;
     String info;
     String artists = "";

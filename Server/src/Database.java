@@ -89,21 +89,9 @@ public class Database {
     }
 
     void album_critic_create(Critic critic) throws CustomException {
-        int position = 0;
-
-        for (Album album : this.albums) {
-            if (album.id == critic.album.id) break;
-            position += 1;
-        }
-
-        if (position == this.albums.size()) {
-            CustomException ce = new CustomException("Album does not exist");
-            ce.extraFlag = 1;
-            throw ce;
-        }
-
-        this.albums.get(position).points += critic.rating;
-        this.albums.get(position).addCritic(critic);
+        Album album = this.album_find(critic.album.id);
+        album.points += critic.rating;
+        album.addCritic(critic);
     }
 
     Critic album_critic_find(int album_id, int critic_pos) throws CustomException {
