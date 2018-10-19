@@ -16,4 +16,5 @@ public interface AlbumInterface extends Remote {
 
     // Song
     ArrayList<Song> songs(int album_id) throws RemoteException, CustomException;
+    void song_create(int album_id, Song song) throws RemoteException, CustomException;
 }

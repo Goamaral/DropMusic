@@ -102,6 +102,19 @@ public class AlbumController implements AlbumInterface {
         return songs;
     }
 
+    public void song_create(int album_id, Song song) throws CustomException {
+        System.out.print("Action album(" + album_id + ") song create: ");
+
+        try {
+            song.validate();
+            this.server.database.albums_song_create(album_id, song);
+            System.out.println(" success");
+        } catch (CustomException ce) {
+            System.out.println(" failed");
+            throw ce;
+        }
+    }
+
 
     // ORM
 }

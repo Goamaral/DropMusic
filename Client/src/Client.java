@@ -132,6 +132,9 @@ public class Client {
                     return this.albumInterface.critic(this.current_album_id, (int)resource);
                 case Client.ALBUM_SONGS:
                     return this.albumInterface.songs((int)resource);
+                case Client.ALBUM_SONG_CREATE:
+                    this.albumInterface.song_create(this.current_album_id, (Song)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -155,16 +158,14 @@ public class Client {
                 break;
             case Client.REGISTER:
                 try {
-                    this.displayRegister();
-                    this.redirect(Client.START, null);
+                    this.redirect(this.displayRegister(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.START, ce);
                 }
                 break;
             case Client.LOGIN:
                 try {
-                    this.displayLogin();
-                    this.redirect(Client.DASHBOARD, null);
+                    this.redirect(this.displayLogin(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.START, ce);
                 }
@@ -181,8 +182,7 @@ public class Client {
                 break;
             case Client.ALBUM_CREATE:
                 try {
-                    this.displayAlbumCreate();
-                    this.redirect(Client.ALBUMS, null);
+                    this.redirect(this.displayAlbumCreate(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUMS, ce);
                 }
@@ -196,8 +196,7 @@ public class Client {
                 break;
             case Client.ALBUM_UPDATE:
                 try {
-                    this.displayAlbumUpdate();
-                    redirect(Client.ALBUM, null);
+                    redirect(this.displayAlbumUpdate(), null);
                 } catch (CustomException ce) {
                     redirect(Client.ALBUMS, ce);
                 }
@@ -223,8 +222,7 @@ public class Client {
                 break;
             case Client.ALBUM_CRITIC_CREATE:
                 try {
-                    this.displayAlbumCriticCreate();
-                    this.redirect(Client.ALBUM_CRITICS, null);
+                    this.redirect(this.displayAlbumCriticCreate(), null);
                 } catch (CustomException ce) {
                     if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUMS, ce);
@@ -235,8 +233,7 @@ public class Client {
                 break;
             case Client.ALBUM_CRITIC:
                 try {
-                    this.displayAlbumCritic();
-                    this.redirect(Client.ALBUM_CRITICS, null);
+                    this.redirect(this.displayAlbumCritic(), null);
                 } catch (CustomException ce) {
                     if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUMS, ce);
@@ -250,6 +247,17 @@ public class Client {
                     this.redirect(this.displayAlbumSongs(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONGS, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_CREATE:
+                try {
+                    this.redirect(this.displayAlbumSongCreate(), null);
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else {
+                        this.redirect(Client.ALBUM_SONG, ce);
+                    }
                 }
                 break;
         }
@@ -278,7 +286,7 @@ public class Client {
     }
 
     // Auth
-    void displayLogin() throws NoSuchAlgorithmException, InterruptedException, CustomException {
+    int displayLogin() throws NoSuchAlgorithmException, InterruptedException, CustomException {
         User user;
         String username;
         String password;
@@ -296,9 +304,11 @@ public class Client {
         } catch (RemoteException re) {
             this.retry(Client.LOGIN, user);
         }
+
+        return Client.DASHBOARD;
     }
 
-    void displayRegister() throws NoSuchAlgorithmException, CustomException, InterruptedException {
+    int displayRegister() throws NoSuchAlgorithmException, CustomException, InterruptedException {
         User user;
         String password, username;
 
@@ -315,6 +325,8 @@ public class Client {
         } catch (RemoteException re) {
             this.retry(Client.REGISTER, user);
         }
+
+        return Client.START;
     }
 
     // Dashboard
@@ -385,7 +397,7 @@ public class Client {
         return Client.ALBUM;
     }
 
-    void displayAlbumCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+    int displayAlbumCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String name, info, realeaseDateString;
         Album album;
 
@@ -407,6 +419,8 @@ public class Client {
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_CREATE, album);
         }
+
+        return Client.ALBUMS;
     }
 
     int displayAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
@@ -455,7 +469,7 @@ public class Client {
         return Integer.parseInt(option);
     }
 
-    void displayAlbumUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+    int displayAlbumUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Album album = this.current_album;
         Album new_album;
         String name;
@@ -485,6 +499,8 @@ public class Client {
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_UPDATE, new_album);
         }
+
+        return Client.ALBUM;
     }
 
     // Album critics
@@ -531,7 +547,7 @@ public class Client {
         return Client.ALBUM_CRITIC;
     }
 
-    void displayAlbumCriticCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+    int displayAlbumCriticCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Critic critic;
         int rating;
         String ratingString;
@@ -558,9 +574,11 @@ public class Client {
         } catch(RemoteException re) {
             this.retry(Client.ALBUM_CRITIC_CREATE, critic);
         }
+
+        return Client.ALBUM_CRITICS;
     }
 
-    void displayAlbumCritic() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+    int displayAlbumCritic() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         try {
             this.current_critic = this.albumInterface.critic(this.current_album_id, this.current_critic_id);
         } catch (RemoteException re) {
@@ -576,6 +594,8 @@ public class Client {
         System.out.print("Option: ");
 
         this.scanner.nextLine();
+
+        return Client.ALBUM_CRITICS;
     }
 
     // Album songs
@@ -622,6 +642,29 @@ public class Client {
         }
 
         return Client.ALBUM_SONG;
+    }
+
+    int displayAlbumSongCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Song song;
+        String name, info;
+
+        System.out.println("Add song");
+
+        System.out.print("Name: ");
+        name = this.scanner.nextLine();
+
+        System.out.print("Info: ");
+        info = this.scanner.nextLine();
+
+        song = new Song(name, info);
+
+        try {
+            this.albumInterface.song_create(this.current_album_id, song);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_CREATE, song);
+        }
+
+        return Client.ALBUM_SONGS;
     }
 
     void clearScreen() {
