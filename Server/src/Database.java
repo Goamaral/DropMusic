@@ -125,4 +125,17 @@ public class Database {
 
         album.addSong(song);
     }
+
+    void album_song_update(int album_id, int song_id, Song new_song) throws CustomException {
+        Album album;
+
+        try {
+            album = this.album_find(album_id);
+        } catch (CustomException ce) {
+            ce.extraFlag = 1;
+            throw ce;
+        }
+
+        album.songs.set(song_id, new_song);
+    }
 }

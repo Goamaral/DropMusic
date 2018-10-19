@@ -17,6 +17,7 @@ public class Client {
     int current_critic_id;
     Critic current_critic;
     int current_song_id;
+    Song current_song;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -139,6 +140,9 @@ public class Client {
                     break;
                 case Client.ALBUM_SONG:
                     return this.albumInterface.song(this.current_album_id, (int) resource);
+                case Client.ALBUM_SONG_UPDATE:
+                    this.albumInterface.song_update(this.current_album_id, this.current_song_id, (Song)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -265,6 +269,17 @@ public class Client {
                     this.redirect(this.displayAlbumSong(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONG, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_UPDATE:
+                try {
+                    this.redirect(this.displayAlbumSongUpdate(), null);
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else {
+                        this.redirect(Client.ALBUM_SONG, ce);
+                    }
                 }
                 break;
         }
@@ -477,29 +492,26 @@ public class Client {
     }
 
     int displayAlbumUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
-        Album album = this.current_album;
         Album new_album;
-        String name;
-        String info;
-        String releaseDate;
+        String name, info, releaseDate;
 
         System.out.println("Edit album");
         System.out.println("Leave fields empty if you don't want to change them");
 
-        System.out.print("Name(" + album.name + "): ");
+        System.out.print("Name(" + this.current_album.name + "): ");
         name = this.scanner.nextLine();
-        if (name.length() == 0) name = album.name;
+        if (name.length() == 0) name = this.current_album.name;
 
-        System.out.print("Info(" + album.info + "): ");
+        System.out.print("Info(" + this.current_album.info + "): ");
         info = this.scanner.nextLine();
-        if (info.length() == 0) info = album.info;
+        if (info.length() == 0) info = this.current_album.info;
 
-        System.out.print("Release date(" + album.releaseDateString + "): ");
+        System.out.print("Release date(" + this.current_album.releaseDateString + "): ");
         releaseDate = this.scanner.nextLine();
-        if (releaseDate.length() == 0) releaseDate = album.releaseDateString;
+        if (releaseDate.length() == 0) releaseDate = this.current_album.releaseDateString;
 
         new_album = new Album(name, info, releaseDate);
-        new_album.id = album.id;
+        new_album.id = this.current_album.id;
 
         try {
             this.albumInterface.update(new_album);
@@ -679,18 +691,17 @@ public class Client {
 
     int displayAlbumSong() throws CustomException, NoSuchAlgorithmException, InterruptedException {
         String option;
-        Song song;
 
         try {
-            song = this.albumInterface.song(this.current_album_id, this.current_song_id);
+            this.current_song = this.albumInterface.song(this.current_album_id, this.current_song_id);
         } catch (RemoteException re) {
-            song = (Song) this.retry(Client.ALBUM_SONG, this.current_song_id);
+            this.current_song = (Song) this.retry(Client.ALBUM_SONG, this.current_song_id);
         }
 
         System.out.println("Song");
-        System.out.println("Name: " + song.name);
-        System.out.println("Info: " + song.info);
-        System.out.println("Artists: " + song.artists);
+        System.out.println("Name: " + this.current_song.name);
+        System.out.println("Info: " + this.current_song.info);
+        System.out.println("Artists: " + this.current_song.artists);
         //System.out.println("Genres: " + song.genres);
 
         if (this.current_user.isEditor) {
@@ -698,7 +709,7 @@ public class Client {
             System.out.println("[D] Delete song");
         }
 
-        System.out.print("[B] Back");
+        System.out.println("[B] Back");
 
         System.out.print("Option: ");
 
@@ -713,6 +724,34 @@ public class Client {
 
         throw new CustomException("Invalid option");
     }
+
+    int displayAlbumSongUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Song new_song;
+        String name, info;
+
+        System.out.println("Edit song");
+        System.out.println("Leave fields empty if you don't want to change them");
+
+        System.out.print("Name(" + this.current_song.name + "): ");
+        name = this.scanner.nextLine();
+        if (name.length() == 0) name = this.current_song.name;
+
+        System.out.print("Info(" + this.current_song.info + "): ");
+        info = this.scanner.nextLine();
+        if (info.length() == 0) info = this.current_song.info;
+
+        new_song = new Song(name, info);
+        //new_song.id = this.current_song.id;
+
+        try {
+            this.albumInterface.song_update(this.current_album_id, this.current_song_id, new_song);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_UPDATE, new_song);
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
 
     void clearScreen() {
         System.out.print("\033[H\033[2J");

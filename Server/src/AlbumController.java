@@ -139,6 +139,18 @@ public class AlbumController implements AlbumInterface {
         return album.songs.get(song_id);
     }
 
+    public void song_update(int album_id, int song_id, Song new_song) throws RemoteException, CustomException {
+        System.out.print("Action album(" + album_id + ") song(" + song_id + ") update: ");
+
+        try {
+            new_song.validate();
+            this.server.database.album_song_update(album_id, song_id, new_song);
+            System.out.println("success");
+        } catch (CustomException ce) {
+            System.out.println("failure");
+            throw ce;
+        }
+    }
 
     // ORM
 }
