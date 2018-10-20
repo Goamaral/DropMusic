@@ -6,7 +6,7 @@ public class AlbumController implements AlbumInterface {
 
     AlbumController(Server server) { this.server = server; }
 
-    // Controller
+    // Album
     public ArrayList<Album> index() {
         ArrayList<Album> albums = server.database.album_all();
         System.out.println("Action album index: " + albums.size() + " albums");
@@ -119,7 +119,7 @@ public class AlbumController implements AlbumInterface {
     public Song song(int album_id, int song_id) throws RemoteException, CustomException {
         Album album;
 
-        System.out.println("Action album(" + album_id + ") song(" + song_id +") read:");
+        System.out.print("Action album(" + album_id + ") song(" + song_id +") read:");
 
         try {
             album = this.server.database.album_find(album_id);
@@ -139,7 +139,7 @@ public class AlbumController implements AlbumInterface {
         return album.songs.get(song_id);
     }
 
-    public void song_update(int album_id, int song_id, Song new_song) throws RemoteException, CustomException {
+    public void song_update(int album_id, int song_id, Song new_song) throws CustomException {
         System.out.print("Action album(" + album_id + ") song(" + song_id + ") update: ");
 
         try {
@@ -152,5 +152,7 @@ public class AlbumController implements AlbumInterface {
         }
     }
 
-    // ORM
+    public void song_delete(int album_id, int song_id) throws CustomException {
+        this.server.database.album_song_delete(album_id, song_id);
+    }
 }

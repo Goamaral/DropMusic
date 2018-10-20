@@ -1,3 +1,4 @@
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class Database {
@@ -8,16 +9,6 @@ public class Database {
     int next_album_id = 0;
 
     // User
-    User user_findByUsername(String username) throws CustomException {
-        for (User user : this.users) {
-            if (user.username.equals(username)) {
-                return user;
-            }
-        }
-
-        throw new CustomException("Username not found");
-    }
-
     void user_create(User user) throws CustomException {
         for (User user_i : this.users) {
             if (user_i.username.equals(user.username)) {
@@ -31,6 +22,16 @@ public class Database {
 
         this.users.add(user);
         this.next_user_id += 1;
+    }
+
+    User user_findByUsername(String username) throws CustomException {
+        for (User user : this.users) {
+            if (user.username.equals(username)) {
+                return user;
+            }
+        }
+
+        throw new CustomException("Username not found");
     }
 
     // Album
@@ -123,7 +124,9 @@ public class Database {
             throw ce;
         }
 
+        song.id = album.songs.size();
         album.addSong(song);
+
     }
 
     void album_song_update(int album_id, int song_id, Song new_song) throws CustomException {
@@ -136,6 +139,12 @@ public class Database {
             throw ce;
         }
 
+        new_song.id = song_id;
         album.songs.set(song_id, new_song);
+    }
+
+    void album_song_delete(int album_id, int song_id) throws CustomException {
+        Album album = this.album_find(album_id);
+        album.songs.set(song_id, null);
     }
 }

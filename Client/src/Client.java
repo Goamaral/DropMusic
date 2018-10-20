@@ -143,6 +143,9 @@ public class Client {
                 case Client.ALBUM_SONG_UPDATE:
                     this.albumInterface.song_update(this.current_album_id, this.current_song_id, (Song)resource);
                     break;
+                case Client.ALBUM_SONG_DELETE:
+                    this.albumInterface.song_delete(this.current_album_id, (int)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -282,6 +285,18 @@ public class Client {
                     }
                 }
                 break;
+            case Client.ALBUM_SONG_DELETE:
+                try {
+                    try {
+                        this.albumInterface.song_delete(this.current_album_id, this.current_song_id);
+                    } catch (RemoteException re) {
+                        this.retry(Client.ALBUM_SONG_DELETE, this.current_song_id);
+                    }
+
+                    this.redirect(Client.ALBUM_SONGS, null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONGS, ce);
+                }
         }
     }
 
@@ -632,11 +647,10 @@ public class Client {
         if (songs.size() == 0) {
             System.out.println("No songs available");
         } else {
-            int position = 0;
-
             for (Song song : songs) {
-                System.out.println("[" + position + "] " + song.name + " by " + song.artists);
-                position += 1;
+                if (song == null) continue;
+
+                System.out.println("[" + song.id + "] " + song.name + " by " + song.artists);
             }
         }
 
@@ -751,7 +765,6 @@ public class Client {
 
         return Client.ALBUM_SONG;
     }
-
 
     void clearScreen() {
         System.out.print("\033[H\033[2J");
