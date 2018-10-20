@@ -5,29 +5,18 @@ public class Song implements Serializable {
     int id;
     String name;
     String info;
-    String artists = "";
 
     // Relationships
     int album_id;
     ArrayList<Integer> artist_ids;
+    ArrayList<Integer> genres_ids;
 
     Song(String name, String info) {
         this.name = name;
         this.info = info;
     }
 
-    void validate() throws CustomException {
-        ArrayList<String> errors = new ArrayList();
-
-        try {
-            this.nameValidator();
-        } catch (CustomException ce) {
-            errors.add(ce.errors.get(0));
-        }
-
-        if (errors.size() > 0) throw new CustomException(errors);
-    }
-
+    void validate() throws CustomException { this.nameValidator(); }
 
     void nameValidator() throws CustomException {
         this.name.replaceAll("\\s","");
@@ -36,9 +25,9 @@ public class Song implements Serializable {
             throw new CustomException("Name can't be empty");
     }
 
-    void addArtist(int artist_id) {
-        this.artist_ids.add(artist_id);
-    }
+    void addArtist(int artist_id, String artist_name) { this.artist_ids.add(artist_id); }
+
+    void addGenre(int genre_id, String genre_name) { this.genres_ids.add(genre_id); }
 
     void bindAlbum(int album_id) {
         this.album_id = album_id;

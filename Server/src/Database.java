@@ -8,6 +8,9 @@ public class Database {
     ArrayList<Album> albums = new ArrayList<>();
     int next_album_id = 0;
 
+    ArrayList<Artist> artists = new ArrayList<>();
+    int next_artist_id = 0;
+
     // User
     void user_create(User user) throws CustomException {
         for (User user_i : this.users) {
@@ -147,4 +150,25 @@ public class Database {
         Album album = this.album_find(album_id);
         album.songs.set(song_id, null);
     }
+
+    Song album_song_find(int album_id, int song_id) throws CustomException {
+        Album album;
+
+        try {
+            album = this.album_find(album_id);
+        } catch (CustomException ce) {
+            ce.extraFlag = 1;
+            throw ce;
+        }
+
+        for (Song song : album.songs) {
+            if (song == null) continue;
+            if (song.id == song_id) return song;
+        }
+
+        throw new CustomException("Song not found");
+    }
+
+    // Artist
+    ArrayList<Artist> artist_all() { return this.artists; }
 }

@@ -85,6 +85,10 @@ public class Server implements ServerInterface {
             AlbumInterface albumInterface = (AlbumInterface) UnicastRemoteObject.exportObject(albumController, this.currentPort);
             registry.rebind("AlbumInterface", albumInterface);
 
+            ArtistController artistController = new ArtistController(this);
+            ArtistInterface artistInterface = (ArtistInterface) UnicastRemoteObject.exportObject(artistController, this.currentPort);
+            registry.rebind("ArtistInterface", artistInterface);
+
         } catch(RemoteException re) {
             this.connectAttemps += 1;
 

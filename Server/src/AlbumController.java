@@ -33,10 +33,10 @@ public class AlbumController implements AlbumInterface {
 
         try {
             Album album = this.server.database.album_find(id);
-            System.out.println(" found");
+            System.out.println("success");
             return album;
         } catch (CustomException ce) {
-            System.out.println(" not found");
+            System.out.println("failure");
             throw ce;
         }
     }
@@ -118,25 +118,19 @@ public class AlbumController implements AlbumInterface {
 
     public Song song(int album_id, int song_id) throws RemoteException, CustomException {
         Album album;
+        Song song;
 
         System.out.print("Action album(" + album_id + ") song(" + song_id +") read:");
 
         try {
-            album = this.server.database.album_find(album_id);
+            song = this.server.database.album_song_find(album_id, song_id);
+            System.out.println(" success");
         } catch (CustomException ce) {
-            System.out.println(" failed");
-            ce.extraFlag = 1;
+            System.out.println(" failure");
             throw ce;
         }
 
-        if (song_id >= album.songs.size()) {
-            System.out.println(" failed");
-            throw new CustomException("Song not found");
-        }
-
-        System.out.println(" success");
-
-        return album.songs.get(song_id);
+        return song;
     }
 
     public void song_update(int album_id, int song_id, Song new_song) throws CustomException {

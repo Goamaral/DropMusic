@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class Client {
     UserInterface userInterface;
     AlbumInterface albumInterface;
+    ArtistInterface artistInterface;
 
     User current_user;
     int current_album_id;
@@ -18,6 +19,8 @@ public class Client {
     Critic current_critic;
     int current_song_id;
     Song current_song;
+    int current_artist_id;
+    Artist current_artist;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -35,17 +38,19 @@ public class Client {
     static final int ALBUM = 6;
     static final int ALBUM_CREATE = 7;
     static final int ALBUM_CRITICS = 8;
-    static final int ALBUM_GENRES = 9;
-    static final int ALBUM_ARTISTS = 10;
-    static final int ALBUM_SONGS = 11;
-    static final int ALBUM_UPDATE = 12;
-    static final int ALBUM_DELETE = 13;
-    static final int ALBUM_CRITIC = 14;
-    static final int ALBUM_CRITIC_CREATE = 15;
-    static final int ALBUM_SONG_CREATE = 16;
-    static final int ALBUM_SONG = 17;
-    static final int ALBUM_SONG_UPDATE = 18;
-    static final int ALBUM_SONG_DELETE = 19;
+    static final int ALBUM_SONGS = 9;
+    static final int ALBUM_UPDATE = 10;
+    static final int ALBUM_DELETE = 11;
+    static final int ALBUM_CRITIC = 12;
+    static final int ALBUM_CRITIC_CREATE = 13;
+    static final int ALBUM_SONG_CREATE = 14;
+    static final int ALBUM_SONG = 15;
+    static final int ALBUM_SONG_UPDATE = 16;
+    static final int ALBUM_SONG_DELETE = 17;
+    static final int ALBUM_SONG_ARTISTS = 18;
+    static final int ALBUM_SONG_GENRES = 19;
+    static final int ARTISTS = 20;
+    static final int ARTIST = 21;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -82,6 +87,7 @@ public class Client {
             Registry registry = LocateRegistry.getRegistry(port);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
             this.albumInterface = (AlbumInterface) registry.lookup("AlbumInterface");
+            this.artistInterface = (ArtistInterface) registry.lookup("ArtistInterface");
         } catch (RemoteException re) {
             this.connectAttemps += 1;
             if (this.connectAttemps == this.maxAttemps) {
@@ -146,6 +152,8 @@ public class Client {
                 case Client.ALBUM_SONG_DELETE:
                     this.albumInterface.song_delete(this.current_album_id, (int)resource);
                     break;
+                case Client.ARTISTS:
+                    return this.artistInterface.index();
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -263,7 +271,7 @@ public class Client {
                     if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUMS, ce);
                     } else {
-                        this.redirect(Client.ALBUM_SONG, ce);
+                        this.redirect(Client.ALBUM_SONGS, ce);
                     }
                 }
                 break;
@@ -271,7 +279,7 @@ public class Client {
                 try {
                     this.redirect(this.displayAlbumSong(), null);
                 } catch (CustomException ce) {
-                    this.redirect(Client.ALBUM_SONG, ce);
+                    this.redirect(Client.ALBUM_SONGS, ce);
                 }
                 break;
             case Client.ALBUM_SONG_UPDATE:
@@ -297,10 +305,17 @@ public class Client {
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONGS, ce);
                 }
+                break;
+            case Client.ARTISTS:
+                try {
+                    this.redirect(this.displayArtists(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ARTISTS, ce);
+                }
+                break;
         }
     }
 
-    // Views
     // Start
     int displayStart() {
         String option;
@@ -372,11 +387,12 @@ public class Client {
 
         System.out.println("Dashboard");
         System.out.println("[" + Client.ALBUMS + "] Albums");
+        System.out.println("[" + Client.ARTISTS + "] Artists");
         System.out.println("[" + Client.START + "] Logout");
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + ")")) {
+        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + "|" + Client.ARTISTS + ")")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
@@ -474,10 +490,8 @@ public class Client {
         System.out.println("Rating: " + this.current_album.getRating() + "/5");
         System.out.println("Info: " + this.current_album.info);
         System.out.println("Release date: " + this.current_album.releaseDateString);
-        System.out.println("[" + Client.ALBUM_CRITICS + "] See album critics");
-        System.out.println("[" + Client.ALBUM_SONGS + "] See album songs");
-        System.out.println("[" + Client.ALBUM_GENRES + "] See album genres");
-        System.out.println("[" + Client.ALBUM_ARTISTS + "] See album artists");
+        System.out.println("[" + Client.ALBUM_CRITICS + "] Critics");
+        System.out.println("[" + Client.ALBUM_SONGS + "] Songs");
 
         if (this.current_user.isEditor) {
             System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
@@ -489,7 +503,7 @@ public class Client {
 
         option = this.scanner.nextLine();
 
-        if (!option.matches("(" + Client.ALBUM_CRITICS + "|" + Client.ALBUM_GENRES + "|" + Client.ALBUM_SONGS + "|" + Client.ALBUM_ARTISTS + "|" + Client.ALBUM_UPDATE + "|" + Client.ALBUM_DELETE + "|" + Client.ALBUMS + ")")) {
+        if (!option.matches("(" + Client.ALBUM_CRITICS + "|" + Client.ALBUM_SONGS + "|" + Client.ALBUM_UPDATE + "|" + Client.ALBUM_DELETE + "|" + Client.ALBUMS + ")")) {
             this.clearScreen();
             System.out.println("Errors:");
             System.out.println("-> Invalid option");
@@ -650,7 +664,7 @@ public class Client {
             for (Song song : songs) {
                 if (song == null) continue;
 
-                System.out.println("[" + song.id + "] " + song.name + " by " + song.artists);
+                System.out.println("[" + song.id + "] " + song.name + " by " /*+ Show song artists*/);
             }
         }
 
@@ -715,10 +729,12 @@ public class Client {
         System.out.println("Song");
         System.out.println("Name: " + this.current_song.name);
         System.out.println("Info: " + this.current_song.info);
-        System.out.println("Artists: " + this.current_song.artists);
-        //System.out.println("Genres: " + song.genres);
+        // Show song artists
+        // Show song genres
 
         if (this.current_user.isEditor) {
+            System.out.println("[" + Client.ALBUM_SONG_ARTISTS + "] Artists");
+            System.out.println("[" + Client.ALBUM_SONG_GENRES + "] Genres");
             System.out.println("[U] Edit song");
             System.out.println("[D] Delete song");
         }
@@ -766,6 +782,49 @@ public class Client {
         return Client.ALBUM_SONG;
     }
 
+    // Artists
+    int displayArtists() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Artist> artists;
+        String option;
+
+        try {
+            artists = this.artistInterface.index();
+        } catch (RemoteException re) {
+            artists = (ArrayList<Artist>) this.retry(Client.ARTISTS, null);
+        }
+
+        System.out.println("Artists");
+
+        for(Artist artist : artists) {
+            System.out.println("[" + artist.id + "] " + artist.name);
+        }
+
+        if (this.current_user.isEditor) {
+            System.out.println("[C] Add artist");
+        }
+
+        System.out.println("[B] Back");
+        System.out.print("Option: ");
+
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.DASHBOARD;
+
+        if (this.current_user.isEditor && option.equals("C")) return Client.ARTIST_CREATE;
+
+        try {
+            this.current_artist_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayArtists();
+        }
+
+        return Client.ARTIST;
+    }
+
+    // View helper
     void clearScreen() {
         System.out.print("\033[H\033[2J");
     }
