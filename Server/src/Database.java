@@ -236,6 +236,14 @@ public class Database {
 
         return new Index_SameObject(-1, false);
     }
+
+    Artist artist_find(int id) throws CustomException {
+        for(Artist artist : this.artists) {
+            if (artist.id == id) return artist;
+        }
+
+        throw new CustomException("Artist not found");
+    }
 }
 
 class Index_SameObject {

@@ -1,4 +1,3 @@
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class ArtistController implements ArtistInterface {
@@ -17,7 +16,7 @@ public class ArtistController implements ArtistInterface {
     }
 
     public void create(Artist artist) throws CustomException {
-        System.out.print("Action album create: " + artist.name);
+        System.out.print("Action artist create: " + artist.name);
 
         try {
             artist.validate();
@@ -29,20 +28,20 @@ public class ArtistController implements ArtistInterface {
 
         System.out.println(" success");
     }
-/*
-    public Album read(int id) throws CustomException {
-        System.out.print("Action album(" + id + ") read: ");
+
+    public Artist read(int id) throws CustomException {
+        System.out.print("Action artist(" + id + ") read: ");
 
         try {
-            Album album = this.server.database.album_find(id);
+            Artist artist = this.server.database.artist_find(id);
             System.out.println("success");
-            return album;
+            return artist;
         } catch (CustomException ce) {
             System.out.println("failure");
             throw ce;
         }
     }
-
+/*
     public void update(Album new_album) throws CustomException {
         System.out.print("Action album(" + new_album.id + ") update: " + new_album.toString());
 
