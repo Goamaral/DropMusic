@@ -1,4 +1,3 @@
-import javax.crypto.Cipher;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -51,6 +50,7 @@ public class Client {
     static final int ALBUM_SONG_GENRES = 19;
     static final int ARTISTS = 20;
     static final int ARTIST = 21;
+    static final int ARTIST_CREATE = 22;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -145,15 +145,18 @@ public class Client {
                     this.albumInterface.song_create(this.current_album_id, (Song)resource);
                     break;
                 case Client.ALBUM_SONG:
-                    return this.albumInterface.song(this.current_album_id, (int) resource);
+                    return this.albumInterface.song(this.current_album_id, (int)resource);
                 case Client.ALBUM_SONG_UPDATE:
-                    this.albumInterface.song_update(this.current_album_id, this.current_song_id, (Song)resource);
+                    this.albumInterface.song_update(this.current_album_id, (Song)resource);
                     break;
                 case Client.ALBUM_SONG_DELETE:
                     this.albumInterface.song_delete(this.current_album_id, (int)resource);
                     break;
                 case Client.ARTISTS:
                     return this.artistInterface.index();
+                case Client.ARTIST_CREATE:
+                    this.artistInterface.create((Artist)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -309,6 +312,13 @@ public class Client {
             case Client.ARTISTS:
                 try {
                     this.redirect(this.displayArtists(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ARTISTS, ce);
+                }
+                break;
+            case Client.ARTIST_CREATE:
+                try {
+                    this.redirect(this.displayArtistCreate(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ARTISTS, ce);
                 }
@@ -729,8 +739,8 @@ public class Client {
         System.out.println("Song");
         System.out.println("Name: " + this.current_song.name);
         System.out.println("Info: " + this.current_song.info);
-        // Show song artists
-        // Show song genres
+        // TODO: Show song artists
+        // TODO: Show song genres
 
         if (this.current_user.isEditor) {
             System.out.println("[" + Client.ALBUM_SONG_ARTISTS + "] Artists");
@@ -771,10 +781,10 @@ public class Client {
         if (info.length() == 0) info = this.current_song.info;
 
         new_song = new Song(name, info);
-        //new_song.id = this.current_song.id;
+        new_song.id = this.current_song.id;
 
         try {
-            this.albumInterface.song_update(this.current_album_id, this.current_song_id, new_song);
+            this.albumInterface.song_update(this.current_album_id, new_song);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_UPDATE, new_song);
         }
@@ -823,6 +833,24 @@ public class Client {
 
         return Client.ARTIST;
     }
+
+    int displayArtistCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Artist artist;
+
+        System.out.println("Create artist");
+
+        System.out.print("Name: ");
+        artist = new Artist(this.scanner.nextLine());
+
+        try {
+            this.artistInterface.create(artist);
+        } catch(RemoteException re) {
+            this.retry(Client.ARTIST_CREATE, artist);
+        }
+
+        return Client.ARTISTS;
+    }
+
 
     // View helper
     void clearScreen() {

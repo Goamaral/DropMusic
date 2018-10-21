@@ -1,30 +1,38 @@
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class Database {
     ArrayList<User> users = new ArrayList<>();
-    int next_user_id = 0;
 
     ArrayList<Album> albums = new ArrayList<>();
-    int next_album_id = 0;
 
     ArrayList<Artist> artists = new ArrayList<>();
-    int next_artist_id = 0;
 
     // User
     void user_create(User user) throws CustomException {
-        for (User user_i : this.users) {
-            if (user_i.username.equals(user.username)) {
-                throw new CustomException("Username already exists");
+        Index_SameObject result = this.user_exists(user);
+
+        if (result.index == -1) {
+            if (this.users.size() == 0) user.becomeEditor();
+
+            user.id = this.users.size();
+            this.users.add(user);
+        } else {
+            throw new CustomException("Username already exists");
+        }
+    }
+
+    Index_SameObject user_exists(User new_user) {
+        int index = 0;
+
+        for (User user : this.users) {
+            if (user.username.equals(new_user.username)) {
+                return new Index_SameObject(index, user.id == new_user.id);
             }
+
+            index += 1;
         }
 
-        if  (this.users.size() == 0) user.becomeEditor();
-
-        user.id = this.next_user_id;
-
-        this.users.add(user);
-        this.next_user_id += 1;
+        return new Index_SameObject(-1, false);
     }
 
     User user_findByUsername(String username) throws CustomException {
@@ -42,11 +50,20 @@ public class Database {
         return this.albums;
     }
 
-    void album_create(Album album) {
-        album.id = this.next_album_id;
-
+    void album_create(Album album) throws CustomException {
+        album.id = this.albums.size();
         this.albums.add(album);
-        this.next_album_id += 1;
+    }
+
+    Index_SameObject album_exists(Album new_album) {
+        int index = 0;
+
+        for (Album album : this.albums) {
+            if (album.name.equals(new_album.name)) return new Index_SameObject(index, album.id == new_album.id);
+            index += 1;
+        }
+
+        return new Index_SameObject(-1, false);
     }
 
     Album album_find(int id) throws CustomException {
@@ -58,16 +75,13 @@ public class Database {
     }
 
     void album_update(Album new_album) throws CustomException {
-        int position = 0;
+        Index_SameObject result = this.album_exists(new_album);
 
-        for(Album album : this.albums) {
-            if (album.id == new_album.id) break;
-            position += 1;
+        if (result.index != -1) {
+            this.albums.set(result.index, new_album);
+        } else {
+            throw new CustomException("Album not found");
         }
-
-        if (position == this.albums.size()) throw new CustomException("Album not found");
-
-        this.albums.set(position, new_album);
     }
 
     void album_delete(int id) {
@@ -121,29 +135,56 @@ public class Database {
         Album album;
 
         try {
-            album = this.album_find(album_id);
+            if (this.album_song_exists(album_id, song).index != -1) {
+                try {
+                    album = this.album_find(album_id);
+                } catch (CustomException ce) {
+                    ce.extraFlag = 1;
+                    throw ce;
+                }
+
+                song.id = album.songs.size();
+                album.addSong(song);
+            } else {
+                throw new CustomException("Song name already exists in album");
+            }
         } catch (CustomException ce) {
             ce.extraFlag = 1;
             throw ce;
         }
-
-        song.id = album.songs.size();
-        album.addSong(song);
-
     }
 
-    void album_song_update(int album_id, int song_id, Song new_song) throws CustomException {
-        Album album;
+    Index_SameObject album_song_exists(int album_id, Song new_song) throws CustomException {
+        Album album = this.album_find(album_id);
+        int index = 0;
 
-        try {
-            album = this.album_find(album_id);
-        } catch (CustomException ce) {
-            ce.extraFlag = 1;
-            throw ce;
+        for (Song song : album.songs) {
+            if (song.name.equals(new_song.name)) return new Index_SameObject(index, song.id == new_song.id);
+            index += 1;
         }
 
-        new_song.id = song_id;
-        album.songs.set(song_id, new_song);
+        return new Index_SameObject(-1, false);
+    }
+
+    void album_song_update(int album_id, Song new_song) throws CustomException {
+        Album album;
+        Index_SameObject result = this.album_song_exists(album_id, new_song);
+
+        if (result.sameObject) {
+            try {
+                album = this.album_find(album_id);
+            } catch (CustomException ce) {
+                ce.extraFlag = 1;
+                throw ce;
+            }
+
+            album.songs.set(new_song.id, new_song);
+        } else if (result.index != -1) {
+            throw new CustomException("Song name already exists in album");
+        } else {
+            throw new CustomException("Song not found");
+        }
+
     }
 
     void album_song_delete(int album_id, int song_id) throws CustomException {
@@ -171,4 +212,38 @@ public class Database {
 
     // Artist
     ArrayList<Artist> artist_all() { return this.artists; }
+
+    void artist_create(Artist artist) throws CustomException {
+        Index_SameObject result = this.artist_exists(artist);
+
+        if (result.index == -1) {
+            artist.id = this.artists.size();
+            this.artists.add(artist);
+        } else {
+            throw new CustomException("Artist already exists");
+        }
+    }
+
+    Index_SameObject artist_exists(Artist new_artist) {
+        int index = 0;
+
+        for (Artist artist : this.artists) {
+            if (artist.name.equals(new_artist.name)) {
+                return new Index_SameObject(index, artist.id == new_artist.id);
+            }
+            index += 1;
+        }
+
+        return new Index_SameObject(-1, false);
+    }
+}
+
+class Index_SameObject {
+    int index;
+    boolean sameObject;
+
+    Index_SameObject(int index, boolean sameObject) {
+        this.index = index;
+        this.sameObject = sameObject;
+    }
 }

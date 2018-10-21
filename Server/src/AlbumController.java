@@ -133,12 +133,12 @@ public class AlbumController implements AlbumInterface {
         return song;
     }
 
-    public void song_update(int album_id, int song_id, Song new_song) throws CustomException {
-        System.out.print("Action album(" + album_id + ") song(" + song_id + ") update: ");
+    public void song_update(int album_id, Song new_song) throws CustomException {
+        System.out.print("Action album(" + album_id + ") song(" + new_song.id + ") update: ");
 
         try {
             new_song.validate();
-            this.server.database.album_song_update(album_id, song_id, new_song);
+            this.server.database.album_song_update(album_id, new_song);
             System.out.println("success");
         } catch (CustomException ce) {
             System.out.println("failure");

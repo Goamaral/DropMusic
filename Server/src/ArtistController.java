@@ -15,13 +15,13 @@ public class ArtistController implements ArtistInterface {
 
         return artists;
     }
-/*
-    public void create(Album album) throws CustomException {
-        System.out.print("Action album create: " + album.toString());
+
+    public void create(Artist artist) throws CustomException {
+        System.out.print("Action album create: " + artist.name);
 
         try {
-            album.validate();
-            server.database.album_create(album);
+            artist.validate();
+            server.database.artist_create(artist);
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -29,7 +29,7 @@ public class ArtistController implements ArtistInterface {
 
         System.out.println(" success");
     }
-
+/*
     public Album read(int id) throws CustomException {
         System.out.print("Action album(" + id + ") read: ");
 
