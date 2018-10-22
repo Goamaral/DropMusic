@@ -46,15 +46,18 @@ public class Client {
     static final int ALBUM_SONG = 15;
     static final int ALBUM_SONG_UPDATE = 16;
     static final int ALBUM_SONG_DELETE = 17;
-    static final int ALBUM_SONG_ARTISTS = 18;
-    static final int ALBUM_SONG_GENRES = 19;
-    static final int ARTISTS = 20;
-    static final int ARTIST = 21;
-    static final int ARTIST_CREATE = 22;
-    static final int ARTIST_UPDATE = 23;
-    static final int ARTIST_DELETE = 24;
-    static final int ALBUM_SONG_GENRE_ADD = 25;
-    static final int ALBUM_SONG_GENRE_CREATE = 26;
+    static final int ALBUM_SONG_GENRES = 18;
+    static final int ALBUM_SONG_GENRE_ADD = 19;
+    static final int ALBUM_SONG_GENRE_CREATE = 20;
+    static final int ALBUM_SONG_GENRE_REMOVE = 21;
+    static final int ALBUM_SONG_ARTISTS = 22;
+    static final int ARTISTS = 23;
+    static final int ARTIST = 24;
+    static final int ARTIST_CREATE = 25;
+    static final int ARTIST_UPDATE = 26;
+    static final int ARTIST_DELETE = 27;
+    static final int GENRES = 28;
+
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -164,13 +167,18 @@ public class Client {
                 case Client.ARTIST_UPDATE:
                     this.artistInterface.update((Artist)resource);
                     break;
-                case Client.ALBUM_SONG_GENRES:
-                    return this.albumInterface.song_genres();
+                case Client.GENRES:
+                    return this.albumInterface.genres();
                 case Client.ALBUM_SONG_GENRE_ADD:
                     this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, (int)resource);
                     break;
                 case Client.ALBUM_SONG_GENRE_CREATE:
                     this.albumInterface.song_genre_create((Genre)resource);
+                    break;
+                case Client.ALBUM_SONG_GENRES:
+                    return this.albumInterface.song_genres(this.current_song);
+                case Client.ALBUM_SONG_GENRE_REMOVE:
+                    this.albumInterface.song_genre_delete(this.current_album_id, this.current_song_id, (int)resource);
                     break;
             }
         } catch(RemoteException re) {
@@ -377,7 +385,7 @@ public class Client {
                     } else if (ce.extraFlag == 1) {
                         this.redirect(Client.ALBUM_SONGS, ce);
                     } else {
-                        this.redirect(Client.ALBUM_SONG_GENRES, ce);
+                        this.redirect(Client.ALBUM_SONG, ce);
                     }
                 }
                 break;
@@ -386,6 +394,13 @@ public class Client {
                     this.redirect(this.displayAlbumSongGenreCreate(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONG_GENRE_ADD, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_GENRE_REMOVE:
+                try {
+                    this.redirect(this.displayAlbumSongGenreRemove(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG_GENRES, ce);
                 }
                 break;
         }
@@ -864,7 +879,7 @@ public class Client {
 
         if (this.current_user.isEditor) {
             System.out.println("[C] Add genre");
-            // TODO: System.out.println("[D] Remove genre");
+            System.out.println("[D] Remove genre");
         }
 
         System.out.println("[B] Back");
@@ -876,7 +891,7 @@ public class Client {
 
         if (this.current_user.isEditor) {
             if (option.equals("C")) return Client.ALBUM_SONG_GENRE_ADD;
-            // TODO: if (option.equals("D")) return Client.ALBUM_SONG_GENRE_DELETE;
+            if (option.equals("D")) return Client.ALBUM_SONG_GENRE_REMOVE;
         }
 
         this.clearScreen();
@@ -891,9 +906,9 @@ public class Client {
         int genre_id;
 
         try {
-            genres = this.albumInterface.song_genres();
+            genres = this.albumInterface.genres();
         } catch (RemoteException re) {
-            genres = (ArrayList<Genre>)this.retry(Client.ALBUM_SONG_GENRES, null);
+            genres = (ArrayList<Genre>)this.retry(Client.GENRES, null);
         }
 
         System.out.println("Add genre:");
@@ -934,7 +949,7 @@ public class Client {
             this.retry(Client.ALBUM_SONG_GENRE_ADD, genre_id);
         }
 
-        return Client.ALBUM_SONG_GENRES;
+        return Client.ALBUM_SONG;
     }
 
     int displayAlbumSongGenreCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
@@ -952,6 +967,52 @@ public class Client {
         }
 
         return Client.ALBUM_SONG_GENRE_ADD;
+    }
+
+    int displayAlbumSongGenreRemove() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Genre> genres;
+        String option;
+        int genre_id;
+
+        try {
+            genres = this.albumInterface.song_genres(this.current_song);
+        } catch(RemoteException re) {
+            genres = (ArrayList<Genre>) this.retry(Client.ALBUM_SONG_GENRES, null);
+        }
+
+        System.out.println("Remove genre");
+
+        if (genres.size() == 0) {
+            System.out.println("No genres available");
+        } else {
+            for (Genre genre : genres) {
+                System.out.println("[" + genre.id + "] " + genre.name);
+            }
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG_GENRES;
+
+        try {
+            genre_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbumSongGenreRemove();
+        }
+
+        try {
+            this.albumInterface.song_genre_delete(this.current_album_id, this.current_song_id, genre_id);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_GENRE_REMOVE, genre_id);
+        }
+
+        return Client.ALBUM_SONG;
     }
 
     // Artists

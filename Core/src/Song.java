@@ -1,5 +1,7 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Song implements Serializable {
     int id;
@@ -9,7 +11,6 @@ public class Song implements Serializable {
     String genres = "";
 
     // Relationships
-    int album_id;
     ArrayList<Integer> artist_ids = new ArrayList<>();
     ArrayList<Integer> genres_ids = new ArrayList<>();
 
@@ -38,8 +39,30 @@ public class Song implements Serializable {
         this.genres_ids.add(genre.id);
     }
 
-    void bindAlbum(int album_id) {
-        this.album_id = album_id;
+    void removeGenre(Genre genre) {
+        String[] genre_parts;
+        List<String> genre_parts_list;
+
+        int index = this.genres_ids.indexOf(genre.id);
+
+        if (index != -1) {
+            genre_parts = this.genres.split(", ");
+            genre_parts_list = Arrays.asList(genre_parts);
+
+            this.genres = "";
+
+            for (int i = 0; i < genre_parts_list.size(); ++i) {
+                if (i == index) continue;
+
+                if (this.genres.equals("")) {
+                    this.genres = genre_parts_list.get(i);
+                } else {
+                    this.genres += ", " + genre_parts_list.get(i);
+                }
+            }
+
+            this.genres_ids.remove(index);
+        }
     }
 
     public String toString() {

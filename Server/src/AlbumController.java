@@ -151,7 +151,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     // Genre
-    public ArrayList<Genre> song_genres() throws CustomException {
+    public ArrayList<Genre> genres() {
         ArrayList<Genre> genres = this.server.database.genre_all();
 
         System.out.println("Action genres: " + genres.size() + " genres");
@@ -182,4 +182,29 @@ public class AlbumController implements AlbumInterface {
             throw ce;
         }
     }
+
+    public ArrayList<Genre> song_genres(Song song) {
+        System.out.print("Action song(" + song.id + ") genres: ");
+
+        ArrayList<Genre> genres = new ArrayList<>();
+
+        for (int genre_id : song.genres_ids) {
+            try {
+                genres.add(this.server.database.genre_find(genre_id));
+            } catch (CustomException ce) {
+                // ignore if genre not found
+            }
+        }
+
+        System.out.println("success");
+
+        return genres;
+    }
+
+    public void song_genre_delete(int album_id, int song_id, int genre_id) {
+        System.out.print("Action album(" + album_id + ") song(" + song_id + ") genre(" + genre_id + ") delete");
+
+        this.server.database.album_song_genre_remove(album_id, song_id, genre_id);
+    }
+
 }

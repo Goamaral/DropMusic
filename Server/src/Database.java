@@ -317,6 +317,19 @@ public class Database {
 
         song.addGenre(genre);
     }
+
+    void album_song_genre_remove(int album_id, int song_id, int genre_id) {
+        Song song;
+        Genre genre;
+
+        try {
+            song = this.album_song_find(album_id, song_id);
+            genre = this.genre_find(genre_id);
+            song.removeGenre(genre);
+        } catch (CustomException ce) {
+            // if song, album or genre not found ignore
+        }
+    }
 }
 
 class Index_SameObject {

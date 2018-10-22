@@ -22,7 +22,9 @@ public interface AlbumInterface extends Remote {
     void song_delete(int album_id, int song_id) throws RemoteException, CustomException;
 
     // Genres
-    ArrayList<Genre> song_genres() throws RemoteException, CustomException;
+    ArrayList<Genre> genres() throws RemoteException;
     void song_genre_add(int album_id, int song_id, int genre_id) throws RemoteException, CustomException;
     void song_genre_create(Genre genre) throws RemoteException, CustomException;
+    ArrayList<Genre> song_genres(Song song) throws RemoteException;
+    void song_genre_delete(int album_id, int song_id, int genre_id) throws CustomException, RemoteException;
 }

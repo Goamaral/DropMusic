@@ -10,7 +10,7 @@ public class UserController implements UserInterface {
         user.encrypt_password();
         User fetched_user;
 
-        System.out.println("Action user login: " + user.toString());
+        System.out.print("Action user(" + user.username + ") login: ");
 
         try {
             fetched_user = this.server.database.user_findByUsername(user.username);
@@ -29,17 +29,17 @@ public class UserController implements UserInterface {
     }
 
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
-        System.out.println("Action user register: " + user.toString());
+        System.out.print("Action user(" + user.username + ") register: ");
 
         try {
             user.validate();
             this.server.database.user_create(user);
         } catch(CustomException ce) {
-            System.out.println(" failed");
+            System.out.println("failed");
             throw ce;
         }
 
-        System.out.println(" success");
+        System.out.println("success");
     }
 }
 
