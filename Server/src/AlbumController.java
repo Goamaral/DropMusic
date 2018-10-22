@@ -117,7 +117,6 @@ public class AlbumController implements AlbumInterface {
     }
 
     public Song song(int album_id, int song_id) throws RemoteException, CustomException {
-        Album album;
         Song song;
 
         System.out.print("Action album(" + album_id + ") song(" + song_id +") read:");
@@ -147,30 +146,40 @@ public class AlbumController implements AlbumInterface {
     }
 
     public void song_delete(int album_id, int song_id) throws CustomException {
+        System.out.println("Action album(" + album_id + ") song(" + song_id + ") delete");
         this.server.database.album_song_delete(album_id, song_id);
     }
 
     // Genre
-    public ArrayList<Genre> song_genres(int album_id, int song_id) throws CustomException {
-        Song song;
-        ArrayList<Genre> genres = new ArrayList<>();
+    public ArrayList<Genre> song_genres() throws CustomException {
+        ArrayList<Genre> genres = this.server.database.genre_all();
 
-        try {
-            song = this.server.database.album_song_find(album_id, song_id);
-        } catch (CustomException ce) {
-            ce.extraFlag += 1;
-            throw ce;
-        }
-
-        for (int genre_id : song.genres_ids) {
-            genres.add(this.server.database.genre_find(genre_id));
-        }
+        System.out.println("Action genres: " + genres.size() + " genres");
 
         return genres;
     }
 
     public void song_genre_add(int album_id, int song_id, int genre_id) throws CustomException {
-        this.server.database.album_song_genre_add(album_id, song_id, genre_id);
+        System.out.print("Action album(" + album_id + ") song(" + song_id + ") genre(" + genre_id + ") add: ");
+
+        try {
+            this.server.database.album_song_genre_add(album_id, song_id, genre_id);
+            System.out.println("success");
+        } catch (CustomException ce) {
+            System.out.println("failure");
+            throw ce;
+        }
     }
 
+    public void song_genre_create(Genre genre) throws CustomException {
+        System.out.print("Action genre create: " + genre.name + " ");
+
+        try {
+            this.server.database.genre_create(genre);
+            System.out.println("success");
+        } catch (CustomException ce) {
+            System.out.println("failure");
+            throw ce;
+        }
+    }
 }

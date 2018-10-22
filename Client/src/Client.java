@@ -165,9 +165,12 @@ public class Client {
                     this.artistInterface.update((Artist)resource);
                     break;
                 case Client.ALBUM_SONG_GENRES:
-                    return this.albumInterface.song_genres(this.current_album_id, this.current_song_id);
+                    return this.albumInterface.song_genres();
                 case Client.ALBUM_SONG_GENRE_ADD:
                     this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, (int)resource);
+                    break;
+                case Client.ALBUM_SONG_GENRE_CREATE:
+                    this.albumInterface.song_genre_create((Genre)resource);
                     break;
             }
         } catch(RemoteException re) {
@@ -368,8 +371,21 @@ public class Client {
             case Client.ALBUM_SONG_GENRE_ADD:
                 try {
                     this.redirect(this.displayAlbumSongGenreAdd(), null);
-                } catch (CustomException e) {
-
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 2) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUM_SONGS, ce);
+                    } else {
+                        this.redirect(Client.ALBUM_SONG_GENRES, ce);
+                    }
+                }
+                break;
+            case Client.ALBUM_SONG_GENRE_CREATE:
+                try {
+                    this.redirect(this.displayAlbumSongGenreCreate(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG_GENRE_ADD, ce);
                 }
                 break;
         }
@@ -875,17 +891,21 @@ public class Client {
         int genre_id;
 
         try {
-            genres = this.albumInterface.song_genres(this.current_album_id, this.current_song_id);
+            genres = this.albumInterface.song_genres();
         } catch (RemoteException re) {
             genres = (ArrayList<Genre>)this.retry(Client.ALBUM_SONG_GENRES, null);
         }
 
         System.out.println("Add genre:");
 
-        for (Genre genre : genres) {
-            if (genre == null) continue;
+        if (genres.size() == 0) {
+            System.out.println("No genres available");
+        } else {
+            for (Genre genre : genres) {
+                if (genre == null) continue;
 
-            System.out.println("[" + genre.id + "] " + genre.name);
+                System.out.println("[" + genre.id + "] " + genre.name);
+            }
         }
 
 
@@ -915,6 +935,23 @@ public class Client {
         }
 
         return Client.ALBUM_SONG_GENRES;
+    }
+
+    int displayAlbumSongGenreCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Genre genre;
+
+        System.out.println("Create genre");
+        System.out.print("Name: ");
+
+        genre = new Genre(this.scanner.nextLine());
+
+        try {
+            this.albumInterface.song_genre_create(genre);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_GENRE_CREATE, genre);
+        }
+
+        return Client.ALBUM_SONG_GENRE_ADD;
     }
 
     // Artists

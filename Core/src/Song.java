@@ -33,7 +33,7 @@ public class Song implements Serializable {
         if (this.genres_ids.contains(genre.id)) throw new CustomException("Genre already exists");
 
         if (this.genres.length() != 0) this.genres += ", ";
-        this.genres = genre.name;
+        this.genres += genre.name;
 
         this.genres_ids.add(genre.id);
     }

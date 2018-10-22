@@ -215,12 +215,40 @@ public class Database {
     }
 
     // Genre
+    ArrayList<Genre> genre_all() { return this.genres; }
+
     Genre genre_find(int id) throws CustomException {
         for (Genre genre : this.genres) {
             if (genre.id == id) return genre;
         }
 
         throw new CustomException("Genre not found");
+    }
+
+    void genre_create(Genre genre) throws CustomException {
+        Index_SameObject result = this.genre_exists(genre);
+
+        if (result.index == -1) {
+            genre.id = this.genres.size();
+            this.genres.add(genre);
+        } else {
+            throw new CustomException("Genre already exists");
+        }
+    }
+
+    Index_SameObject genre_exists(Genre new_genre) {
+        int index = 0;
+
+        for (Genre genre : this.genres) {
+            if (genre == null) continue;
+
+            if (genre.name.equals(new_genre.name)) {
+                return new Index_SameObject(index, new_genre.id == new_genre.id);
+            }
+            index += 1;
+        }
+
+        return new Index_SameObject(-1, false);
     }
 
     // Artist
