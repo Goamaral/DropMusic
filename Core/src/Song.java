@@ -5,11 +5,13 @@ public class Song implements Serializable {
     int id;
     String name;
     String info;
+    String artists = "";
+    String genres = "";
 
     // Relationships
     int album_id;
-    ArrayList<Integer> artist_ids;
-    ArrayList<Integer> genres_ids;
+    ArrayList<Integer> artist_ids = new ArrayList<>();
+    ArrayList<Integer> genres_ids = new ArrayList<>();
 
     Song(String name, String info) {
         this.name = name;
@@ -27,7 +29,14 @@ public class Song implements Serializable {
 
     void addArtist(int artist_id, String artist_name) { this.artist_ids.add(artist_id); }
 
-    void addGenre(int genre_id, String genre_name) { this.genres_ids.add(genre_id); }
+    void addGenre(Genre genre) throws CustomException {
+        if (this.genres_ids.contains(genre.id)) throw new CustomException("Genre already exists");
+
+        if (this.genres.length() != 0) this.genres += ", ";
+        this.genres = genre.name;
+
+        this.genres_ids.add(genre.id);
+    }
 
     void bindAlbum(int album_id) {
         this.album_id = album_id;

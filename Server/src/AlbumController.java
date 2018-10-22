@@ -149,4 +149,28 @@ public class AlbumController implements AlbumInterface {
     public void song_delete(int album_id, int song_id) throws CustomException {
         this.server.database.album_song_delete(album_id, song_id);
     }
+
+    // Genre
+    public ArrayList<Genre> song_genres(int album_id, int song_id) throws CustomException {
+        Song song;
+        ArrayList<Genre> genres = new ArrayList<>();
+
+        try {
+            song = this.server.database.album_song_find(album_id, song_id);
+        } catch (CustomException ce) {
+            ce.extraFlag += 1;
+            throw ce;
+        }
+
+        for (int genre_id : song.genres_ids) {
+            genres.add(this.server.database.genre_find(genre_id));
+        }
+
+        return genres;
+    }
+
+    public void song_genre_add(int album_id, int song_id, int genre_id) throws CustomException {
+        this.server.database.album_song_genre_add(album_id, song_id, genre_id);
+    }
+
 }

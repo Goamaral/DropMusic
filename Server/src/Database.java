@@ -2,10 +2,9 @@ import java.util.ArrayList;
 
 public class Database {
     ArrayList<User> users = new ArrayList<>();
-
     ArrayList<Album> albums = new ArrayList<>();
-
     ArrayList<Artist> artists = new ArrayList<>();
+    ArrayList<Genre> genres = new ArrayList<>();
 
     // User
     void user_create(User user) throws CustomException {
@@ -215,6 +214,15 @@ public class Database {
         throw new CustomException("Song not found");
     }
 
+    // Genre
+    Genre genre_find(int id) throws CustomException {
+        for (Genre genre : this.genres) {
+            if (genre.id == id) return genre;
+        }
+
+        throw new CustomException("Genre not found");
+    }
+
     // Artist
     ArrayList<Artist> artist_all() { return this.artists; }
 
@@ -266,6 +274,20 @@ public class Database {
 
     void artist_delete(int id) {
         if(id < this.artists.size()) this.artists.set(id, null);
+    }
+
+    void album_song_genre_add(int album_id, int song_id, int genre_id) throws CustomException {
+        Song song;
+        Genre genre = this.genre_find(genre_id);
+
+        try {
+            song = this.album_song_find(album_id, song_id);
+        } catch (CustomException ce) {
+            ce.extraFlag += 1;
+            throw ce;
+        }
+
+        song.addGenre(genre);
     }
 }
 

@@ -53,6 +53,8 @@ public class Client {
     static final int ARTIST_CREATE = 22;
     static final int ARTIST_UPDATE = 23;
     static final int ARTIST_DELETE = 24;
+    static final int ALBUM_SONG_GENRE_ADD = 25;
+    static final int ALBUM_SONG_GENRE_CREATE = 26;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -161,6 +163,11 @@ public class Client {
                     return this.artistInterface.read((int)resource);
                 case Client.ARTIST_UPDATE:
                     this.artistInterface.update((Artist)resource);
+                    break;
+                case Client.ALBUM_SONG_GENRES:
+                    return this.albumInterface.song_genres(this.current_album_id, this.current_song_id);
+                case Client.ALBUM_SONG_GENRE_ADD:
+                    this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, (int)resource);
                     break;
             }
         } catch(RemoteException re) {
@@ -353,6 +360,16 @@ public class Client {
                     this.redirect(Client.ARTISTS, null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ARTISTS, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_GENRES:
+                this.redirect(this.displayAlbumSongGenres(), null);
+                break;
+            case Client.ALBUM_SONG_GENRE_ADD:
+                try {
+                    this.redirect(this.displayAlbumSongGenreAdd(), null);
+                } catch (CustomException e) {
+
                 }
                 break;
         }
@@ -770,11 +787,11 @@ public class Client {
         System.out.println("Name: " + this.current_song.name);
         System.out.println("Info: " + this.current_song.info);
         // TODO: Show song artists
-        // TODO: Show song genres
+        System.out.println("Genres: " + this.current_song.genres);
 
         if (this.current_user.isEditor) {
             // TODO: System.out.println("[" + Client.ALBUM_SONG_ARTISTS + "] Artists");
-            // TODO: System.out.println("[" + Client.ALBUM_SONG_GENRES + "] Genres");
+            System.out.println("[G] Genres");
             System.out.println("[U] Edit song");
             System.out.println("[D] Delete song");
         }
@@ -785,6 +802,7 @@ public class Client {
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.ALBUM_SONGS;
+        if (option.equals("G")) return Client.ALBUM_SONG_GENRES;
 
         if (this.current_user.isEditor) {
             if (option.equals("U")) return Client.ALBUM_SONG_UPDATE;
@@ -819,6 +837,84 @@ public class Client {
         }
 
         return Client.ALBUM_SONG;
+    }
+
+    // Album song genres
+    int displayAlbumSongGenres() {
+        String option;
+
+        System.out.println("Song genres");
+        System.out.println("Genres: " + this.current_song.genres);
+
+        if (this.current_user.isEditor) {
+            System.out.println("[C] Add genre");
+            // TODO: System.out.println("[D] Remove genre");
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG;
+
+        if (this.current_user.isEditor) {
+            if (option.equals("C")) return Client.ALBUM_SONG_GENRE_ADD;
+            // TODO: if (option.equals("D")) return Client.ALBUM_SONG_GENRE_DELETE;
+        }
+
+        this.clearScreen();
+        System.out.println("Errors:");
+        System.out.println("-> Invalid option");
+        return this.displayAlbumSongGenres();
+    }
+
+    int displayAlbumSongGenreAdd() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Genre> genres;
+        String option;
+        int genre_id;
+
+        try {
+            genres = this.albumInterface.song_genres(this.current_album_id, this.current_song_id);
+        } catch (RemoteException re) {
+            genres = (ArrayList<Genre>)this.retry(Client.ALBUM_SONG_GENRES, null);
+        }
+
+        System.out.println("Add genre:");
+
+        for (Genre genre : genres) {
+            if (genre == null) continue;
+
+            System.out.println("[" + genre.id + "] " + genre.name);
+        }
+
+
+        if (this.current_user.isEditor) System.out.println("[C] Create genre");
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG_GENRES;
+        if (this.current_user.isEditor && option.equals("C")) return Client.ALBUM_SONG_GENRE_CREATE;
+
+        try {
+            genre_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbumSongGenreAdd();
+        }
+
+        try {
+            this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, genre_id);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_GENRE_ADD, genre_id);
+        }
+
+        return Client.ALBUM_SONG_GENRES;
     }
 
     // Artists
@@ -919,11 +1015,16 @@ public class Client {
 
     int displayArtistUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Artist artist;
+        String name;
 
         System.out.println("Edit artist");
-        System.out.print("Name(" + this.current_artist.name + "): ");
+        System.out.println("Leave fields empty if you don't want to change them");
 
-        artist = new Artist(this.scanner.nextLine());
+        System.out.print("Name(" + this.current_artist.name + "): ");
+        name = this.scanner.nextLine();
+        if (name.length() == 0) name = this.current_artist.name;
+
+        artist = new Artist(name);
         artist.id = this.current_artist_id;
 
         try {
