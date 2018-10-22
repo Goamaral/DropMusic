@@ -55,11 +55,11 @@ public class ArtistController implements ArtistInterface {
 
         System.out.println("success");
     }
-/*
-    public void delete(int id) {
-        System.out.println("Action album(" + id + ") delete: ");
 
-        server.database.album_delete(id);
+    public void delete(int id) {
+        System.out.println("Action artist(" + id + ") delete: ");
+
+        server.database.artist_delete(id);
     }
-*/
+
 }

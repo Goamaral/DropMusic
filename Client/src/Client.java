@@ -342,6 +342,19 @@ public class Client {
                     this.redirect(Client.ARTISTS, ce);
                 }
                 break;
+            case Client.ARTIST_DELETE:
+                try {
+                    try {
+                        this.artistInterface.delete(this.current_artist_id);
+                    } catch (RemoteException re) {
+                        this.retry(Client.ARTIST_DELETE, this.current_artist_id);
+                    }
+
+                    this.redirect(Client.ARTISTS, null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ARTISTS, ce);
+                }
+                break;
         }
     }
 
@@ -350,20 +363,21 @@ public class Client {
         String option;
 
         System.out.println("Start");
-        System.out.println("[" + Client.REGISTER + "] Create account");
-        System.out.println("[" + Client.LOGIN + "] Log in");
-        System.out.println("[" + Client.EXIT + "] Exit");
+        System.out.println("[R] Create account");
+        System.out.println("[L] Log in");
+        System.out.println("[B] Exit");
+
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("[" + Client.REGISTER + Client.LOGIN + Client.EXIT + "]")) {
-            this.clearScreen();
-            System.out.println("Errors:");
-            System.out.println("-> Invalid option");
-            return this.displayStart();
-        }
+        if (option.equals("R")) return Client.REGISTER;
+        if (option.equals("L")) return Client.LOGIN;
+        if (option.equals("B")) return Client.EXIT;
 
-        return Integer.parseInt(option);
+        this.clearScreen();
+        System.out.println("Errors:");
+        System.out.println("-> Invalid option");
+        return this.displayStart();
     }
 
     // Auth
@@ -415,20 +429,21 @@ public class Client {
         String option;
 
         System.out.println("Dashboard");
-        System.out.println("[" + Client.ALBUMS + "] Albums");
-        System.out.println("[" + Client.ARTISTS + "] Artists");
-        System.out.println("[" + Client.START + "] Logout");
+        System.out.println("[AL] Albums");
+        System.out.println("[AR] Artists");
+        System.out.println("[B] Logout");
+
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (!option.matches("(" + Client.ALBUMS + "|" + Client.START + "|" + Client.ARTISTS + ")")) {
-            this.clearScreen();
-            System.out.println("Errors:");
-            System.out.println("-> Invalid option");
-            return this.displayDashboard();
-        }
+        if (option.equals("AL")) return Client.ALBUMS;
+        if (option.equals("AR")) return Client.ARTISTS;
+        if (option.equals("B")) return Client.START;
 
-        return Integer.parseInt(option);
+        this.clearScreen();
+        System.out.println("Errors:");
+        System.out.println("-> Invalid option");
+        return this.displayDashboard();
     }
 
     // Albums
@@ -448,13 +463,13 @@ public class Client {
             System.out.println("No albums available");
         } else {
             for (Album album : albums) {
+                if (album == null) continue;
+
                 System.out.println("[" + album.id + "] " + album.name);
             }
         }
 
-        if (this.current_user.isEditor) {
-            System.out.println("[C] Create album");
-        }
+        if (this.current_user.isEditor) System.out.println("[C] Create album");
 
         System.out.println("[B] Back");
 
@@ -521,12 +536,12 @@ public class Client {
         // TODO: Show artists
         // TODO: Show genres
         System.out.println("Release date: " + this.current_album.releaseDateString);
-        System.out.println("[" + Client.ALBUM_CRITICS + "] Critics");
-        System.out.println("[" + Client.ALBUM_SONGS + "] Songs");
+        System.out.println("[C] Critics");
+        System.out.println("[S] Songs");
 
         if (this.current_user.isEditor) {
-            System.out.println("[" + Client.ALBUM_UPDATE + "] Edit album");
-            System.out.println("[" + Client.ALBUM_DELETE + "] Delete album");
+            System.out.println("[U] Edit album");
+            System.out.println("[D] Delete album");
         }
 
         System.out.println("[B] Back");
@@ -534,14 +549,13 @@ public class Client {
 
         option = this.scanner.nextLine();
 
+        if (option.equals("C")) return Client.ALBUM_CRITICS;
+        if (option.equals("S")) return Client.ALBUM_SONGS;
         if (option.equals("B")) return Client.ALBUMS;
 
-        if (option.equals(Client.ALBUM_CRITICS)) return Client.ALBUM_CRITICS;
-        if (option.equals(Client.ALBUM_SONGS)) return Client.ALBUM_SONGS;
-
         if (this.current_user.isEditor) {
-            if (option.equals(Client.ALBUM_UPDATE)) return Client.ALBUM_UPDATE;
-            if (option.equals(Client.ALBUM_DELETE)) return Client.ALBUM_DELETE;
+            if (option.equals("U")) return Client.ALBUM_UPDATE;
+            if (option.equals("D")) return Client.ALBUM_DELETE;
         }
 
         this.clearScreen();
@@ -668,8 +682,8 @@ public class Client {
         System.out.println("Rating: " + this.current_critic.rating + "/5");
         System.out.println("Justification: " + this.current_critic.justification);
         System.out.println("[B] Back");
-        System.out.print("Option: ");
 
+        System.out.print("Option: ");
         this.scanner.nextLine();
 
         return Client.ALBUM_CRITICS;
@@ -697,12 +711,11 @@ public class Client {
             }
         }
 
-        System.out.println("[B] Back");
-
         if (this.current_user.isEditor) System.out.println("[C] Add song");
 
-        System.out.print("Option: ");
+        System.out.println("[B] Back");
 
+        System.out.print("Option: ");
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.ALBUM;
@@ -769,7 +782,6 @@ public class Client {
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
-
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.ALBUM_SONGS;
@@ -823,6 +835,8 @@ public class Client {
         System.out.println("Artists");
 
         for(Artist artist : artists) {
+            if (artist == null) continue;
+
             System.out.println("[" + artist.id + "] " + artist.name);
         }
 
@@ -831,8 +845,8 @@ public class Client {
         }
 
         System.out.println("[B] Back");
-        System.out.print("Option: ");
 
+        System.out.print("Option: ");
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.DASHBOARD;
@@ -881,20 +895,20 @@ public class Client {
         System.out.println("Name: " + this.current_artist.name);
 
         if (this.current_user.isEditor) {
-            System.out.println("[" + Client.ARTIST_UPDATE + "] Edit artist");
-            // TODO: System.out.println("[" + Client.ARTIST_DELETE + "] Delete artist");
+            System.out.println("[U] Edit artist");
+            System.out.println("[D] Delete artist");
         }
 
         System.out.println("[B] Back");
-        System.out.print("Option: ");
 
+        System.out.print("Option: ");
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.ARTISTS;
 
         if (this.current_user.isEditor) {
-            if (option.equals(Integer.toString(Client.ARTIST_UPDATE))) return Client.ARTIST_UPDATE;
-            if (option.equals(Integer.toString(Client.ARTIST_DELETE))) return Client.ARTIST_DELETE;
+            if (option.equals("U")) return Client.ARTIST_UPDATE;
+            if (option.equals("D")) return Client.ARTIST_DELETE;
         }
 
         this.clearScreen();

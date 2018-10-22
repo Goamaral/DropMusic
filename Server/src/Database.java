@@ -25,6 +25,8 @@ public class Database {
         int index = 0;
 
         for (User user : this.users) {
+            if (user == null) continue;
+
             if (user.username.equals(new_user.username)) {
                 return new Index_SameObject(index, user.id == new_user.id);
             }
@@ -37,6 +39,8 @@ public class Database {
 
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
+            if (user == null) continue;
+
             if (user.username.equals(username)) {
                 return user;
             }
@@ -59,6 +63,8 @@ public class Database {
         int index = 0;
 
         for (Album album : this.albums) {
+            if (album == null) continue;
+
             if (album.name.equals(new_album.name)) return new Index_SameObject(index, album.id == new_album.id);
             index += 1;
         }
@@ -68,6 +74,8 @@ public class Database {
 
     Album album_find(int id) throws CustomException {
         for(Album album : this.albums) {
+            if (album == null) continue;
+
             if (album.id == id) return album;
         }
 
@@ -91,6 +99,8 @@ public class Database {
     // Critic
     ArrayList<Critic> album_critics(int album_id) throws CustomException {
         for(Album album : this.albums) {
+            if (album == null) continue;
+
             if (album.id == album_id) return album.critics;
         }
 
@@ -124,9 +134,10 @@ public class Database {
 
     void albums_song_create(int album_id, Song song) throws CustomException {
         Album album;
+        Index_SameObject result = this.album_song_exists(album_id, song);
 
         try {
-            if (this.album_song_exists(album_id, song).index != -1) {
+            if (result.index == -1) {
                 try {
                     album = this.album_find(album_id);
                 } catch (CustomException ce) {
@@ -150,6 +161,8 @@ public class Database {
         int index = 0;
 
         for (Song song : album.songs) {
+            if (song == null) continue;
+
             if (song.name.equals(new_song.name)) return new Index_SameObject(index, song.id == new_song.id);
             index += 1;
         }
@@ -195,6 +208,7 @@ public class Database {
 
         for (Song song : album.songs) {
             if (song == null) continue;
+
             if (song.id == song_id) return song;
         }
 
@@ -219,6 +233,8 @@ public class Database {
         int index = 0;
 
         for (Artist artist : this.artists) {
+            if (artist == null) continue;
+
             if (artist.name.equals(new_artist.name)) {
                 return new Index_SameObject(index, artist.id == new_artist.id);
             }
@@ -230,6 +246,8 @@ public class Database {
 
     Artist artist_find(int id) throws CustomException {
         for(Artist artist : this.artists) {
+            if (artist == null) continue;
+
             if (artist.id == id) return artist;
         }
 
@@ -244,6 +262,10 @@ public class Database {
         } else {
             throw new CustomException("Artist name already exists");
         }
+    }
+
+    void artist_delete(int id) {
+        if(id < this.artists.size()) this.artists.set(id, null);
     }
 }
 
