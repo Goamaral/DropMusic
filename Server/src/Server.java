@@ -24,10 +24,10 @@ public class Server implements ServerInterface {
         Scanner scanner = new Scanner(System.in);
 
         try {
-            System.out.print("Current port: ");
+            System.out.print("Current server(<IP>:<PORT>): ");
             server.currentPort = Integer.parseInt(scanner.nextLine());
 
-            System.out.print("Alternative port: ");
+            System.out.print("Alternative port(<IP>:<PORT>): ");
             server.alternativePort = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException nfe) {
             System.out.println("Invalid port");

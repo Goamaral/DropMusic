@@ -77,24 +77,15 @@ public class Database {
     void album_update(Album new_album) throws CustomException {
         Index_SameObject result = this.album_exists(new_album);
 
-        if (result.index != -1) {
-            this.albums.set(result.index, new_album);
+        if (result.sameObject || result.index == -1) {
+            this.albums.set(new_album.id, new_album);
         } else {
             throw new CustomException("Album not found");
         }
     }
 
     void album_delete(int id) {
-        int position = 0;
-
-        for(Album album : this.albums) {
-            if(album.id == id) break;
-            position += 1;
-        }
-
-        if(position != this.albums.size()) {
-            this.albums.remove(position);
-        }
+        if(id < this.albums.size()) this.albums.set(id, null);
     }
 
     // Critic
@@ -170,7 +161,7 @@ public class Database {
         Album album;
         Index_SameObject result = this.album_song_exists(album_id, new_song);
 
-        if (result.sameObject) {
+        if (result.sameObject || result.index == -1) {
             try {
                 album = this.album_find(album_id);
             } catch (CustomException ce) {
@@ -243,6 +234,16 @@ public class Database {
         }
 
         throw new CustomException("Artist not found");
+    }
+
+    void artist_update(Artist new_artist) throws CustomException {
+        Index_SameObject result = this.artist_exists(new_artist);
+
+        if (result.sameObject || result.index == -1) {
+            this.artists.set(new_artist.id, new_artist);
+        } else {
+            throw new CustomException("Artist name already exists");
+        }
     }
 }
 

@@ -41,21 +41,21 @@ public class ArtistController implements ArtistInterface {
             throw ce;
         }
     }
-/*
-    public void update(Album new_album) throws CustomException {
-        System.out.print("Action album(" + new_album.id + ") update: " + new_album.toString());
+
+    public void update(Artist new_artist) throws CustomException {
+        System.out.print("Action artist(" + new_artist.id + ") update: ");
 
         try {
-            new_album.validate();
-            server.database.album_update(new_album);
+            new_artist.validate();
+            server.database.artist_update(new_artist);
         } catch (CustomException ce) {
-            System.out.println(" failed");
+            System.out.println("failed");
             throw ce;
         }
 
-        System.out.println(" success");
+        System.out.println("success");
     }
-
+/*
     public void delete(int id) {
         System.out.println("Action album(" + id + ") delete: ");
 

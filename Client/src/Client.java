@@ -58,10 +58,10 @@ public class Client {
         Client client = new Client();
 
         try {
-            System.out.print("Server port 1: ");
+            System.out.print("Server 1(<IP>:<PORT>): ");
             client.port1 = Integer.parseInt(client.scanner.nextLine());
 
-            System.out.print("Server port 2: ");
+            System.out.print("Server 2(<IP>:<PORT>): ");
             client.port2 = Integer.parseInt(client.scanner.nextLine());
         } catch (NumberFormatException nfe) {
             System.out.println("Invalid port");
@@ -117,9 +117,7 @@ public class Client {
                     this.current_user = userInterface.login((User)resource);
                     break;
                 case Client.REGISTER:
-                    System.out.println("LOG1");
                     userInterface.register((User)resource);
-                    System.out.println("LOG2");
                     break;
                 case Client.ALBUMS:
                     return albumInterface.index();
@@ -161,6 +159,9 @@ public class Client {
                     break;
                 case Client.ARTIST:
                     return this.artistInterface.read((int)resource);
+                case Client.ARTIST_UPDATE:
+                    this.artistInterface.update((Artist)resource);
+                    break;
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -330,6 +331,13 @@ public class Client {
             case Client.ARTIST:
                 try {
                     this.redirect(this.displayArtist(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ARTISTS, ce);
+                }
+                break;
+            case Client.ARTIST_UPDATE:
+                try {
+                    this.redirect(this.displayArtistUpdate(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ARTISTS, ce);
                 }
@@ -562,7 +570,7 @@ public class Client {
         if (releaseDate.length() == 0) releaseDate = this.current_album.releaseDateString;
 
         new_album = new Album(name, info, releaseDate);
-        new_album.id = this.current_album.id;
+        new_album.id = this.current_album_id;
 
         try {
             this.albumInterface.update(new_album);
@@ -873,7 +881,7 @@ public class Client {
         System.out.println("Name: " + this.current_artist.name);
 
         if (this.current_user.isEditor) {
-            // TODO: System.out.println("[" + Client.ARTIST_UPDATE + "] Edit artist");
+            System.out.println("[" + Client.ARTIST_UPDATE + "] Edit artist");
             // TODO: System.out.println("[" + Client.ARTIST_DELETE + "] Delete artist");
         }
 
@@ -884,15 +892,33 @@ public class Client {
 
         if (option.equals("B")) return Client.ARTISTS;
 
-        if (!this.current_user.isEditor) {
-            if (option.equals(Client.ARTIST_UPDATE)) return Client.ARTIST_UPDATE;
-            if (option.equals(Client.ARTIST_DELETE)) return Client.ARTIST_DELETE;
+        if (this.current_user.isEditor) {
+            if (option.equals(Integer.toString(Client.ARTIST_UPDATE))) return Client.ARTIST_UPDATE;
+            if (option.equals(Integer.toString(Client.ARTIST_DELETE))) return Client.ARTIST_DELETE;
         }
 
         this.clearScreen();
         System.out.println("Errors:");
         System.out.println("-> Invalid option");
         return this.displayArtist();
+    }
+
+    int displayArtistUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Artist artist;
+
+        System.out.println("Edit artist");
+        System.out.print("Name(" + this.current_artist.name + "): ");
+
+        artist = new Artist(this.scanner.nextLine());
+        artist.id = this.current_artist_id;
+
+        try {
+            this.artistInterface.update(artist);
+        } catch (RemoteException re) {
+            this.retry(Client.ARTIST_UPDATE, artist);
+        }
+
+        return Client.ARTIST;
     }
 
     // View helper
