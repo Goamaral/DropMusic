@@ -227,11 +227,14 @@ public class Database {
         return critics;
     }
 
-    void album_critic_create(Critic critic) throws CustomException {
-        Album album = this.album_find(critic.album.id);
+    void album_critic_create(int album_id, Critic critic) throws CustomException {
+        Album album = this.album_find(album_id);
         album.points += critic.rating;
         critic.id = this.next_critic_id;
         album.addCritic(critic);
+
+        System.out.println("DEBUG: " + album.critic_ids.size());
+        this.critics.add(critic);
         this.next_critic_id += 1;
     }
 

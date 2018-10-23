@@ -13,7 +13,7 @@ public interface AlbumInterface extends Remote {
 
     // Critic
     ArrayList<Critic> critics(int album_id) throws RemoteException, CustomException;
-    void critic_create(Critic critic) throws RemoteException, CustomException;
+    void critic_create(int album_id, Critic critic) throws RemoteException, CustomException;
     Critic critic(int critic_id) throws RemoteException, CustomException;
 
     // Song
