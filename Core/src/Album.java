@@ -18,7 +18,7 @@ public class Album implements Serializable {
 
     // Relationships
     ArrayList<Critic> critics = new ArrayList<>();
-    ArrayList<Song> songs = new ArrayList<>();
+    ArrayList<Integer> song_ids = new ArrayList<>();
 
     Album(String name, String info, String releaseDateString) {
         this.name = name;
@@ -79,9 +79,9 @@ public class Album implements Serializable {
 
     public void addCritic(Critic critic) { this.critics.add(critic); }
 
-    public void addSong(Song new_song) { this.songs.add(new_song); }
+    public void addSong(int song_id) { this.song_ids.add(song_id); }
 
-    public void removeSong(int id) { this.songs.set(id, null); }
+    public void removeSong(int song_id) { this.song_ids.remove(song_id); }
 
     public String toString() {
         return "Album: { "

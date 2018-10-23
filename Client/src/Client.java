@@ -156,9 +156,9 @@ public class Client {
                     this.albumInterface.song_create(this.current_album_id, (Song)resource);
                     break;
                 case Client.ALBUM_SONG:
-                    return this.albumInterface.song(this.current_album_id, (int)resource);
+                    return this.albumInterface.song((int)resource);
                 case Client.ALBUM_SONG_UPDATE:
-                    this.albumInterface.song_update(this.current_album_id, (Song)resource);
+                    this.albumInterface.song_update((Song)resource);
                     break;
                 case Client.ALBUM_SONG_DELETE:
                     this.albumInterface.song_delete(this.current_album_id, (int)resource);
@@ -176,7 +176,7 @@ public class Client {
                 case Client.GENRES:
                     return this.albumInterface.genres_all();
                 case Client.ALBUM_SONG_GENRE_ADD:
-                    this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, (int)resource);
+                    this.albumInterface.song_genre_add(this.current_song_id, (int)resource);
                     break;
                 case Client.ALBUM_SONG_GENRE_CREATE:
                     this.albumInterface.song_genre_create((Genre)resource);
@@ -184,15 +184,15 @@ public class Client {
                 case Client.ALBUM_SONG_GENRES:
                     return this.albumInterface.song_genres(this.current_song);
                 case Client.ALBUM_SONG_GENRE_REMOVE:
-                    this.albumInterface.song_genre_delete(this.current_album_id, this.current_song_id, (int)resource);
+                    this.albumInterface.song_genre_delete(this.current_song_id, (int)resource);
                     break;
                 case Client.ALBUM_SONG_ARTIST_ADD:
-                    this.albumInterface.song_artist_add(this.current_album_id, this.current_song_id, (int)resource);
+                    this.albumInterface.song_artist_add(this.current_song_id, (int)resource);
                     break;
                 case Client.ALBUM_SONG_ARTISTS:
                     return this.albumInterface.song_artists(this.current_song);
                 case Client.ALBUM_SONG_ARTIST_REMOVE:
-                    this.albumInterface.song_artist_delete(this.current_album_id, this.current_song_id, (int)resource);
+                    this.albumInterface.song_artist_delete(this.current_song_id, (int)resource);
                     break;
                 case Client.ALBUM_ARTISTS:
                     return this.albumInterface.artists((int)resource);
@@ -893,7 +893,7 @@ public class Client {
         String option;
 
         try {
-            this.current_song = this.albumInterface.song(this.current_album_id, this.current_song_id);
+            this.current_song = this.albumInterface.song(this.current_song_id);
         } catch (RemoteException re) {
             this.current_song = (Song) this.retry(Client.ALBUM_SONG, this.current_song_id);
         }
@@ -947,7 +947,7 @@ public class Client {
         new_song.id = this.current_song.id;
 
         try {
-            this.albumInterface.song_update(this.current_album_id, new_song);
+            this.albumInterface.song_update(new_song);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_UPDATE, new_song);
         }
@@ -1029,7 +1029,7 @@ public class Client {
         }
 
         try {
-            this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, genre_id);
+            this.albumInterface.song_genre_add(this.current_song_id, genre_id);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_GENRE_ADD, genre_id);
         }
@@ -1092,7 +1092,7 @@ public class Client {
         }
 
         try {
-            this.albumInterface.song_artist_delete(this.current_album_id, this.current_song_id, artist_id);
+            this.albumInterface.song_artist_delete(this.current_song_id, artist_id);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_ARTIST_REMOVE, artist_id);
         }
@@ -1174,7 +1174,7 @@ public class Client {
         }
 
         try {
-            this.albumInterface.song_artist_add(this.current_album_id, this.current_song_id, artist_id);
+            this.albumInterface.song_artist_add(this.current_song_id, artist_id);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_ARTIST_ADD, artist_id);
         }
@@ -1237,7 +1237,7 @@ public class Client {
         }
 
         try {
-            this.albumInterface.song_genre_delete(this.current_album_id, this.current_song_id, genre_id);
+            this.albumInterface.song_genre_delete(this.current_song_id, genre_id);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_SONG_GENRE_REMOVE, genre_id);
         }
