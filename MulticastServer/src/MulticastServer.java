@@ -2,15 +2,12 @@ import java.net.*;
 import java.io.IOException;
 
 public class MulticastServer {
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int SERVERPORT = 3000;
-    private int RMIPORT = 4040;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         RecieverSocketHandler recieverSocket = new RecieverSocketHandler();
         recieverSocket.start();
         SendingSocketHandler sendingSocket = new SendingSocketHandler();
-        recieverSocket.start();
+        sendingSocket.start();
     }
 }
 
@@ -22,7 +19,7 @@ class RecieverSocketHandler extends Thread {
         MulticastSocket recieverSocket = null;
         try {
             recieverSocket = new MulticastSocket(SERVERPORT);  // create socket and bind it
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS)
+            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             recieverSocket.joinGroup(group);
             while (true) {
                 byte[] buffer = new byte[256];
@@ -40,8 +37,8 @@ class RecieverSocketHandler extends Thread {
 
 
 class SendingSocketHandler extends Thread {
-    /*private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int SERVERPORT = 4040;
+    private String MULTICAST_ADDRESS = "224.0.224.0";
+    private int RMIPORT = 4040;
 
     public void run() {
         MulticastSocket sendingSocket = null;
@@ -49,15 +46,16 @@ class SendingSocketHandler extends Thread {
             sendingSocket = new MulticastSocket();
             while (true) {
                 InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                socket.send(packet);
+                byte[] buffer = new byte[256];
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, RMIPORT);
+                sendingSocket.send(packet);
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             sendingSocket.close();
         }
-    }*/
+    }
 }
 
 

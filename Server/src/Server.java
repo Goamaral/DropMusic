@@ -168,7 +168,7 @@ class RmiMulticastSender extends Thread {
     public void formatMessage() {
         JSONObject obj = new JSONObject();
         obj.put("type", this.type);
-        obj.put("data", );
+        obj.put("data", this.type);
         return;
     }
 
