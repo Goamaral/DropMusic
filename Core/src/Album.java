@@ -3,7 +3,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class Album implements Serializable {
     int id;
@@ -76,7 +78,9 @@ public class Album implements Serializable {
 
     public void addCritic(Critic critic) { this.critics.add(critic); }
 
-    public void addSong(Song song) { this.songs.add(song); }
+    public void addSong(Song new_song) {
+        this.songs.add(new_song);
+    }
 
     public String toString() {
         return "Album: { "

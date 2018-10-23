@@ -95,6 +95,68 @@ public class Database {
         if(id < this.albums.size()) this.albums.set(id, null);
     }
 
+    String album_artists(int id) throws CustomException {
+        Album album = this.album_find(id);
+        ArrayList<Integer> artist_ids = new ArrayList<>();
+        String artists = "";
+        Artist artist;
+
+        for (Song song : album.songs) {
+            for (int artist_id : song.artist_ids) {
+                if (!artist_ids.contains(artist_id)) {
+                    artist_ids.add(artist_id);
+                }
+            }
+        }
+
+        for (int artist_id : artist_ids) {
+            try {
+                artist = this.artist_find(artist_id);
+
+                if (artists.length() == 0) {
+                    artists = artist.name;
+                } else {
+                    artists += ", " + artist.name;
+                }
+            } catch (CustomException ce) {
+                // Ignore if artist is missing
+            }
+        }
+
+        return artists;
+    }
+
+    String album_genres(int id) throws CustomException {
+        Album album = this.album_find(id);
+        ArrayList<Integer> genre_ids = new ArrayList<>();
+        String genres = "";
+        Genre genre;
+
+        for (Song song : album.songs) {
+            for (int genre_id : song.genres_ids) {
+                if (!genre_ids.contains(genre_id)) {
+                    genre_ids.add(genre_id);
+                }
+            }
+        }
+
+        for (int genre_id : genre_ids) {
+            try {
+                genre = this.genre_find(genre_id);
+
+                if (genres.length() == 0) {
+                    genres = genre.name;
+                } else {
+                    genres += ", " + genre.name;
+                }
+            } catch (CustomException ce) {
+                // Ignore if genre is missing
+            }
+        }
+
+        return genres;
+    }
+
     // Critic
     ArrayList<Critic> album_critics(int album_id) throws CustomException {
         for(Album album : this.albums) {

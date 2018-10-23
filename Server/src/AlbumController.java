@@ -61,6 +61,10 @@ public class AlbumController implements AlbumInterface {
         server.database.album_delete(id);
     }
 
+    public String artists(int id) throws CustomException { return this.server.database.album_artists(id); }
+
+    public String genres(int id) throws CustomException { return this.server.database.album_genres(id); }
+
     // Critic
     public ArrayList<Critic> critics(int album_id) throws CustomException {
         ArrayList<Critic> critics = this.server.database.album_critics(album_id);
@@ -151,7 +155,7 @@ public class AlbumController implements AlbumInterface {
     }
 
     // Genre
-    public ArrayList<Genre> genres() {
+    public ArrayList<Genre> genres_all() {
         ArrayList<Genre> genres = this.server.database.genre_all();
 
         System.out.println("Action genres: " + genres.size() + " genres");

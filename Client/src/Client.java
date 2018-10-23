@@ -60,6 +60,8 @@ public class Client {
     static final int ALBUM_SONG_ARTIST_ADD = 29;
     static final int ALBUM_SONG_ARTIST_REMOVE = 30;
     static final int ALBUM_SONG_ARTIST_CREATE = 31;
+    static final int ALBUM_ARTISTS = 32;
+    static final int ALBUM_GENRES = 33;
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
@@ -171,7 +173,7 @@ public class Client {
                     this.artistInterface.update((Artist)resource);
                     break;
                 case Client.GENRES:
-                    return this.albumInterface.genres();
+                    return this.albumInterface.genres_all();
                 case Client.ALBUM_SONG_GENRE_ADD:
                     this.albumInterface.song_genre_add(this.current_album_id, this.current_song_id, (int)resource);
                     break;
@@ -191,6 +193,10 @@ public class Client {
                 case Client.ALBUM_SONG_ARTIST_REMOVE:
                     this.albumInterface.song_artist_delete(this.current_album_id, this.current_song_id, (int)resource);
                     break;
+                case Client.ALBUM_ARTISTS:
+                    return this.albumInterface.artists((int)resource);
+                case Client.ALBUM_GENRES:
+                    return this.albumInterface.genres((int)resource);
 
             }
         } catch(RemoteException re) {
@@ -612,6 +618,8 @@ public class Client {
 
     int displayAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String option;
+        String artists;
+        String genres;
 
         try {
             this.current_album = this.albumInterface.read(this.current_album_id);
@@ -619,12 +627,24 @@ public class Client {
             this.current_album = (Album)this.retry(Client.ALBUM, this.current_album_id);
         }
 
+        try {
+            artists = this.albumInterface.artists(this.current_album_id);
+        } catch (RemoteException re) {
+            artists = (String)this.retry(Client.ALBUM_ARTISTS, this.current_album_id);
+        }
+
+        try {
+            genres = this.albumInterface.genres(this.current_album_id);
+        } catch (RemoteException re) {
+            genres = (String)this.retry(Client.ALBUM_GENRES, this.current_album_id);
+        }
+
         System.out.println("Album");
         System.out.println("Name: " + this.current_album.name);
         System.out.println("Rating: " + this.current_album.getRating() + "/5");
         System.out.println("Info: " + this.current_album.info);
-        // TODO: Show artists
-        // TODO: Show genres
+        System.out.println("Artists: " + artists);
+        System.out.println("Genres: " + genres);
         System.out.println("Release date: " + this.current_album.releaseDateString);
         System.out.println("[C] Critics");
         System.out.println("[S] Songs");
@@ -949,7 +969,7 @@ public class Client {
         int genre_id;
 
         try {
-            genres = this.albumInterface.genres();
+            genres = this.albumInterface.genres_all();
         } catch (RemoteException re) {
             genres = (ArrayList<Genre>)this.retry(Client.GENRES, null);
         }

@@ -8,6 +8,8 @@ public interface AlbumInterface extends Remote {
     Album read(int id) throws RemoteException, CustomException;
     void update(Album new_album) throws RemoteException, CustomException;
     void delete(int id) throws RemoteException;
+    String artists(int id) throws RemoteException, CustomException;
+    String genres(int id) throws RemoteException, CustomException;
 
     // Critic
     ArrayList<Critic> critics(int album_id) throws RemoteException, CustomException;
@@ -22,7 +24,7 @@ public interface AlbumInterface extends Remote {
     void song_delete(int album_id, int song_id) throws RemoteException, CustomException;
 
     // Genres
-    ArrayList<Genre> genres() throws RemoteException;
+    ArrayList<Genre> genres_all() throws RemoteException;
     void song_genre_add(int album_id, int song_id, int genre_id) throws RemoteException, CustomException;
     void song_genre_create(Genre genre) throws RemoteException, CustomException;
     ArrayList<Genre> song_genres(Song song) throws RemoteException;
