@@ -78,9 +78,9 @@ public class Album implements Serializable {
 
     public void addCritic(Critic critic) { this.critics.add(critic); }
 
-    public void addSong(Song new_song) {
-        this.songs.add(new_song);
-    }
+    public void addSong(Song new_song) { this.songs.add(new_song); }
+
+    public void removeSong(int id) { this.songs.set(id, null); }
 
     public String toString() {
         return "Album: { "

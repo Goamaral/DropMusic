@@ -254,7 +254,7 @@ public class Database {
 
     void album_song_delete(int album_id, int song_id) throws CustomException {
         Album album = this.album_find(album_id);
-        album.songs.set(song_id, null);
+        album.removeSong(song_id);
     }
 
     Song album_song_find(int album_id, int song_id) throws CustomException {
