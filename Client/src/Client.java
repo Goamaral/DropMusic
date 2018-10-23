@@ -64,6 +64,7 @@ public class Client {
     static final int ALBUM_GENRES = 33;
     static final int PROMOTE_USER = 34;
     static final int NORMAL_USERS = 35;
+    static final int SEARCH_ALBUM = 36;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -203,6 +204,8 @@ public class Client {
                 case Client.PROMOTE_USER:
                     this.userInterface.promote((int)resource);
                     break;
+                case Client.SEARCH_ALBUM:
+                    return this.albumInterface.search((String)resource);
 
             }
         } catch(RemoteException re) {
@@ -464,6 +467,13 @@ public class Client {
                     this.redirect(Client.DASHBOARD, ce);
                 }
                 break;
+            case Client.SEARCH_ALBUM:
+                try {
+                    this.redirect(this.displaySearchAlbum(), null);
+                } catch (CustomException ce) {
+                    this.redirect(this.ALBUMS, ce);
+                }
+                break;
         }
     }
 
@@ -581,20 +591,20 @@ public class Client {
             System.out.println("No albums available");
         } else {
             for (Album album : albums) {
-                if (album == null) continue;
-
                 System.out.println("[" + album.id + "] " + album.name);
             }
         }
 
         if (this.current_user.isEditor) System.out.println("[C] Create album");
 
+        System.out.println("[S] Search songs");
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.DASHBOARD;
+        if (option.equals("S")) return Client.SEARCH_ALBUM;
 
         if (this.current_user.isEditor) {
             if (option.equals("C")) return Client.ALBUM_CREATE;
@@ -1407,6 +1417,58 @@ public class Client {
         }
 
         return Client.DASHBOARD;
+    }
+
+    // Search music
+    int displaySearchAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        String query;
+        ArrayList<Song> songs;
+
+        System.out.println("Search song in ablum");
+        System.out.print("Album name: ");
+        query = this.scanner.nextLine();
+
+        try {
+            this.current_album = this.albumInterface.search(query);
+        } catch (RemoteException re) {
+            this.current_album = (Album) this.retry(Client.SEARCH_ALBUM, query);
+        }
+
+        this.current_album_id = this.current_album.id;
+
+        try {
+            songs = this.albumInterface.songs(this.current_album_id);
+        } catch (RemoteException re) {
+            songs = (ArrayList<Song>)this.retry(Client.ALBUM_SONGS, this.current_album_id);
+        }
+
+        while (true) {
+            if (songs.size() == 0) {
+                System.out.println("No songs available");
+            } else {
+                for (Song song : songs) {
+                    System.out.println("[" + song.id + "] " + song.name);
+                }
+            }
+
+            System.out.println("[B] Back");
+
+            System.out.print("Option: ");
+            query = this.scanner.nextLine();
+
+            if (query.equals("B")) return Client.ALBUMS;
+
+            try {
+                this.current_song_id = Integer.parseInt(query);
+                break;
+            } catch (NumberFormatException nfe) {
+                this.clearScreen();
+                System.out.println("Errors:");
+                System.out.println("-> Invalid option");
+            }
+        }
+
+        return Client.ALBUM_SONG;
     }
 
     // View helper

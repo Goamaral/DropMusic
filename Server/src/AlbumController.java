@@ -1,4 +1,3 @@
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class AlbumController implements AlbumInterface {
@@ -64,6 +63,22 @@ public class AlbumController implements AlbumInterface {
     public String artists(int id) throws CustomException { return this.server.database.album_artists(id); }
 
     public String genres(int id) throws CustomException { return this.server.database.album_genres(id); }
+
+    public Album search(String query) throws CustomException {
+        System.out.println("Actions search album (" + query + "): ");
+
+        ArrayList<Album> albums = this.server.database.album_all();
+
+        for (Album album : albums) {
+            if (album.name.contains(query)) {
+                System.out.println("success");
+                return album;
+            }
+        }
+
+        System.out.println("failure");
+        throw new CustomException("Album not found");
+    }
 
     // Critic
     public ArrayList<Critic> critics(int album_id) throws CustomException {
