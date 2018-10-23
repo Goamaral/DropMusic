@@ -149,7 +149,7 @@ public class Client {
                     this.albumInterface.critic_create((Critic)resource);
                     break;
                 case Client.ALBUM_CRITIC:
-                    return this.albumInterface.critic(this.current_album_id, (int)resource);
+                    return this.albumInterface.critic((int)resource);
                 case Client.ALBUM_SONGS:
                     return this.albumInterface.songs((int)resource);
                 case Client.ALBUM_SONG_CREATE:
@@ -742,10 +742,8 @@ public class Client {
         if (critics.size() == 0) {
             System.out.println("No critics available");
         } else {
-            int i = 0;
             for (Critic critic : critics) {
-                System.out.println("[" + i + "] By " + critic.author.username + " with " + critic.rating + "/5 rating");
-                i += 1;
+                System.out.println("[" + critic.id + "] By " + critic.author.username + " with " + critic.rating + "/5 rating");
             }
         }
 
@@ -803,7 +801,7 @@ public class Client {
 
     int displayAlbumCritic() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         try {
-            this.current_critic = this.albumInterface.critic(this.current_album_id, this.current_critic_id);
+            this.current_critic = this.albumInterface.critic(this.current_critic_id);
         } catch (RemoteException re) {
             this.current_critic = (Critic) this.retry(Client.ALBUM_CRITIC, this.current_critic_id);
         }

@@ -86,11 +86,11 @@ public class AlbumController implements AlbumInterface {
         }
     }
 
-    public Critic critic(int album_id, int critic_pos) throws CustomException {
-        System.out.print("Action album(" + album_id + ") critic(" + critic_pos + ") read:");
+    public Critic critic(int critic_id) throws CustomException {
+        System.out.print("Action critic(" + critic_id + ") read:");
 
         try {
-            Critic critic = this.server.database.album_critic_find(album_id, critic_pos);
+            Critic critic = this.server.database.album_critic_find(critic_id);
             System.out.println(" success");
             return critic;
         } catch (CustomException ce) {

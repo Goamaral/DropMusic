@@ -17,7 +17,7 @@ public class Album implements Serializable {
     DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     // Relationships
-    ArrayList<Critic> critics = new ArrayList<>();
+    ArrayList<Integer> critic_ids = new ArrayList<>();
     ArrayList<Integer> song_ids = new ArrayList<>();
 
     Album(String name, String info, String releaseDateString) {
@@ -72,12 +72,14 @@ public class Album implements Serializable {
     }
 
     public float getRating() {
-        if (this.critics.size() != 0) return this.points / (float)this.critics.size();
+        if (this.critic_ids.size() != 0) {
+            return this.points / (float)this.critic_ids.size();
+        }
 
         return 0;
     }
 
-    public void addCritic(Critic critic) { this.critics.add(critic); }
+    public void addCritic(Critic critic) { this.critic_ids.add(critic.id); }
 
     public void addSong(int song_id) { this.song_ids.add(song_id); }
 

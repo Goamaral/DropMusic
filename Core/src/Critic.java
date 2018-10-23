@@ -2,6 +2,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Critic implements Serializable {
+    int id;
     int rating;
     String justification;
 
