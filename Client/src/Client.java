@@ -57,6 +57,9 @@ public class Client {
     static final int ARTIST_UPDATE = 26;
     static final int ARTIST_DELETE = 27;
     static final int GENRES = 28;
+    static final int ALBUM_SONG_ARTIST_ADD = 29;
+    static final int ALBUM_SONG_ARTIST_REMOVE = 30;
+    static final int ALBUM_SONG_ARTIST_CREATE = 31;
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
@@ -180,6 +183,15 @@ public class Client {
                 case Client.ALBUM_SONG_GENRE_REMOVE:
                     this.albumInterface.song_genre_delete(this.current_album_id, this.current_song_id, (int)resource);
                     break;
+                case Client.ALBUM_SONG_ARTIST_ADD:
+                    this.albumInterface.song_artist_add(this.current_album_id, this.current_song_id, (int)resource);
+                    break;
+                case Client.ALBUM_SONG_ARTISTS:
+                    return this.albumInterface.song_artists(this.current_song);
+                case Client.ALBUM_SONG_ARTIST_REMOVE:
+                    this.albumInterface.song_artist_delete(this.current_album_id, this.current_song_id, (int)resource);
+                    break;
+
             }
         } catch(RemoteException re) {
             this.retry(method_id, resource);
@@ -401,6 +413,36 @@ public class Client {
                     this.redirect(this.displayAlbumSongGenreRemove(), null);
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONG_GENRES, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_ARTISTS:
+                this.redirect(this.displayAlbumSongArtists(), null);
+                break;
+            case Client.ALBUM_SONG_ARTIST_ADD:
+                try {
+                    this.redirect(this.displayAlbumSongArtistAdd(), null);
+                } catch (CustomException ce) {
+                    if (ce.extraFlag == 2) {
+                        this.redirect(Client.ALBUMS, ce);
+                    } else if (ce.extraFlag == 1) {
+                        this.redirect(Client.ALBUM_SONGS, ce);
+                    } else {
+                        this.redirect(Client.ALBUM_SONG, ce);
+                    }
+                }
+                break;
+            case Client.ALBUM_SONG_ARTIST_CREATE:
+                try {
+                    this.redirect(this.displayAlbumSongArtistCreate(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG_ARTIST_ADD, ce);
+                }
+                break;
+            case Client.ALBUM_SONG_ARTIST_REMOVE:
+                try {
+                    this.redirect(this.displayAlbumSongArtistRemove(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG_ARTISTS, ce);
                 }
                 break;
         }
@@ -755,7 +797,7 @@ public class Client {
             for (Song song : songs) {
                 if (song == null) continue;
 
-                System.out.println("[" + song.id + "] " + song.name + " by " /*+ Show song artists*/);
+                System.out.println("[" + song.id + "] " + song.name + " by " + song.artists);
             }
         }
 
@@ -817,11 +859,11 @@ public class Client {
         System.out.println("Song");
         System.out.println("Name: " + this.current_song.name);
         System.out.println("Info: " + this.current_song.info);
-        // TODO: Show song artists
+        System.out.println("Artists: " + this.current_song.artists);
         System.out.println("Genres: " + this.current_song.genres);
 
         if (this.current_user.isEditor) {
-            // TODO: System.out.println("[" + Client.ALBUM_SONG_ARTISTS + "] Artists");
+            System.out.println("[A] Artists");
             System.out.println("[G] Genres");
             System.out.println("[U] Edit song");
             System.out.println("[D] Delete song");
@@ -834,6 +876,7 @@ public class Client {
 
         if (option.equals("B")) return Client.ALBUM_SONGS;
         if (option.equals("G")) return Client.ALBUM_SONG_GENRES;
+        if (option.equals("A")) return Client.ALBUM_SONG_ARTISTS;
 
         if (this.current_user.isEditor) {
             if (option.equals("U")) return Client.ALBUM_SONG_UPDATE;
@@ -967,6 +1010,151 @@ public class Client {
         }
 
         return Client.ALBUM_SONG_GENRE_ADD;
+    }
+
+    int displayAlbumSongArtistRemove() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Artist> artists;
+        String option;
+        int artist_id;
+
+        try {
+            artists = this.albumInterface.song_artists(this.current_song);
+        } catch(RemoteException re) {
+            artists = (ArrayList<Artist>) this.retry(Client.ALBUM_SONG_ARTISTS, null);
+        }
+
+        System.out.println("Remove artist");
+
+        if (artists.size() == 0) {
+            System.out.println("No artists available");
+        } else {
+            for (Artist artist : artists) {
+                System.out.println("[" + artist.id + "] " + artist.name);
+            }
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG_ARTIST_REMOVE;
+
+        try {
+            artist_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbumSongArtistRemove();
+        }
+
+        try {
+            this.albumInterface.song_artist_delete(this.current_album_id, this.current_song_id, artist_id);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_ARTIST_REMOVE, artist_id);
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
+    // Album song artists
+    int displayAlbumSongArtists() {
+        String option;
+
+        System.out.println("Song artists");
+        System.out.println("Artists: " + this.current_song.artists);
+
+        if (this.current_user.isEditor) {
+            System.out.println("[C] Add artist");
+            System.out.println("[D] Remove artist");
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG;
+
+        if (this.current_user.isEditor) {
+            if (option.equals("C")) return Client.ALBUM_SONG_ARTIST_ADD;
+            if (option.equals("D")) return Client.ALBUM_SONG_ARTIST_REMOVE;
+        }
+
+        this.clearScreen();
+        System.out.println("Errors:");
+        System.out.println("-> Invalid option");
+        return this.displayAlbumSongArtists();
+    }
+
+    int displayAlbumSongArtistAdd() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<Artist> artists;
+        String option;
+        int artist_id;
+
+        try {
+            artists = this.artistInterface.index();
+        } catch (RemoteException re) {
+            artists = (ArrayList<Artist>)this.retry(Client.ARTISTS, null);
+        }
+
+        System.out.println("Add artist:");
+
+        if (artists.size() == 0) {
+            System.out.println("No artists available");
+        } else {
+            for (Artist artist : artists) {
+                if (artist == null) continue;
+
+                System.out.println("[" + artist.id + "] " + artist.name);
+            }
+        }
+
+
+        if (this.current_user.isEditor) System.out.println("[C] Create artist");
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG_ARTISTS;
+        if (this.current_user.isEditor && option.equals("C")) return Client.ALBUM_SONG_ARTIST_CREATE;
+
+        try {
+            artist_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayAlbumSongGenreAdd();
+        }
+
+        try {
+            this.albumInterface.song_artist_add(this.current_album_id, this.current_song_id, artist_id);
+        } catch (RemoteException re) {
+            this.retry(Client.ALBUM_SONG_ARTIST_ADD, artist_id);
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
+    int displayAlbumSongArtistCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        Artist artist;
+
+        System.out.println("Create artist");
+        System.out.print("Name: ");
+
+        artist = new Artist(this.scanner.nextLine());
+
+        try {
+            this.artistInterface.create(artist);
+        } catch (RemoteException re) {
+            this.retry(Client.ARTIST_CREATE, artist);
+        }
+
+        return Client.ALBUM_SONG_ARTIST_ADD;
     }
 
     int displayAlbumSongGenreRemove() throws InterruptedException, CustomException, NoSuchAlgorithmException {

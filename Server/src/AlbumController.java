@@ -207,4 +207,42 @@ public class AlbumController implements AlbumInterface {
         this.server.database.album_song_genre_remove(album_id, song_id, genre_id);
     }
 
+    // Artists
+    public void song_artist_add(int album_id, int song_id, int artist_id) throws CustomException {
+        System.out.print("Action album(" + album_id + ") song(" + song_id + ") artist(" + artist_id + ") add: ");
+
+        try {
+            this.server.database.album_song_artist_add(album_id, song_id, artist_id);
+            System.out.println("success");
+        } catch (CustomException ce) {
+            System.out.println("failure");
+            throw ce;
+        }
+    }
+
+    public ArrayList<Artist> song_artists(Song song) {
+        System.out.print("Action song(" + song.id + ") artists: ");
+
+        ArrayList<Artist> artists = new ArrayList<>();
+
+        for (int artist_id : song.artist_ids) {
+            try {
+                artists.add(this.server.database.artist_find(artist_id));
+            } catch (CustomException ce) {
+                // ignore if artist not found
+            }
+        }
+
+        System.out.println("success");
+
+        return artists;
+    }
+
+    public void song_artist_delete(int album_id, int song_id, int artist_id) {
+        System.out.print("Action album(" + album_id + ") song(" + song_id + ") artist(" + artist_id + ") delete");
+
+        this.server.database.album_song_artist_remove(album_id, song_id, artist_id);
+    }
+
+
 }

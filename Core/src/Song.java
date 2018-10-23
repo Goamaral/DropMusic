@@ -28,7 +28,14 @@ public class Song implements Serializable {
             throw new CustomException("Name can't be empty");
     }
 
-    void addArtist(int artist_id, String artist_name) { this.artist_ids.add(artist_id); }
+    void addArtist(Artist artist) throws CustomException {
+        if (this.artist_ids.contains(artist.id)) throw new CustomException("Artist already exists");
+
+        if (this.artists.length() != 0) this.artists += ", ";
+        this.artists += artist.name;
+
+        this.artist_ids.add(artist.id);
+    }
 
     void addGenre(Genre genre) throws CustomException {
         if (this.genres_ids.contains(genre.id)) throw new CustomException("Genre already exists");
@@ -62,6 +69,32 @@ public class Song implements Serializable {
             }
 
             this.genres_ids.remove(index);
+        }
+    }
+
+    void removeArtist(Artist artist) {
+        String[] artist_parts;
+        List<String> artist_parts_list;
+
+        int index = this.artist_ids.indexOf(artist.id);
+
+        if (index != -1) {
+            artist_parts = this.artists.split(", ");
+            artist_parts_list = Arrays.asList(artist_parts);
+
+            this.artists = "";
+
+            for (int i = 0; i < artist_parts_list.size(); ++i) {
+                if (i == index) continue;
+
+                if (this.artists.equals("")) {
+                    this.artists = artist_parts_list.get(i);
+                } else {
+                    this.artists += ", " + artist_parts_list.get(i);
+                }
+            }
+
+            this.artist_ids.remove(index);
         }
     }
 

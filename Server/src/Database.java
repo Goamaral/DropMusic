@@ -330,6 +330,36 @@ public class Database {
             // if song, album or genre not found ignore
         }
     }
+
+    // Song Artists
+    void album_song_artist_add(int album_id, int song_id, int artist_id) throws CustomException {
+        Song song;
+        Artist artist = this.artist_find(artist_id);
+
+        try {
+            song = this.album_song_find(album_id, song_id);
+        } catch (CustomException ce) {
+            ce.extraFlag += 1;
+            throw ce;
+        }
+
+        song.addArtist(artist);
+        artist.addSong(song);
+    }
+
+    void album_song_artist_remove(int album_id, int song_id, int artist_id) {
+        Song song;
+        Artist artist;
+
+        try {
+            song = this.album_song_find(album_id, song_id);
+            artist = this.artist_find(artist_id);
+            song.removeArtist(artist);
+            artist.removeSong(song);
+        } catch (CustomException ce) {
+            // if song, album or genre not found ignore
+        }
+    }
 }
 
 class Index_SameObject {

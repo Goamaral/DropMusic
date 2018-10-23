@@ -6,7 +6,7 @@ public class Artist implements Serializable {
     String name;
 
     // Relationships
-    ArrayList<Integer> song_ids;
+    ArrayList<Integer> song_ids = new ArrayList<>();
 
     Artist(String name) { this.name = name; }
 
@@ -19,5 +19,16 @@ public class Artist implements Serializable {
             throw new CustomException("Name can't be empty");
     }
 
-    void addSong(int song_id) { this.song_ids.add(song_id); }
+    void addSong(Song song) throws CustomException {
+        if (this.song_ids.contains(song.id)) {
+            throw new CustomException("Song already exists");
+        } else {
+            this.song_ids.add(song.id);
+        }
+    }
+
+    void removeSong(Song song) {
+        int index = this.song_ids.indexOf(song.id);
+        if (index != -1) this.song_ids.remove(index);
+    }
 }
