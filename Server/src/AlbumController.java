@@ -112,7 +112,7 @@ public class AlbumController implements AlbumInterface {
 
         try {
             song.validate();
-            this.server.database.albums_song_create(album_id, song);
+            this.server.database.album_song_create(album_id, song);
             System.out.println(" success");
         } catch (CustomException ce) {
             System.out.println(" failed");
@@ -120,13 +120,13 @@ public class AlbumController implements AlbumInterface {
         }
     }
 
-    public Song song(int album_id, int song_id) throws RemoteException, CustomException {
+    public Song song(int song_id) throws CustomException {
         Song song;
 
-        System.out.print("Action album(" + album_id + ") song(" + song_id +") read:");
+        System.out.print("Action song(" + song_id +") read:");
 
         try {
-            song = this.server.database.album_song_find(album_id, song_id);
+            song = this.server.database.song_find(song_id);
             System.out.println(" success");
         } catch (CustomException ce) {
             System.out.println(" failure");
@@ -136,12 +136,12 @@ public class AlbumController implements AlbumInterface {
         return song;
     }
 
-    public void song_update(int album_id, Song new_song) throws CustomException {
-        System.out.print("Action album(" + album_id + ") song(" + new_song.id + ") update: ");
+    public void song_update(Song new_song) throws CustomException {
+        System.out.print("Action song(" + new_song.id + ") update: ");
 
         try {
             new_song.validate();
-            this.server.database.album_song_update(album_id, new_song);
+            this.server.database.album_song_update(new_song);
             System.out.println("success");
         } catch (CustomException ce) {
             System.out.println("failure");
@@ -149,7 +149,7 @@ public class AlbumController implements AlbumInterface {
         }
     }
 
-    public void song_delete(int album_id, int song_id) throws CustomException {
+    public void song_delete(int album_id, int song_id) {
         System.out.println("Action album(" + album_id + ") song(" + song_id + ") delete");
         this.server.database.album_song_delete(album_id, song_id);
     }
@@ -163,11 +163,11 @@ public class AlbumController implements AlbumInterface {
         return genres;
     }
 
-    public void song_genre_add(int album_id, int song_id, int genre_id) throws CustomException {
-        System.out.print("Action album(" + album_id + ") song(" + song_id + ") genre(" + genre_id + ") add: ");
+    public void song_genre_add(int song_id, int genre_id) throws CustomException {
+        System.out.print("Action song(" + song_id + ") genre(" + genre_id + ") add: ");
 
         try {
-            this.server.database.album_song_genre_add(album_id, song_id, genre_id);
+            this.server.database.album_song_genre_add(song_id, genre_id);
             System.out.println("success");
         } catch (CustomException ce) {
             System.out.println("failure");
@@ -205,18 +205,18 @@ public class AlbumController implements AlbumInterface {
         return genres;
     }
 
-    public void song_genre_delete(int album_id, int song_id, int genre_id) {
-        System.out.print("Action album(" + album_id + ") song(" + song_id + ") genre(" + genre_id + ") delete");
+    public void song_genre_delete(int song_id, int genre_id) {
+        System.out.print("Action song(" + song_id + ") genre(" + genre_id + ") delete");
 
-        this.server.database.album_song_genre_remove(album_id, song_id, genre_id);
+        this.server.database.album_song_genre_remove(song_id, genre_id);
     }
 
     // Artists
-    public void song_artist_add(int album_id, int song_id, int artist_id) throws CustomException {
-        System.out.print("Action album(" + album_id + ") song(" + song_id + ") artist(" + artist_id + ") add: ");
+    public void song_artist_add(int song_id, int artist_id) throws CustomException {
+        System.out.print("Action song(" + song_id + ") artist(" + artist_id + ") add: ");
 
         try {
-            this.server.database.album_song_artist_add(album_id, song_id, artist_id);
+            this.server.database.album_song_artist_add(song_id, artist_id);
             System.out.println("success");
         } catch (CustomException ce) {
             System.out.println("failure");
@@ -242,10 +242,10 @@ public class AlbumController implements AlbumInterface {
         return artists;
     }
 
-    public void song_artist_delete(int album_id, int song_id, int artist_id) {
-        System.out.print("Action album(" + album_id + ") song(" + song_id + ") artist(" + artist_id + ") delete");
+    public void song_artist_delete(int song_id, int artist_id) {
+        System.out.print("Action song(" + song_id + ") artist(" + artist_id + ") delete");
 
-        this.server.database.album_song_artist_remove(album_id, song_id, artist_id);
+        this.server.database.album_song_artist_remove(song_id, artist_id);
     }
 
 

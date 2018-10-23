@@ -1,39 +1,45 @@
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class Database {
     ArrayList<User> users = new ArrayList<>();
+    int next_user_id = 0;
+
     ArrayList<Album> albums = new ArrayList<>();
+    int next_album_id = 0;
+
+    ArrayList<Song> songs = new ArrayList<>();
+    int next_song_id = 0;
+
     ArrayList<Artist> artists = new ArrayList<>();
+    int next_artist_id = 0;
+
     ArrayList<Genre> genres = new ArrayList<>();
+    int next_genre_id = 0;
 
     // User
-    void user_create(User user) throws CustomException {
-        Index_SameObject result = this.user_exists(user);
+    int user_findIndexUsername(User new_user) {
+        for (User user : this.users) {
+            if (user.username.equals(new_user.username)) {
+                return this.users.indexOf(user);
+            }
+        }
 
-        if (result.index == -1) {
+        return -1;
+    }
+
+    void user_create(User user) throws CustomException {
+        int index = this.user_findIndexUsername(user);
+
+        if (index == -1) {
             if (this.users.size() == 0) user.becomeEditor();
 
-            user.id = this.users.size();
+            user.id = this.next_user_id;
+            this.next_user_id += 1;
             this.users.add(user);
         } else {
             throw new CustomException("Username already exists");
         }
-    }
-
-    Index_SameObject user_exists(User new_user) {
-        int index = 0;
-
-        for (User user : this.users) {
-            if (user == null) continue;
-
-            if (user.username.equals(new_user.username)) {
-                return new Index_SameObject(index, user.id == new_user.id);
-            }
-
-            index += 1;
-        }
-
-        return new Index_SameObject(-1, false);
     }
 
     User user_findByUsername(String username) throws CustomException {
@@ -76,22 +82,10 @@ public class Database {
         return this.albums;
     }
 
-    void album_create(Album album) throws CustomException {
-        album.id = this.albums.size();
+    void album_create(Album album) {
+        album.id = this.next_album_id;
+        this.next_album_id += 1;
         this.albums.add(album);
-    }
-
-    Index_SameObject album_exists(Album new_album) {
-        int index = 0;
-
-        for (Album album : this.albums) {
-            if (album == null) continue;
-
-            if (album.name.equals(new_album.name)) return new Index_SameObject(index, album.id == new_album.id);
-            index += 1;
-        }
-
-        return new Index_SameObject(-1, false);
     }
 
     Album album_find(int id) throws CustomException {
@@ -104,10 +98,20 @@ public class Database {
         throw new CustomException("Album not found");
     }
 
-    void album_update(Album new_album) throws CustomException {
-        Index_SameObject result = this.album_exists(new_album);
+    int album_findIndex(Album new_album) {
+        for (Album album : this.albums) {
+            if (album.id == new_album.id) {
+                return this.albums.indexOf(album);
+            }
+        }
 
-        if (result.sameObject || result.index == -1) {
+        return -1;
+    }
+
+    void album_update(Album new_album) throws CustomException {
+        int index = this.album_findIndex(new_album);
+
+        if (index == -1) {
             this.albums.set(new_album.id, new_album);
         } else {
             throw new CustomException("Album not found");
@@ -115,7 +119,14 @@ public class Database {
     }
 
     void album_delete(int id) {
-        if(id < this.albums.size()) this.albums.set(id, null);
+        Album album = null;
+        try {
+            album = this.album_find(id);
+        } catch (CustomException e) {
+            // Return if album not found
+            return;
+        }
+        this.albums.remove(album);
     }
 
     String album_artists(int id) throws CustomException {
@@ -124,7 +135,16 @@ public class Database {
         String artists = "";
         Artist artist;
 
-        for (Song song : album.songs) {
+        for (int song_id : album.song_ids) {
+            Song song;
+
+            try {
+                song = this.song_find(song_id);
+            } catch (CustomException ce) {
+                // Skip song if not found
+                continue;
+            }
+
             for (int artist_id : song.artist_ids) {
                 if (!artist_ids.contains(artist_id)) {
                     artist_ids.add(artist_id);
@@ -155,7 +175,15 @@ public class Database {
         String genres = "";
         Genre genre;
 
-        for (Song song : album.songs) {
+        for (int song_id : album.song_ids) {
+            Song song;
+
+            try {
+                song = this.song_find(song_id);
+            } catch (CustomException ce) {
+                continue;
+            }
+
             for (int genre_id : song.genres_ids) {
                 if (!genre_ids.contains(genre_id)) {
                     genre_ids.add(genre_id);
@@ -212,87 +240,84 @@ public class Database {
     // Song
     ArrayList<Song> album_song_all(int album_id) throws CustomException {
         Album album = this.album_find(album_id);
+        ArrayList<Song> songs = new ArrayList<>();
+        Song song;
 
-        return album.songs;
-    }
-
-    void albums_song_create(int album_id, Song song) throws CustomException {
-        Album album;
-        Index_SameObject result = this.album_song_exists(album_id, song);
-
-        try {
-            if (result.index == -1) {
-                try {
-                    album = this.album_find(album_id);
-                } catch (CustomException ce) {
-                    ce.extraFlag = 1;
-                    throw ce;
-                }
-
-                song.id = album.songs.size();
-                album.addSong(song);
-            } else {
-                throw new CustomException("Song name already exists in album");
-            }
-        } catch (CustomException ce) {
-            ce.extraFlag = 1;
-            throw ce;
-        }
-    }
-
-    Index_SameObject album_song_exists(int album_id, Song new_song) throws CustomException {
-        Album album = this.album_find(album_id);
-        int index = 0;
-
-        for (Song song : album.songs) {
-            if (song == null) continue;
-
-            if (song.name.equals(new_song.name)) return new Index_SameObject(index, song.id == new_song.id);
-            index += 1;
-        }
-
-        return new Index_SameObject(-1, false);
-    }
-
-    void album_song_update(int album_id, Song new_song) throws CustomException {
-        Album album;
-        Index_SameObject result = this.album_song_exists(album_id, new_song);
-
-        if (result.sameObject || result.index == -1) {
+        for (int song_id : album.song_ids) {
             try {
-                album = this.album_find(album_id);
+                song = this.song_find(song_id);
+                songs.add(song);
             } catch (CustomException ce) {
-                ce.extraFlag = 1;
-                throw ce;
+                // ignore if song not found
             }
-
-            album.songs.set(new_song.id, new_song);
-        } else if (result.index != -1) {
-            throw new CustomException("Song name already exists in album");
-        } else {
-            throw new CustomException("Song not found");
         }
 
+        return songs;
     }
 
-    void album_song_delete(int album_id, int song_id) throws CustomException {
-        Album album = this.album_find(album_id);
-        album.removeSong(song_id);
-    }
-
-    Song album_song_find(int album_id, int song_id) throws CustomException {
+    void album_song_create(int album_id, Song song) throws CustomException {
         Album album;
 
         try {
             album = this.album_find(album_id);
         } catch (CustomException ce) {
-            ce.extraFlag = 1;
+            ce.extraFlag += 1;
             throw ce;
         }
 
-        for (Song song : album.songs) {
-            if (song == null) continue;
+        song.id = this.next_song_id;
+        this.songs.add(song);
+        this.next_song_id += 1;
+        album.addSong(song.id);
+    }
 
+    int song_findIndex(Song new_song) {
+        for (Song song : this.songs) {
+            if (song.id == new_song.id) {
+                return this.songs.indexOf(song);
+            }
+        }
+
+        return -1;
+    }
+
+    int song_findIndexByName(Song new_song) {
+        for (Song song : this.songs) {
+            if (song.name.equals(new_song.name)) {
+                return this.songs.indexOf(song);
+            }
+        }
+
+        return -1;
+    }
+
+    void album_song_update(Song new_song) throws CustomException {
+        int index = this.song_findIndex(new_song);
+        int index2 = this.song_findIndexByName(new_song);
+
+        if (index != -1 || new_song.id == this.songs.get(index2).id) {
+            this.songs.set(index, new_song);
+        } else {
+            throw new CustomException("Song not found");
+        }
+    }
+
+    void album_song_delete(int album_id, int song_id) {
+        try {
+            this.album_find(album_id).removeSong(song_id);
+        } catch (CustomException ce) {
+            // ignore if album not found
+        }
+
+        try {
+            this.songs.remove(this.song_find(song_id));
+        } catch (CustomException ce) {
+            // ignore if song not found
+        }
+    }
+
+    Song song_find(int song_id) throws CustomException {
+        for (Song song : this.songs) {
             if (song.id == song_id) return song;
         }
 
@@ -311,64 +336,64 @@ public class Database {
     }
 
     void genre_create(Genre genre) throws CustomException {
-        Index_SameObject result = this.genre_exists(genre);
+        int index = this.genre_findIndexByName(genre);
 
-        if (result.index == -1) {
-            genre.id = this.genres.size();
+        if (index == -1) {
+            genre.id = next_genre_id;
             this.genres.add(genre);
+            next_genre_id += 1;
         } else {
             throw new CustomException("Genre already exists");
         }
     }
 
-    Index_SameObject genre_exists(Genre new_genre) {
-        int index = 0;
-
+    int genre_findIndexByName(Genre new_genre) {
         for (Genre genre : this.genres) {
-            if (genre == null) continue;
-
             if (genre.name.equals(new_genre.name)) {
-                return new Index_SameObject(index, new_genre.id == new_genre.id);
+                return this.genres.indexOf(genre);
             }
-            index += 1;
         }
 
-        return new Index_SameObject(-1, false);
+        return -1;
     }
 
     // Artist
     ArrayList<Artist> artist_all() { return this.artists; }
 
-    void artist_create(Artist artist) throws CustomException {
-        Index_SameObject result = this.artist_exists(artist);
+    int artist_findIndex(Artist new_artist) {
+        for (Artist artist : this.artists) {
+            if (artist.id == new_artist.id) {
+                return this.artists.indexOf(artist);
+            }
+        }
 
-        if (result.index == -1) {
-            artist.id = this.artists.size();
+        return -1;
+    }
+
+    int artist_findIndexByName(Artist new_artist) {
+        for (Artist artist : this.artists) {
+            if (artist.name.equals(new_artist.name)) {
+                return this.artists.indexOf(artist);
+            }
+        }
+
+        return -1;
+    }
+
+    void artist_create(Artist artist) throws CustomException {
+        int index = this.artist_findIndexByName(artist);
+
+        if (index == -1) {
+            artist.id = this.next_artist_id;
             this.artists.add(artist);
+            this.next_artist_id += 1;
         } else {
             throw new CustomException("Artist already exists");
         }
     }
 
-    Index_SameObject artist_exists(Artist new_artist) {
-        int index = 0;
-
-        for (Artist artist : this.artists) {
-            if (artist == null) continue;
-
-            if (artist.name.equals(new_artist.name)) {
-                return new Index_SameObject(index, artist.id == new_artist.id);
-            }
-            index += 1;
-        }
-
-        return new Index_SameObject(-1, false);
-    }
-
     Artist artist_find(int id) throws CustomException {
         for(Artist artist : this.artists) {
-            if (artist == null) continue;
-
             if (artist.id == id) return artist;
         }
 
@@ -376,9 +401,9 @@ public class Database {
     }
 
     void artist_update(Artist new_artist) throws CustomException {
-        Index_SameObject result = this.artist_exists(new_artist);
+        int index = this.artist_findIndex(new_artist);
 
-        if (result.sameObject || result.index == -1) {
+        if (index == -1) {
             this.artists.set(new_artist.id, new_artist);
         } else {
             throw new CustomException("Artist name already exists");
@@ -386,15 +411,22 @@ public class Database {
     }
 
     void artist_delete(int id) {
-        if(id < this.artists.size()) this.artists.set(id, null);
+        Artist artist;
+
+        try {
+            artist = this.artist_find(id);
+            this.artists.remove(artist);
+        } catch (CustomException ce) {
+            // Ignore if artist doesnt exist
+        }
     }
 
-    void album_song_genre_add(int album_id, int song_id, int genre_id) throws CustomException {
+    void album_song_genre_add(int song_id, int genre_id) throws CustomException {
         Song song;
         Genre genre = this.genre_find(genre_id);
 
         try {
-            song = this.album_song_find(album_id, song_id);
+            song = this.song_find(song_id);
         } catch (CustomException ce) {
             ce.extraFlag += 1;
             throw ce;
@@ -403,12 +435,12 @@ public class Database {
         song.addGenre(genre);
     }
 
-    void album_song_genre_remove(int album_id, int song_id, int genre_id) {
+    void album_song_genre_remove(int song_id, int genre_id) {
         Song song;
         Genre genre;
 
         try {
-            song = this.album_song_find(album_id, song_id);
+            song = this.song_find(song_id);
             genre = this.genre_find(genre_id);
             song.removeGenre(genre);
         } catch (CustomException ce) {
@@ -417,12 +449,12 @@ public class Database {
     }
 
     // Song Artists
-    void album_song_artist_add(int album_id, int song_id, int artist_id) throws CustomException {
+    void album_song_artist_add(int song_id, int artist_id) throws CustomException {
         Song song;
         Artist artist = this.artist_find(artist_id);
 
         try {
-            song = this.album_song_find(album_id, song_id);
+            song = this.song_find(song_id);
         } catch (CustomException ce) {
             ce.extraFlag += 1;
             throw ce;
@@ -432,27 +464,17 @@ public class Database {
         artist.addSong(song);
     }
 
-    void album_song_artist_remove(int album_id, int song_id, int artist_id) {
+    void album_song_artist_remove(int song_id, int artist_id) {
         Song song;
         Artist artist;
 
         try {
-            song = this.album_song_find(album_id, song_id);
+            song = this.song_find(song_id);
             artist = this.artist_find(artist_id);
             song.removeArtist(artist);
             artist.removeSong(song);
         } catch (CustomException ce) {
             // if song, album or genre not found ignore
         }
-    }
-}
-
-class Index_SameObject {
-    int index;
-    boolean sameObject;
-
-    Index_SameObject(int index, boolean sameObject) {
-        this.index = index;
-        this.sameObject = sameObject;
     }
 }

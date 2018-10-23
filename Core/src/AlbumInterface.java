@@ -19,20 +19,20 @@ public interface AlbumInterface extends Remote {
     // Song
     ArrayList<Song> songs(int album_id) throws RemoteException, CustomException;
     void song_create(int album_id, Song song) throws RemoteException, CustomException;
-    Song song(int album_id, int song_id) throws RemoteException, CustomException;
-    void song_update(int album_id, Song song) throws RemoteException, CustomException;
+    Song song(int song_id) throws CustomException, RemoteException;
+    void song_update(Song new_song) throws RemoteException, CustomException;
     void song_delete(int album_id, int song_id) throws RemoteException, CustomException;
 
     // Genres
     ArrayList<Genre> genres_all() throws RemoteException;
-    void song_genre_add(int album_id, int song_id, int genre_id) throws RemoteException, CustomException;
+    void song_genre_add(int song_id, int genre_id) throws RemoteException, CustomException;
     void song_genre_create(Genre genre) throws RemoteException, CustomException;
     ArrayList<Genre> song_genres(Song song) throws RemoteException;
-    void song_genre_delete(int album_id, int song_id, int genre_id) throws CustomException, RemoteException;
+    void song_genre_delete(int song_id, int genre_id) throws CustomException, RemoteException;
 
     // Artists
-    void song_artist_add(int album_id, int song_id, int artist_id) throws CustomException, RemoteException;
+    void song_artist_add(int song_id, int artist_id) throws CustomException, RemoteException;
     ArrayList<Artist> song_artists(Song song) throws RemoteException;
-    void song_artist_delete(int album_id, int song_id, int artist_id) throws CustomException, RemoteException;
+    void song_artist_delete(int song_id, int artist_id) throws CustomException, RemoteException;
 }
 
