@@ -73,12 +73,12 @@ public class AlbumController implements AlbumInterface {
         return critics;
     }
 
-    public void critic_create(Critic critic) throws CustomException {
+    public void critic_create(int album_id, Critic critic) throws CustomException {
         System.out.print("Action album critic create:");
 
         try {
             critic.validate();
-            this.server.database.album_critic_create(critic);
+            this.server.database.album_critic_create(album_id, critic);
             System.out.println(" success");
         } catch (CustomException ce) {
             System.out.println(" failed");

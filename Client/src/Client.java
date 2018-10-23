@@ -146,7 +146,7 @@ public class Client {
                 case Client.ALBUM_CRITICS:
                     return albumInterface.critics((int)resource);
                 case Client.ALBUM_CRITIC_CREATE:
-                    this.albumInterface.critic_create((Critic)resource);
+                    this.albumInterface.critic_create(this.current_album_id, (Critic)resource);
                     break;
                 case Client.ALBUM_CRITIC:
                     return this.albumInterface.critic((int)resource);
@@ -791,7 +791,7 @@ public class Client {
         critic = new Critic(rating, justification, this.current_album, this.current_user);
 
         try {
-            this.albumInterface.critic_create(critic);
+            this.albumInterface.critic_create(this.current_album_id, critic);
         } catch(RemoteException re) {
             this.retry(Client.ALBUM_CRITIC_CREATE, critic);
         }
@@ -1078,7 +1078,7 @@ public class Client {
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
-        if (option.equals("B")) return Client.ALBUM_SONG_ARTIST_REMOVE;
+        if (option.equals("B")) return Client.ALBUM_SONG_ARTISTS;
 
         try {
             artist_id = Integer.parseInt(option);
