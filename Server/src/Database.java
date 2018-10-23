@@ -232,8 +232,6 @@ public class Database {
         album.points += critic.rating;
         critic.id = this.next_critic_id;
         album.addCritic(critic);
-
-        System.out.println("DEBUG: " + album.critic_ids.size());
         this.critics.add(critic);
         this.next_critic_id += 1;
     }
