@@ -48,6 +48,29 @@ public class Database {
         throw new CustomException("Username not found");
     }
 
+    ArrayList<User> normal_users() {
+        ArrayList<User> normal_users = new ArrayList<>();
+
+        for (User user : this.users) {
+            if (!user.isEditor) normal_users.add(user);
+        }
+
+        return normal_users;
+    }
+
+    User user_find(int id) throws CustomException {
+        for (User user : this.users) {
+            if (user.id == id) return user;
+        }
+
+        throw new CustomException("User not found");
+    }
+
+    void user_promote(int id) throws CustomException {
+        User user = this.user_find(id);
+        user.becomeEditor();
+    }
+
     // Album
     ArrayList<Album> album_all() {
         return this.albums;

@@ -1,4 +1,5 @@
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 public class UserController implements UserInterface {
     Server server;
@@ -41,5 +42,10 @@ public class UserController implements UserInterface {
 
         System.out.println("success");
     }
+
+    public ArrayList<User> normal_users() { return this.server.database.normal_users(); }
+
+    public void promote(int user_id) throws CustomException { this.server.database.user_promote(user_id); }
+
 }
 

@@ -62,7 +62,8 @@ public class Client {
     static final int ALBUM_SONG_ARTIST_CREATE = 31;
     static final int ALBUM_ARTISTS = 32;
     static final int ALBUM_GENRES = 33;
-
+    static final int PROMOTE_USER = 34;
+    static final int NORMAL_USERS = 35;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -197,6 +198,11 @@ public class Client {
                     return this.albumInterface.artists((int)resource);
                 case Client.ALBUM_GENRES:
                     return this.albumInterface.genres((int)resource);
+                case Client.NORMAL_USERS:
+                    return this.userInterface.normal_users();
+                case Client.PROMOTE_USER:
+                    this.userInterface.promote((int)resource);
+                    break;
 
             }
         } catch(RemoteException re) {
@@ -451,6 +457,13 @@ public class Client {
                     this.redirect(Client.ALBUM_SONG_ARTISTS, ce);
                 }
                 break;
+            case Client.PROMOTE_USER:
+                try {
+                    this.redirect(this.displayPromoteUser(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.DASHBOARD, ce);
+                }
+                break;
         }
     }
 
@@ -527,6 +540,11 @@ public class Client {
         System.out.println("Dashboard");
         System.out.println("[AL] Albums");
         System.out.println("[AR] Artists");
+
+        if (this.current_user.isEditor) {
+            System.out.println("[P] Promote user to editor");
+        }
+
         System.out.println("[B] Logout");
 
         System.out.print("Option: ");
@@ -535,6 +553,10 @@ public class Client {
         if (option.equals("AL")) return Client.ALBUMS;
         if (option.equals("AR")) return Client.ARTISTS;
         if (option.equals("B")) return Client.START;
+
+        if (this.current_user.isEditor) {
+            if (option.equals("P")) return Client.PROMOTE_USER;
+        }
 
         this.clearScreen();
         System.out.println("Errors:");
@@ -1340,6 +1362,53 @@ public class Client {
         }
 
         return Client.ARTIST;
+    }
+
+    // Promote User
+    int displayPromoteUser() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<User> normal_users;
+        String option;
+        int user_id;
+
+        try {
+            normal_users = this.userInterface.normal_users();
+        } catch (RemoteException re) {
+            normal_users = (ArrayList<User>)this.retry(Client.NORMAL_USERS, null);
+        }
+
+        System.out.println("Promote user to editor");
+
+        if (normal_users.size() == 0) {
+            System.out.println("No normal users available");
+        } else {
+            for (User user : normal_users) {
+                System.out.println("[" + user.id + "] " + user.username);
+            }
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.DASHBOARD;
+
+        try {
+            user_id = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            return this.displayPromoteUser();
+        }
+
+        try {
+            this.userInterface.promote(user_id);
+        } catch (RemoteException re) {
+            this.retry(Client.PROMOTE_USER, user_id);
+        }
+
+        return Client.DASHBOARD;
     }
 
     // View helper
