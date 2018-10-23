@@ -17,6 +17,9 @@ public class Database {
     ArrayList<Genre> genres = new ArrayList<>();
     int next_genre_id = 0;
 
+    ArrayList<Critic> critics = new ArrayList<>();
+    int next_critic_id = 0;
+
     // User
     int user_findIndexUsername(User new_user) {
         for (User user : this.users) {
@@ -210,31 +213,36 @@ public class Database {
 
     // Critic
     ArrayList<Critic> album_critics(int album_id) throws CustomException {
-        for(Album album : this.albums) {
-            if (album == null) continue;
+        ArrayList<Critic> critics = new ArrayList<>();
+        Album album = this.album_find(album_id);
 
-            if (album.id == album_id) return album.critics;
+        for(int critic_id : album.critic_ids) {
+            try {
+                critics.add(this.album_critic_find(critic_id));
+            } catch (CustomException ce) {
+                // ignore if critic not found
+            }
         }
 
-        throw new CustomException("Album not found");
+        return critics;
     }
 
     void album_critic_create(Critic critic) throws CustomException {
         Album album = this.album_find(critic.album.id);
         album.points += critic.rating;
+        critic.id = this.next_critic_id;
         album.addCritic(critic);
+        this.next_critic_id += 1;
     }
 
-    Critic album_critic_find(int album_id, int critic_pos) throws CustomException {
-        try {
-            Album album = this.album_find(album_id);
-            return album.critics.get(critic_pos);
-        } catch (CustomException ce) {
-            ce.extraFlag = 1;
-            throw ce;
-        } catch (IndexOutOfBoundsException ioobe) {
-            throw new CustomException("Critic not found");
+    Critic album_critic_find(int id) throws CustomException {
+        for (Critic critic : this.critics) {
+            if (critic.id == id) {
+                return critic;
+            }
         }
+
+        throw new CustomException("Critic not found");
     }
 
     // Song
