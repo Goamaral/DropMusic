@@ -65,6 +65,7 @@ public class Album implements Serializable {
     private void dateValidator() throws CustomException {
         try {
             this.releaseDate = this.dateFormat.parse(this.releaseDateString);
+            this.releaseDateString = this.dateFormat.format(this.releaseDate);
         } catch (ParseException pe) {
             throw new CustomException("Invalid date format");
         }
