@@ -45,7 +45,7 @@ public class AlbumController implements AlbumInterface {
 
         try {
             new_album.validate();
-            server.database.album_update(new_album);
+            this.server.database.album_update(new_album);
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -70,6 +70,7 @@ public class AlbumController implements AlbumInterface {
         ArrayList<Album> albums = this.server.database.album_all();
 
         for (Album album : albums) {
+            System.out.println(album.name + " - " + query + " -> " + album.name.contains(query));
             if (album.name.contains(query)) {
                 System.out.println("success");
                 return album;

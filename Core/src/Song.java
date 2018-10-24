@@ -9,6 +9,7 @@ public class Song implements Serializable {
     String info;
     String artists = "";
     String genres = "";
+    int album_id;
 
     // Relationships
     ArrayList<Integer> artist_ids = new ArrayList<>();

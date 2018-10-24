@@ -1,3 +1,4 @@
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class ArtistController implements ArtistInterface {
@@ -60,6 +61,26 @@ public class ArtistController implements ArtistInterface {
         System.out.println("Action artist(" + id + ") delete: ");
 
         server.database.artist_delete(id);
+    }
+
+    public ArrayList<Song> songs(int id) throws CustomException {
+        return this.server.database.artist_songs(id);
+    }
+
+    public Artist search(String query) throws CustomException {
+        System.out.print("Actions search artist (" + query + "): ");
+
+        ArrayList<Artist> artists = this.server.database.artist_all();
+
+        for (Artist artist : artists) {
+            if (artist.name.contains(query)) {
+                System.out.println("success");
+                return artist;
+            }
+        }
+
+        System.out.println("failure");
+        throw new CustomException("Artist not found");
     }
 
 }

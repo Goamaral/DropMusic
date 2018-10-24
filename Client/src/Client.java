@@ -65,6 +65,8 @@ public class Client {
     static final int PROMOTE_USER = 34;
     static final int NORMAL_USERS = 35;
     static final int SEARCH_ALBUM = 36;
+    static final int SEARCH_ARTIST = 37;
+    static final int ARTIST_SONGS = 38;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -206,6 +208,10 @@ public class Client {
                     break;
                 case Client.SEARCH_ALBUM:
                     return this.albumInterface.search((String)resource);
+                case Client.SEARCH_ARTIST:
+                    return this.artistInterface.search((String)resource);
+                case Client.ARTIST_SONGS:
+                    return this.artistInterface.songs((int)resource);
 
             }
         } catch(RemoteException re) {
@@ -472,6 +478,13 @@ public class Client {
                     this.redirect(this.displaySearchAlbum(), null);
                 } catch (CustomException ce) {
                     this.redirect(this.ALBUMS, ce);
+                }
+                break;
+            case Client.SEARCH_ARTIST:
+                try {
+                    this.redirect(this.displaySearchArtist(), null);
+                } catch (CustomException ce) {
+                    this.redirect(this.ARTISTS, ce);
                 }
                 break;
         }
@@ -1276,12 +1289,14 @@ public class Client {
             System.out.println("[C] Add artist");
         }
 
+        System.out.println("[S] Search songs");
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
         option = this.scanner.nextLine();
 
         if (option.equals("B")) return Client.DASHBOARD;
+        if (option.equals("S")) return Client.SEARCH_ARTIST;
 
         if (this.current_user.isEditor && option.equals("C")) return Client.ARTIST_CREATE;
 
@@ -1419,7 +1434,7 @@ public class Client {
         return Client.DASHBOARD;
     }
 
-    // Search music
+    // Search album
     int displaySearchAlbum() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String query;
         ArrayList<Song> songs;
@@ -1460,6 +1475,66 @@ public class Client {
 
             try {
                 this.current_song_id = Integer.parseInt(query);
+                break;
+            } catch (NumberFormatException nfe) {
+                this.clearScreen();
+                System.out.println("Errors:");
+                System.out.println("-> Invalid option");
+            }
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
+    // Search artist
+    int displaySearchArtist() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        String query;
+        ArrayList<Song> songs;
+
+        System.out.println("Artist songs");
+        System.out.print("Artist name: ");
+        query = this.scanner.nextLine();
+
+        try {
+            this.current_artist = this.artistInterface.search(query);
+        } catch (RemoteException re) {
+            this.current_artist = (Artist) this.retry(Client.SEARCH_ARTIST, query);
+        }
+
+        this.current_artist_id = this.current_artist.id;
+
+        try {
+            songs = this.artistInterface.songs(this.current_artist_id);
+        } catch (RemoteException re) {
+            songs = (ArrayList<Song>)this.retry(Client.ARTIST_SONGS, this.current_artist_id);
+        }
+
+        while (true) {
+            if (songs.size() == 0) {
+                System.out.println("No songs available");
+            } else {
+                for (Song song : songs) {
+                    System.out.println("[" + song.id + "] " + song.name);
+                }
+            }
+
+            System.out.println("[B] Back");
+
+            System.out.print("Option: ");
+            query = this.scanner.nextLine();
+
+            if (query.equals("B")) return Client.ARTISTS;
+
+            try {
+                this.current_song_id = Integer.parseInt(query);
+
+                try {
+                    this.current_song = this.albumInterface.song(this.current_song_id);
+                } catch(RemoteException re) {
+                    this.current_song = (Song)this.retry(Client.ALBUM_SONG, this.current_song_id);
+                }
+
+                this.current_album_id = this.current_song.album_id;
                 break;
             } catch (NumberFormatException nfe) {
                 this.clearScreen();

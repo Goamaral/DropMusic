@@ -114,8 +114,10 @@ public class Database {
     void album_update(Album new_album) throws CustomException {
         int index = this.album_findIndex(new_album);
 
-        if (index == -1) {
-            this.albums.set(new_album.id, new_album);
+        if (index != -1) {
+            this.albums.get(index).name = new_album.name;
+            this.albums.get(index).info = new_album.info;
+            this.albums.get(index).releaseDateString = new_album.releaseDateString;
         } else {
             throw new CustomException("Album not found");
         }
@@ -275,6 +277,7 @@ public class Database {
         }
 
         song.id = this.next_song_id;
+        song.album_id = album_id;
         this.songs.add(song);
         this.next_song_id += 1;
         album.addSong(song.id);
@@ -305,7 +308,8 @@ public class Database {
         int index2 = this.song_findIndexByName(new_song);
 
         if (index != -1 || new_song.id == this.songs.get(index2).id) {
-            this.songs.set(index, new_song);
+            this.songs.get(index).name = new_song.name;
+            this.songs.get(index).info = new_song.info;
         } else {
             throw new CustomException("Song not found");
         }
@@ -413,7 +417,7 @@ public class Database {
         int index = this.artist_findIndex(new_artist);
 
         if (index == -1) {
-            this.artists.set(new_artist.id, new_artist);
+            this.artists.get(index).name = new_artist.name;
         } else {
             throw new CustomException("Artist name already exists");
         }
@@ -428,6 +432,21 @@ public class Database {
         } catch (CustomException ce) {
             // Ignore if artist doesnt exist
         }
+    }
+
+    ArrayList<Song> artist_songs(int id) throws CustomException {
+        Artist artist = this.artist_find(id);
+        ArrayList<Song> songs = new ArrayList<>();
+
+        for (int song_id : artist.song_ids) {
+            try {
+                songs.add(this.song_find(song_id));
+            } catch (CustomException ce) {
+                // ignore if not found
+            }
+        }
+
+        return songs;
     }
 
     void album_song_genre_add(int song_id, int genre_id) throws CustomException {

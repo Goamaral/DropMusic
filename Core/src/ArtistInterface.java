@@ -8,4 +8,6 @@ public interface ArtistInterface extends Remote {
     Artist read(int id) throws RemoteException, CustomException;
     void update(Artist new_artist) throws RemoteException, CustomException;
     void delete(int id) throws RemoteException;
+    ArrayList<Song> songs(int id) throws RemoteException, CustomException;
+    Artist search(String query) throws RemoteException, CustomException;
 }
