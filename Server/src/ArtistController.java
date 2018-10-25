@@ -16,12 +16,12 @@ public class ArtistController implements ArtistInterface {
         return artists;
     }
 
-    public void create(Artist artist) throws CustomException {
+    public void create(int user_id, Artist artist) throws CustomException {
         System.out.print("Action artist create: " + artist.name);
 
         try {
             artist.validate();
-            server.database.artist_create(artist);
+            server.database.artist_create(user_id, artist);
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -43,12 +43,17 @@ public class ArtistController implements ArtistInterface {
         }
     }
 
-    public void update(Artist new_artist) throws CustomException {
+    public void update(int user_id, Artist new_artist) throws CustomException {
         System.out.print("Action artist(" + new_artist.id + ") update: ");
 
         try {
             new_artist.validate();
-            server.database.artist_update(new_artist);
+
+            ArrayList<Integer> editor_ids = server.database.artist_update(user_id, new_artist);
+
+            for (int editor_id : editor_ids) {
+                this.server.send_notifications(new Job(editor_id, "Artist " + new_artist.id + " was edited"));
+            }
         } catch (CustomException ce) {
             System.out.println("failed");
             throw ce;

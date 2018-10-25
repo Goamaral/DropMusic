@@ -13,12 +13,12 @@ public class AlbumController implements AlbumInterface {
         return albums;
     }
 
-    public void create(Album album) throws CustomException {
-        System.out.print("Action album create: " + album.toString());
+    public void create(int user_id, Album album) throws CustomException {
+        System.out.print("Action album create by (" + user_id + "): " + album.toString());
 
         try {
             album.validate();
-            server.database.album_create(album);
+            this.server.database.album_create(user_id, album);
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -40,12 +40,16 @@ public class AlbumController implements AlbumInterface {
         }
     }
 
-    public void update(Album new_album) throws CustomException {
-        System.out.print("Action album(" + new_album.id + ") update: " + new_album.toString());
+    public void update(int user_id, Album new_album) throws CustomException {
+        System.out.print("Action album(" + new_album.id + ") update by (" + user_id + "): " + new_album.toString());
 
         try {
             new_album.validate();
-            this.server.database.album_update(new_album);
+            ArrayList<Integer> editor_ids = this.server.database.album_update(user_id, new_album);
+
+            for (int editor_id : editor_ids) {
+                this.server.send_notifications(new Job(editor_id, "Album " + new_album.id + " was edited"));
+            }
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;

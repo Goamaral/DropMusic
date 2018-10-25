@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -11,7 +16,7 @@ public class Client {
     AlbumInterface albumInterface;
     ArtistInterface artistInterface;
 
-    User current_user;
+    User current_user = null;
     int current_album_id;
     Album current_album;
     int current_critic_id;
@@ -25,6 +30,7 @@ public class Client {
     int maxAttemps = 30;
     int port1;
     int port2;
+    TcpHandler tcpHandler;
 
     Scanner scanner = new Scanner(System.in);
 
@@ -128,7 +134,7 @@ public class Client {
         try {
             switch (method_id) {
                 case Client.LOGIN:
-                    this.current_user = userInterface.login((User)resource);
+                    this.current_user = userInterface.login((User)resource, this.tcpHandler.port);
                     break;
                 case Client.REGISTER:
                     userInterface.register((User)resource);
@@ -136,12 +142,12 @@ public class Client {
                 case Client.ALBUMS:
                     return albumInterface.index();
                 case Client.ALBUM_CREATE:
-                    this.albumInterface.create((Album)resource);
+                    this.albumInterface.create(this.current_user.id, (Album)resource);
                     break;
                 case Client.ALBUM:
                     return this.albumInterface.read((int)resource);
                 case Client.ALBUM_UPDATE:
-                    this.albumInterface.update((Album)resource);
+                    this.albumInterface.update(this.current_user.id, (Album)resource);
                     break;
                 case Client.ALBUM_DELETE:
                     this.albumInterface.delete((int)resource);
@@ -169,12 +175,12 @@ public class Client {
                 case Client.ARTISTS:
                     return this.artistInterface.index();
                 case Client.ARTIST_CREATE:
-                    this.artistInterface.create((Artist)resource);
+                    this.artistInterface.create(this.current_user.id, (Artist)resource);
                     break;
                 case Client.ARTIST:
                     return this.artistInterface.read((int)resource);
                 case Client.ARTIST_UPDATE:
-                    this.artistInterface.update((Artist)resource);
+                    this.artistInterface.update(this.current_user.id, (Artist)resource);
                     break;
                 case Client.GENRES:
                     return this.albumInterface.genres_all();
@@ -245,6 +251,9 @@ public class Client {
                 try {
                     this.redirect(this.displayLogin(), null);
                 } catch (CustomException ce) {
+                    try {
+                        this.tcpHandler.socket.close();
+                    } catch (IOException e) {}
                     this.redirect(Client.START, ce);
                 }
                 break;
@@ -527,7 +536,9 @@ public class Client {
         user = new User(username, password);
 
         try {
-            this.current_user = userInterface.login(user);
+            this.tcpHandler = new TcpHandler(this);
+            this.current_user = userInterface.login(user, this.tcpHandler.port);
+            this.tcpHandler.start();
         } catch (RemoteException re) {
             this.retry(Client.LOGIN, user);
         }
@@ -575,7 +586,15 @@ public class Client {
 
         if (option.equals("AL")) return Client.ALBUMS;
         if (option.equals("AR")) return Client.ARTISTS;
-        if (option.equals("B")) return Client.START;
+        if (option.equals("B")) {
+            try {
+                this.tcpHandler.server.close();
+                this.tcpHandler.socket.close();
+                this.tcpHandler.join(1000);
+            } catch (InterruptedException | IOException e) {}
+
+            return Client.START;
+        }
 
         if (this.current_user.isEditor) {
             if (option.equals("P")) return Client.PROMOTE_USER;
@@ -653,7 +672,7 @@ public class Client {
         album = new Album(name, info, realeaseDateString);
 
         try {
-            this.albumInterface.create(album);
+            this.albumInterface.create(this.current_user.id, album);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_CREATE, album);
         }
@@ -742,7 +761,7 @@ public class Client {
         new_album.id = this.current_album_id;
 
         try {
-            this.albumInterface.update(new_album);
+            this.albumInterface.update(this.current_user.id, new_album);
         } catch (RemoteException re) {
             this.retry(Client.ALBUM_UPDATE, new_album);
         }
@@ -1205,14 +1224,20 @@ public class Client {
 
     int displayAlbumSongArtistCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Artist artist;
+        String name, info;
 
         System.out.println("Create artist");
-        System.out.print("Name: ");
 
-        artist = new Artist(this.scanner.nextLine());
+        System.out.print("Name: ");
+        name = this.scanner.nextLine();
+
+        System.out.print("Info: ");
+        info = this.scanner.nextLine();
+
+        artist = new Artist(name, info);
 
         try {
-            this.artistInterface.create(artist);
+            this.artistInterface.create(this.current_user.id, artist);
         } catch (RemoteException re) {
             this.retry(Client.ARTIST_CREATE, artist);
         }
@@ -1314,14 +1339,20 @@ public class Client {
 
     int displayArtistCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Artist artist;
+        String name, info;
 
         System.out.println("Create artist");
 
         System.out.print("Name: ");
-        artist = new Artist(this.scanner.nextLine());
+        name = this.scanner.nextLine();
+
+        System.out.print("Info: ");
+        info = this.scanner.nextLine();
+
+        artist = new Artist(name, info);
 
         try {
-            this.artistInterface.create(artist);
+            this.artistInterface.create(this.current_user.id, artist);
         } catch(RemoteException re) {
             this.retry(Client.ARTIST_CREATE, artist);
         }
@@ -1340,6 +1371,7 @@ public class Client {
 
         System.out.println("Artist");
         System.out.println("Name: " + this.current_artist.name);
+        System.out.println("Info: " + this.current_artist.info);
 
         if (this.current_user.isEditor) {
             System.out.println("[U] Edit artist");
@@ -1367,6 +1399,7 @@ public class Client {
     int displayArtistUpdate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         Artist artist;
         String name;
+        String info;
 
         System.out.println("Edit artist");
         System.out.println("Leave fields empty if you don't want to change them");
@@ -1375,11 +1408,15 @@ public class Client {
         name = this.scanner.nextLine();
         if (name.length() == 0) name = this.current_artist.name;
 
-        artist = new Artist(name);
+        System.out.print("Info(" + this.current_artist.info + "): ");
+        info = this.scanner.nextLine();
+        if (info.length() == 0) info = this.current_artist.info;
+
+        artist = new Artist(name, info);
         artist.id = this.current_artist_id;
 
         try {
-            this.artistInterface.update(artist);
+            this.artistInterface.update(this.current_user.id, artist);
         } catch (RemoteException re) {
             this.retry(Client.ARTIST_UPDATE, artist);
         }
@@ -1549,5 +1586,45 @@ public class Client {
     // View helper
     void clearScreen() {
         System.out.print("\033[H\033[2J");
+    }
+}
+
+class TcpHandler extends Thread {
+    ServerSocket socket;
+    int port = 10000;
+    Socket server;
+    Client client;
+
+    TcpHandler(Client client) {
+        this.client = client;
+
+        while (true) {
+            try {
+                this.socket = new ServerSocket(this.port);
+                break;
+            } catch (IOException e) {
+                this.port += 1;
+            }
+        }
+    }
+
+    public void run() {
+            try {
+                while (true) {
+                    this.server = this.socket.accept();
+
+                    BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
+                    String data;
+
+                    while ((data = in.readLine()) != null) {
+                        if (data.contains("You have been promoted")) client.current_user.becomeEditor();
+                        System.out.println("\n" + data);
+                    }
+
+                    this.server.close();
+                }
+            } catch (IOException e) {
+                /* Wait for server to reconnect */
+            }
     }
 }

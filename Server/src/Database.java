@@ -47,8 +47,6 @@ public class Database {
 
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
-            if (user == null) continue;
-
             if (user.username.equals(username)) {
                 return user;
             }
@@ -85,7 +83,8 @@ public class Database {
         return this.albums;
     }
 
-    void album_create(Album album) {
+    void album_create(int user_id, Album album) {
+        album.editor_ids.add(user_id);
         album.id = this.next_album_id;
         this.next_album_id += 1;
         this.albums.add(album);
@@ -93,8 +92,6 @@ public class Database {
 
     Album album_find(int id) throws CustomException {
         for(Album album : this.albums) {
-            if (album == null) continue;
-
             if (album.id == id) return album;
         }
 
@@ -111,27 +108,33 @@ public class Database {
         return -1;
     }
 
-    void album_update(Album new_album) throws CustomException {
+    ArrayList<Integer> album_update(int user_id, Album new_album) throws CustomException {
         int index = this.album_findIndex(new_album);
 
         if (index != -1) {
             this.albums.get(index).name = new_album.name;
             this.albums.get(index).info = new_album.info;
             this.albums.get(index).releaseDateString = new_album.releaseDateString;
+            ArrayList<Integer> author_ids = (ArrayList<Integer>)this.albums.get(index).editor_ids.clone();
+            if (!this.albums.get(index).editor_ids.contains(user_id)) {
+                this.albums.get(index).editor_ids.add(user_id);
+            }
+            return author_ids;
         } else {
             throw new CustomException("Album not found");
+            //return new ArrayList<Integer>();
         }
     }
 
     void album_delete(int id) {
-        Album album = null;
+        Album album;
         try {
             album = this.album_find(id);
+            this.albums.remove(album);
         } catch (CustomException e) {
             // Return if album not found
             return;
         }
-        this.albums.remove(album);
     }
 
     String album_artists(int id) throws CustomException {
@@ -393,10 +396,11 @@ public class Database {
         return -1;
     }
 
-    void artist_create(Artist artist) throws CustomException {
+    void artist_create(int user_id, Artist artist) throws CustomException {
         int index = this.artist_findIndexByName(artist);
 
         if (index == -1) {
+            artist.editor_ids.add(user_id);
             artist.id = this.next_artist_id;
             this.artists.add(artist);
             this.next_artist_id += 1;
@@ -413,13 +417,21 @@ public class Database {
         throw new CustomException("Artist not found");
     }
 
-    void artist_update(Artist new_artist) throws CustomException {
+    ArrayList<Integer> artist_update(int user_id, Artist new_artist) throws CustomException {
         int index = this.artist_findIndex(new_artist);
+        int index2 = this.artist_findIndexByName(new_artist);
 
-        if (index == -1) {
+        if (index != -1 || new_artist.id == this.artists.get(index2).id) {
             this.artists.get(index).name = new_artist.name;
+            this.artists.get(index).info = new_artist.info;
+            ArrayList<Integer> author_ids = (ArrayList<Integer>)this.artists.get(index).editor_ids.clone();
+            if (!this.artists.get(index).editor_ids.contains(user_id)) {
+                this.artists.get(index).editor_ids.add(user_id);
+            }
+            return author_ids;
         } else {
             throw new CustomException("Artist name already exists");
+            // return new ArrayList<Integer>();
         }
     }
 

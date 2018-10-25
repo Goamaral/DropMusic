@@ -3,9 +3,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 public class Album implements Serializable {
     int id;
@@ -19,6 +17,7 @@ public class Album implements Serializable {
     // Relationships
     ArrayList<Integer> critic_ids = new ArrayList<>();
     ArrayList<Integer> song_ids = new ArrayList<>();
+    ArrayList<Integer> editor_ids = new ArrayList<>();
 
     Album(String name, String info, String releaseDateString) {
         this.name = name;
