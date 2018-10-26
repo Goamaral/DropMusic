@@ -1596,8 +1596,6 @@ public class Client {
         return Client.ALBUM_SONG;
     }
 
-
-
     // Upload song
     int displaySongUpload() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         IpPort ip_port;
@@ -1606,11 +1604,9 @@ public class Client {
         System.out.print("Song file name: ");
         String song_file_name = this.scanner.nextLine();
         String song_file_path = System.getProperty("user.dir") + "/" + song_file_name;
-        System.out.println("Uploading song " + song_file_name);
-        String[] song_parts = song_file_name.split("\\.");
-        String song_ext = "jpg";
+        String song_ext = song_file_name.split("\\.")[1];
 
-        System.out.println("Uploading song " + song_parts.length);
+        System.out.println("Uploading song");
         File file;
         FileInputStream fis;
 
