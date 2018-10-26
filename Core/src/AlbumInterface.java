@@ -24,7 +24,10 @@ public interface AlbumInterface extends Remote {
     Song song(int song_id) throws CustomException, RemoteException;
     void song_update(Song new_song) throws RemoteException, CustomException;
     void song_delete(int album_id, int song_id) throws RemoteException, CustomException;
-    IpPort requestSongUpload(int user_id, int song_id, String ext) throws RemoteException, UnknownHostException;
+    IpPort requestSongUpload(int user_id, int song_id, String ext) throws RemoteException, UnknownHostException, CustomException;
+    ArrayList<StoredSong> song_downloads(int song_id, int user_id) throws RemoteException, CustomException;
+    IpPort requestSongDownload(int user_id, int stored_song_id) throws RemoteException, UnknownHostException, CustomException;
+    void song_share(int song_id, int user_id) throws RemoteException;
 
     // Genres
     ArrayList<Genre> genres_all() throws RemoteException;

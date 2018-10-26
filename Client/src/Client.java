@@ -1,5 +1,6 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
+import javax.sound.midi.Soundbank;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,6 +27,8 @@ public class Client {
     Song current_song;
     int current_artist_id;
     Artist current_artist;
+    StoredSong current_stored_song;
+    int current_stored_song_id;
 
     int connectAttemps = 0;
     int maxAttemps = 30;
@@ -75,6 +78,11 @@ public class Client {
     static final int SEARCH_ARTIST = 37;
     static final int ARTIST_SONGS = 38;
     static final int SONG_UPLOAD = 39;
+    static final int SONG_DOWNLOADS = 40;
+    static final int USER = 41;
+    static final int SONG_DOWNLOAD = 42;
+    static final int SONG_SHARE = 43;
+    static final int USERS = 44;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -222,7 +230,17 @@ public class Client {
                     return this.artistInterface.songs((int)resource);
                 case Client.SONG_UPLOAD:
                     return this.albumInterface.requestSongUpload(this.current_user.id, this.current_song_id, (String)resource);
-
+                case Client.SONG_DOWNLOADS:
+                    return this.albumInterface.song_downloads(this.current_song_id, this.current_user.id);
+                case Client.USER:
+                    return this.userInterface.read((int)resource);
+                case Client.SONG_DOWNLOAD:
+                    return this.albumInterface.requestSongDownload(this.current_user.id, (int)resource);
+                case Client.SONG_SHARE:
+                    this.albumInterface.song_share(this.current_stored_song_id, (int)resource);
+                    break;
+                case Client.USERS:
+                    return this.userInterface.index();
             }
         } catch(RemoteException | UnknownHostException re) {
             re.printStackTrace();
@@ -507,6 +525,28 @@ public class Client {
                 } catch (CustomException ce) {
                     this.redirect(Client.ALBUM_SONG, ce);
                 }
+                break;
+            case Client.SONG_DOWNLOADS:
+                try {
+                    this.redirect(this.displaySongDownloads(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG, ce);
+                }
+                break;
+            case Client.SONG_DOWNLOAD:
+                try {
+                    this.redirect(this.displaySongDownload(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG, ce);
+                }
+                break;
+            case Client.SONG_SHARE:
+                try {
+                    this.redirect(this.displaySongShare(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG, ce);
+                }
+                break;
         }
     }
 
@@ -963,6 +1003,8 @@ public class Client {
         }
 
         System.out.println("[UP] Upload");
+        System.out.println("[DN] Download");
+        System.out.println("[SH] Share");
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
@@ -972,6 +1014,8 @@ public class Client {
         if (option.equals("G")) return Client.ALBUM_SONG_GENRES;
         if (option.equals("A")) return Client.ALBUM_SONG_ARTISTS;
         if (option.equals("UP")) return Client.SONG_UPLOAD;
+        if (option.equals("DN")) return Client.SONG_DOWNLOADS;
+        if (option.equals("SH")) return Client.SONG_SHARE;
 
         if (this.current_user.isEditor) {
             if (option.equals("U")) return Client.ALBUM_SONG_UPDATE;
@@ -1655,6 +1699,141 @@ public class Client {
             System.out.println("Song uploaded");
         } catch (IOException i) {
             i.printStackTrace();
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
+    int displaySongDownloads() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        ArrayList<StoredSong> storedSongs;
+
+        try {
+            storedSongs = this.albumInterface.song_downloads(this.current_song_id, this.current_user.id);
+        } catch (RemoteException re) {
+            storedSongs = (ArrayList<StoredSong>)this.retry(Client.SONG_DOWNLOADS, this.current_user.id);
+        }
+
+        System.out.println("Download list");
+        if (storedSongs.size() == 0) {
+            System.out.println("No downloads available");
+        } else {
+            for (StoredSong storedSong : storedSongs) {
+                User uploader;
+
+                try {
+                    uploader = this.userInterface.read(storedSong.uploader_id);
+                } catch (RemoteException re) {
+                    uploader = (User)this.retry(Client.USER, storedSong.uploader_id);
+                }
+
+                System.out.println("[" + storedSong.id + "] " + storedSong.ext + " by " + uploader.username);
+            }
+        }
+
+        System.out.println("[B] Back");
+        System.out.print("Option: ");
+        String option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG;
+
+        try {
+            this.current_stored_song_id = Integer.parseInt(option);
+            this.current_stored_song = null;
+
+            for (StoredSong storedSong : storedSongs) {
+                if (storedSong.id == this.current_stored_song_id) {
+                    this.current_stored_song = storedSong;
+                }
+            }
+
+            if (this.current_stored_song == null) {
+                throw new NumberFormatException();
+            }
+
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            this.displaySongDownloads();
+        }
+
+        return Client.SONG_DOWNLOAD;
+    }
+
+    int displaySongDownload() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        System.out.println("Download song");
+
+        IpPort ipPort;
+
+        try {
+            ipPort = this.albumInterface.requestSongDownload(this.current_user.id, this.current_stored_song_id);
+        } catch (RemoteException re) {
+            ipPort = (IpPort) this.retry(Client.SONG_DOWNLOAD, this.current_stored_song_id);
+        } catch (UnknownHostException e) {
+            throw new CustomException("Invalid server ip");
+        }
+
+        try {
+            Socket socket = new Socket(ipPort.ip, ipPort.port);
+
+            byte[] file_bytes = new byte[10000];
+            FileOutputStream fos = new FileOutputStream("d_song_" + this.current_stored_song.id + "." + this.current_stored_song.ext);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            InputStream is = socket.getInputStream();
+
+            int bytes_read = 0;
+
+            while((bytes_read = is.read(file_bytes))!=-1)
+                bos.write(file_bytes, 0, bytes_read);
+
+            bos.flush();
+            socket.close();
+        } catch (IOException e) {}
+
+        return Client.ALBUM_SONG;
+    }
+
+    int displaySongShare() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        System.out.println("Share song");
+        System.out.println("User list");
+
+        ArrayList<User> users = new ArrayList<>();
+        try {
+            users = this.userInterface.users();
+        } catch (RemoteException re) {
+            users = this.retry(Client.USERS, null);
+        }
+
+        users.remove(this.current_user);
+
+        if (users.size() == 0) {
+            System.out.println("No users available");
+        } else {
+            for (User user : users) {
+                System.out.println("[" + user.id + "] " + user.username);
+            }
+        }
+
+        System.out.println("[B] Back");
+
+        System.out.print("Option: ");
+        String option = this.scanner.nextLine();
+
+        if (option.equals("B")) return Client.ALBUM_SONG;
+
+        try {
+            int user_id = Integer.parseInt(option);
+
+            try {
+                this.albumInterface.song_share(this.current_song_id, user_id);
+            } catch (RemoteException re) {
+                this.retry(Client.SONG_SHARE, user_id);
+            }
+        } catch (NumberFormatException nfe) {
+            this.clearScreen();
+            System.out.println("Errors:");
+            System.out.println("-> Invalid option");
+            this.displaySongShare();
         }
 
         return Client.ALBUM_SONG;

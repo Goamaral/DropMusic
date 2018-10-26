@@ -348,7 +348,7 @@ public class Database {
         throw new CustomException("Song not found");
     }
 
-    int requestSongUpload(int user_id, int song_id, String ext) {
+    int requestSongUpload(int user_id, int song_id, String ext) throws CustomException {
         ServerSocket serverSocket;
         int port = 15000;
 
@@ -361,8 +361,63 @@ public class Database {
             }
         }
 
-        new UploadThread(new StoredSong(this.next_stored_song_id, user_id, song_id, ext), serverSocket, this);
+        int stored_song_id = this.next_stored_song_id;
         this.next_stored_song_id += 1;
+        new UploadThread(new StoredSong(stored_song_id, user_id, song_id, ext), serverSocket, this);
+
+        User user = this.user_find(user_id);
+        user.addStoredSong(stored_song_id);
+
+        return port;
+    }
+
+    StoredSong stored_song_find(int id) throws CustomException {
+        for (StoredSong storedSong : this.storedSongs) {
+            if (storedSong.id == id) {
+                return storedSong;
+            }
+        }
+
+        throw new CustomException("Stored song not found");
+    }
+
+    ArrayList<StoredSong> song_downloads(int song_id, int user_id) throws CustomException {
+        ArrayList<StoredSong> downloads = new ArrayList<>();
+        User user = this.user_find(user_id);
+
+        for (int stored_song_id : user.stored_song_ids) {
+            StoredSong storedSong = this.stored_song_find(stored_song_id);
+
+            if (storedSong.song_id == song_id) {
+                downloads.add(storedSong);
+            }
+        }
+
+        return downloads;
+    }
+
+    int requestSongDownload(int user_id, int stored_song_id) throws CustomException {
+        ServerSocket serverSocket;
+        int port = 15000;
+
+        User user = this.user_find(user_id);
+        StoredSong storedSong = this.stored_song_find(stored_song_id);
+
+        if (!user.stored_song_ids.contains(stored_song_id)) {
+            throw new CustomException("Download not allowed");
+        }
+
+        while (true) {
+            try {
+                serverSocket = new ServerSocket(port);
+                break;
+            } catch (IOException e) {
+                port += 1;
+            }
+        }
+
+        new DownloadThread(storedSong, serverSocket);
+
         return port;
     }
 
@@ -545,20 +600,6 @@ public class Database {
     }
 }
 
-class StoredSong {
-    int song_id;
-    int uploader_id;
-    int id;
-    String ext;
-
-    StoredSong(int id, int song_id, int uploader_id, String ext) {
-        this.id = id;
-        this.song_id = song_id;
-        this.uploader_id = uploader_id;
-        this.ext = ext;
-    }
-}
-
 class UploadThread extends Thread {
     StoredSong storedSong;
     Database database;
@@ -575,7 +616,7 @@ class UploadThread extends Thread {
         try {
             Socket client = this.serverSocket.accept();
             byte[] file_bytes = new byte[10000];
-            FileOutputStream fos = new FileOutputStream("song_" + this.storedSong.id + "." + this.storedSong.ext);
+            FileOutputStream fos = new FileOutputStream("u_song_" + this.storedSong.id + "." + this.storedSong.ext);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             InputStream is = client.getInputStream();
 
@@ -591,6 +632,57 @@ class UploadThread extends Thread {
             this.database.storedSongs.add(storedSong);
         } catch (IOException e) {
             /* Wait for server to reconnect */
+        }
+    }
+}
+
+class DownloadThread extends Thread {
+    StoredSong storedSong;
+    ServerSocket serverSocket;
+
+    DownloadThread(StoredSong storedSong, ServerSocket serverSocket) {
+        this.storedSong = storedSong;
+        this.serverSocket = serverSocket;
+        this.start();
+    }
+
+    public void run() {
+        try {
+            Socket client = this.serverSocket.accept();
+
+            File file = new File("u_song_" + this.storedSong.id + "." + this.storedSong.ext);
+            FileInputStream fis = new FileInputStream(file);
+
+            OutputStream os = client.getOutputStream();
+
+            BufferedInputStream bis = new BufferedInputStream(fis);
+
+            byte[] file_bytes;
+            long file_length = file.length();
+            long sent_bytes = 0;
+
+            while (sent_bytes != file_length) {
+                int packet_size = 10000;
+                long bytes_left = file_length - sent_bytes;
+                if (bytes_left >= packet_size) {
+                    sent_bytes += packet_size;
+                } else {
+                    packet_size = (int) bytes_left;
+                    sent_bytes += packet_size;
+                }
+
+                file_bytes = new byte[packet_size];
+                bis.read(file_bytes, 0, packet_size);
+                os.write(file_bytes);
+                System.out.println("\r" + (sent_bytes * 100) / file_length + "% complete!");
+            }
+
+            os.flush();
+            client.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

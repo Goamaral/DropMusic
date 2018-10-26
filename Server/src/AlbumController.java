@@ -177,10 +177,26 @@ public class AlbumController implements AlbumInterface {
         this.server.database.album_song_delete(album_id, song_id);
     }
 
-    public IpPort requestSongUpload(int user_id, int song_id, String ext) throws UnknownHostException {
+    public IpPort requestSongUpload(int user_id, int song_id, String ext) throws UnknownHostException, CustomException {
         System.out.println("Action upload request by " + user_id);
         int port = this.server.database.requestSongUpload(user_id, song_id, ext);
         return new IpPort(InetAddress.getByName("127.0.0.1"), port);
+    }
+
+    public ArrayList<StoredSong> song_downloads(int song_id, int user_id) throws CustomException {
+        System.out.println("Action download list");
+        return this.server.database.song_downloads(song_id, user_id);
+    }
+
+    public IpPort requestSongDownload(int user_id, int stored_song_id) throws UnknownHostException, CustomException {
+        System.out.println("Action download request by " + user_id);
+        int port = this.server.database.requestSongDownload(user_id, stored_song_id);
+        return new IpPort(InetAddress.getByName("127.0.0.1"), port);
+    }
+
+    public void song_share(int stored_song_id, int user_id) {
+        System.out.println("Action share music with " + user_id);
+        this.server.database.song_share(stored_song_id, user_id);
     }
 
     // Genre

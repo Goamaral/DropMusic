@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.security.NoSuchAlgorithmException;
@@ -80,6 +81,11 @@ public class UserController implements UserInterface {
 
         this.server.send_notifications(new Job(user_id, "You have been promoted.\nYou are now an editor."));
     }
+
+    public User read(int id) throws CustomException {
+        return this.server.database.user_find(id);
+    }
+
 
 }
 

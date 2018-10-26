@@ -8,4 +8,5 @@ public interface UserInterface extends Remote {
     void register(User user) throws RemoteException, CustomException, NoSuchAlgorithmException;
     ArrayList<User> normal_users() throws RemoteException;
     void promote(int user_id) throws RemoteException, CustomException;
+    User read(int id) throws RemoteException, CustomException;
 }

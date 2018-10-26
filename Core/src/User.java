@@ -9,6 +9,7 @@ public class User implements Serializable {
     String password;
     boolean password_encrypted;
     boolean isEditor = false;
+    ArrayList<Integer> stored_song_ids = new ArrayList<>();
 
     public User(String username, String password) throws NoSuchAlgorithmException {
         this.username = username;
@@ -74,6 +75,10 @@ public class User implements Serializable {
 
     void becomeEditor() {
         isEditor = true;
+    }
+
+    void addStoredSong(int id) {
+        this.stored_song_ids.add(id);
     }
 
     public String toString() {
