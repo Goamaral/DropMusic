@@ -1,3 +1,5 @@
+import java.io.*;
+import java.net.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
@@ -19,6 +21,12 @@ public class Database {
 
     ArrayList<Critic> critics = new ArrayList<>();
     int next_critic_id = 0;
+
+    ArrayList<StoredSong> storedSongs = new ArrayList<StoredSong>();
+    int next_stored_song_id = 0;
+
+    public Database() throws UnknownHostException {
+    }
 
     // User
     int user_findIndexUsername(User new_user) {
@@ -340,6 +348,24 @@ public class Database {
         throw new CustomException("Song not found");
     }
 
+    int requestSongUpload(int user_id, int song_id, String ext) {
+        ServerSocket serverSocket;
+        int port = 15000;
+
+        while (true) {
+            try {
+                serverSocket = new ServerSocket(port);
+                break;
+            } catch (IOException e) {
+                port += 1;
+            }
+        }
+
+        new UploadThread(new StoredSong(this.next_stored_song_id, user_id, song_id, ext), serverSocket, this);
+        this.next_stored_song_id += 1;
+        return port;
+    }
+
     // Genre
     ArrayList<Genre> genre_all() { return this.genres; }
 
@@ -515,6 +541,56 @@ public class Database {
             artist.removeSong(song);
         } catch (CustomException ce) {
             // if song, album or genre not found ignore
+        }
+    }
+}
+
+class StoredSong {
+    int song_id;
+    int uploader_id;
+    int id;
+    String ext;
+
+    StoredSong(int id, int song_id, int uploader_id, String ext) {
+        this.id = id;
+        this.song_id = song_id;
+        this.uploader_id = uploader_id;
+        this.ext = ext;
+    }
+}
+
+class UploadThread extends Thread {
+    StoredSong storedSong;
+    Database database;
+    ServerSocket serverSocket;
+
+    UploadThread(StoredSong storedSong, ServerSocket serverSocket, Database database) {
+        this.storedSong = storedSong;
+        this.database = database;
+        this.serverSocket = serverSocket;
+        this.start();
+    }
+
+    public void run() {
+        try {
+            Socket client = this.serverSocket.accept();
+            byte[] file_bytes = new byte[10000];
+            FileOutputStream fos = new FileOutputStream("song_" + this.storedSong.id + "." + this.storedSong.ext);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            InputStream is = client.getInputStream();
+
+            int bytes_read = 0;
+
+            while((bytes_read = is.read(file_bytes))!=-1)
+                bos.write(file_bytes, 0, bytes_read);
+
+            bos.flush();
+            client.close();
+            this.serverSocket.close();
+
+            this.database.storedSongs.add(storedSong);
+        } catch (IOException e) {
+            /* Wait for server to reconnect */
         }
     }
 }

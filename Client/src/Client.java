@@ -1,8 +1,9 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -73,6 +74,7 @@ public class Client {
     static final int SEARCH_ALBUM = 36;
     static final int SEARCH_ARTIST = 37;
     static final int ARTIST_SONGS = 38;
+    static final int SONG_UPLOAD = 39;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
@@ -218,9 +220,12 @@ public class Client {
                     return this.artistInterface.search((String)resource);
                 case Client.ARTIST_SONGS:
                     return this.artistInterface.songs((int)resource);
+                case Client.SONG_UPLOAD:
+                    return this.albumInterface.requestSongUpload(this.current_user.id, this.current_song_id, (String)resource);
 
             }
-        } catch(RemoteException re) {
+        } catch(RemoteException | UnknownHostException re) {
+            re.printStackTrace();
             this.retry(method_id, resource);
         }
 
@@ -486,16 +491,22 @@ public class Client {
                 try {
                     this.redirect(this.displaySearchAlbum(), null);
                 } catch (CustomException ce) {
-                    this.redirect(this.ALBUMS, ce);
+                    this.redirect(Client.ALBUMS, ce);
                 }
                 break;
             case Client.SEARCH_ARTIST:
                 try {
                     this.redirect(this.displaySearchArtist(), null);
                 } catch (CustomException ce) {
-                    this.redirect(this.ARTISTS, ce);
+                    this.redirect(Client.ARTISTS, ce);
                 }
                 break;
+            case Client.SONG_UPLOAD:
+                try {
+                    this.redirect(this.displaySongUpload(), null);
+                } catch (CustomException ce) {
+                    this.redirect(Client.ALBUM_SONG, ce);
+                }
         }
     }
 
@@ -951,6 +962,7 @@ public class Client {
             System.out.println("[D] Delete song");
         }
 
+        System.out.println("[UP] Upload");
         System.out.println("[B] Back");
 
         System.out.print("Option: ");
@@ -959,6 +971,7 @@ public class Client {
         if (option.equals("B")) return Client.ALBUM_SONGS;
         if (option.equals("G")) return Client.ALBUM_SONG_GENRES;
         if (option.equals("A")) return Client.ALBUM_SONG_ARTISTS;
+        if (option.equals("UP")) return Client.SONG_UPLOAD;
 
         if (this.current_user.isEditor) {
             if (option.equals("U")) return Client.ALBUM_SONG_UPDATE;
@@ -1583,6 +1596,74 @@ public class Client {
         return Client.ALBUM_SONG;
     }
 
+
+
+    // Upload song
+    int displaySongUpload() throws InterruptedException, CustomException, NoSuchAlgorithmException {
+        IpPort ip_port;
+
+        System.out.println("Upload song");
+        System.out.print("Song file name: ");
+        String song_file_name = this.scanner.nextLine();
+        String song_file_path = System.getProperty("user.dir") + "/" + song_file_name;
+        System.out.println("Uploading song " + song_file_name);
+        String[] song_parts = song_file_name.split("\\.");
+        String song_ext = "jpg";
+
+        System.out.println("Uploading song " + song_parts.length);
+        File file;
+        FileInputStream fis;
+
+        try {
+            file =  new File(song_file_path);
+            fis = new FileInputStream(file);
+        } catch (IOException ioe) {
+            throw new CustomException("File not found");
+        }
+
+        try {
+            ip_port = this.albumInterface.requestSongUpload(this.current_user.id, this.current_song_id, song_ext);
+        } catch (RemoteException | UnknownHostException re) {
+            ip_port = (IpPort) this.retry(Client.SONG_UPLOAD, song_ext);
+        }
+
+        try {
+            Socket socket = new Socket(ip_port.ip, ip_port.port);
+            OutputStream os = socket.getOutputStream();
+
+            BufferedInputStream bis = new BufferedInputStream(fis);
+
+            byte[] file_bytes;
+            long file_length = file.length();
+            long sent_bytes = 0;
+
+            while (sent_bytes != file_length) {
+                int packet_size = 10000;
+                long bytes_left = file_length - sent_bytes;
+                if (bytes_left >= packet_size) {
+                    sent_bytes += packet_size;
+                } else {
+                    packet_size = (int) bytes_left;
+                    sent_bytes += packet_size;
+                }
+
+                file_bytes = new byte[packet_size];
+                bis.read(file_bytes, 0, packet_size);
+                os.write(file_bytes);
+                System.out.println("\r" + (sent_bytes*100)/file_length + "% complete!");
+            }
+
+            os.flush();
+            socket.close();
+
+            System.out.println("Song uploaded");
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+
+        return Client.ALBUM_SONG;
+    }
+
     // View helper
     void clearScreen() {
         System.out.print("\033[H\033[2J");
@@ -1610,19 +1691,17 @@ class TcpHandler extends Thread {
 
     public void run() {
             try {
-                while (true) {
-                    this.server = this.socket.accept();
+                this.server = this.socket.accept();
 
-                    BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
-                    String data;
+                BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
+                String data;
 
-                    while ((data = in.readLine()) != null) {
-                        if (data.contains("You have been promoted")) client.current_user.becomeEditor();
-                        System.out.println("\n" + data);
-                    }
-
-                    this.server.close();
+                while ((data = in.readLine()) != null) {
+                    if (data.contains("You have been promoted")) client.current_user.becomeEditor();
+                    System.out.println("\n" + data);
                 }
+
+                this.server.close();
             } catch (IOException e) {
                 /* Wait for server to reconnect */
             }

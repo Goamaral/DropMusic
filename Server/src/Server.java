@@ -1,6 +1,7 @@
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -26,9 +27,9 @@ public class Server implements ServerInterface {
     ArrayList<Job> jobs = new ArrayList<>();
     Object jobLock = new Object();
 
-    public Server() {}
+    public Server() throws UnknownHostException {}
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, UnknownHostException {
         Server server = new Server();
 
         Scanner scanner = new Scanner(System.in);

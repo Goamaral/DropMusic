@@ -1,3 +1,6 @@
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class AlbumController implements AlbumInterface {
@@ -172,6 +175,12 @@ public class AlbumController implements AlbumInterface {
     public void song_delete(int album_id, int song_id) {
         System.out.println("Action album(" + album_id + ") song(" + song_id + ") delete");
         this.server.database.album_song_delete(album_id, song_id);
+    }
+
+    public IpPort requestSongUpload(int user_id, int song_id, String ext) throws UnknownHostException {
+        System.out.println("Action upload request by " + user_id);
+        int port = this.server.database.requestSongUpload(user_id, song_id, ext);
+        return new IpPort(InetAddress.getByName("127.0.0.1"), port);
     }
 
     // Genre

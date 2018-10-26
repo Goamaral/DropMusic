@@ -1,3 +1,4 @@
+import java.net.UnknownHostException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public interface AlbumInterface extends Remote {
     Song song(int song_id) throws CustomException, RemoteException;
     void song_update(Song new_song) throws RemoteException, CustomException;
     void song_delete(int album_id, int song_id) throws RemoteException, CustomException;
+    IpPort requestSongUpload(int user_id, int song_id, String ext) throws RemoteException, UnknownHostException;
 
     // Genres
     ArrayList<Genre> genres_all() throws RemoteException;
