@@ -1,3 +1,5 @@
+import java.io.*;
+import java.net.*;
 import java.util.ArrayList;
 
 public class Database {
@@ -18,6 +20,12 @@ public class Database {
 
     ArrayList<Critic> critics = new ArrayList<>();
     int next_critic_id = 0;
+
+    ArrayList<StoredSong> storedSongs = new ArrayList<StoredSong>();
+    int next_stored_song_id = 0;
+
+    public Database() throws UnknownHostException {
+    }
 
     // User
     int user_findIndexUsername(User new_user) {
@@ -48,8 +56,6 @@ public class Database {
 
     User user_findByUsername(String username) throws CustomException {
         for (User user : this.users) {
-            if (user == null) continue;
-
             if (user.username.equals(username)) {
                 return user;
             }
@@ -81,12 +87,15 @@ public class Database {
         user.becomeEditor();
     }
 
+    ArrayList<User> user_all() { return this.users; }
+
     // Album
     ArrayList<Album> album_all() {
         return this.albums;
     }
 
-    Album album_create(Album album) {
+    Album album_create(int user_id, Album album) {
+        album.editor_ids.add(user_id);
         album.id = this.next_album_id;
         this.next_album_id += 1;
         this.albums.add(album);
@@ -95,8 +104,6 @@ public class Database {
 
     Album album_find(int id) throws CustomException {
         for(Album album : this.albums) {
-            if (album == null) continue;
-
             if (album.id == id) return album;
         }
 
@@ -113,26 +120,33 @@ public class Database {
         return -1;
     }
 
-    Album album_update(Album new_album) throws CustomException {
+    ArrayList<Integer> album_update(int user_id, Album new_album) throws CustomException {
         int index = this.album_findIndex(new_album);
 
-        if (index == -1) {
-            this.albums.set(new_album.id, new_album);
+        if (index != -1) {
+            this.albums.get(index).name = new_album.name;
+            this.albums.get(index).info = new_album.info;
+            this.albums.get(index).releaseDateString = new_album.releaseDateString;
+            ArrayList<Integer> author_ids = (ArrayList<Integer>)this.albums.get(index).editor_ids.clone();
+            if (!this.albums.get(index).editor_ids.contains(user_id)) {
+                this.albums.get(index).editor_ids.add(user_id);
+            }
+            return author_ids;
         } else {
             throw new CustomException("Album not found");
+            //return new ArrayList<Integer>();
         }
-        return new_album;
     }
 
     void album_delete(int id) {
-        Album album = null;
+        Album album;
         try {
             album = this.album_find(id);
+            this.albums.remove(album);
         } catch (CustomException e) {
             // Return if album not found
             return;
         }
-        this.albums.remove(album);
     }
 
     String album_artists(int id) throws CustomException {
@@ -280,6 +294,7 @@ public class Database {
         }
 
         song.id = this.next_song_id;
+        song.album_id = album_id;
         this.songs.add(song);
         this.next_song_id += 1;
         album.addSong(song.id);
@@ -311,7 +326,8 @@ public class Database {
         int index2 = this.song_findIndexByName(new_song);
 
         if (index != -1 || new_song.id == this.songs.get(index2).id) {
-            this.songs.set(index, new_song);
+            this.songs.get(index).name = new_song.name;
+            this.songs.get(index).info = new_song.info;
         } else {
             throw new CustomException("Song not found");
         }
@@ -339,6 +355,99 @@ public class Database {
         }
 
         throw new CustomException("Song not found");
+    }
+
+    int requestSongUpload(int user_id, int song_id, String ext) throws CustomException {
+        ServerSocket serverSocket;
+        int port = 15000;
+
+        while (true) {
+            try {
+                serverSocket = new ServerSocket(port);
+                break;
+            } catch (IOException e) {
+                port += 1;
+            }
+        }
+
+        int stored_song_id = this.next_stored_song_id;
+        this.next_stored_song_id += 1;
+        new UploadThread(new StoredSong(stored_song_id, user_id, song_id, ext), serverSocket, this);
+
+        User user = this.user_find(user_id);
+        user.addStoredSong(stored_song_id);
+
+        return port;
+    }
+
+    StoredSong stored_song_find(int id) throws CustomException {
+        for (StoredSong storedSong : this.storedSongs) {
+            if (storedSong.id == id) {
+                return storedSong;
+            }
+        }
+
+        throw new CustomException("Stored song not found");
+    }
+
+    ArrayList<StoredSong> song_downloads(int song_id, int user_id) throws CustomException {
+        ArrayList<StoredSong> downloads = new ArrayList<>();
+        User user = this.user_find(user_id);
+
+        for (int stored_song_id : user.stored_song_ids) {
+            StoredSong storedSong = this.stored_song_find(stored_song_id);
+
+            if (storedSong.song_id == song_id) {
+                downloads.add(storedSong);
+            }
+        }
+
+        return downloads;
+    }
+
+    int requestSongDownload(int user_id, int stored_song_id) throws CustomException {
+        ServerSocket serverSocket;
+        int port = 15000;
+
+        User user = this.user_find(user_id);
+        StoredSong storedSong = this.stored_song_find(stored_song_id);
+
+        if (!user.stored_song_ids.contains(stored_song_id)) {
+            throw new CustomException("Download not allowed");
+        }
+
+        while (true) {
+            try {
+                serverSocket = new ServerSocket(port);
+                break;
+            } catch (IOException e) {
+                port += 1;
+            }
+        }
+
+        new DownloadThread(storedSong, serverSocket);
+
+        return port;
+    }
+
+    ArrayList<StoredSong> user_uploads(int user_id, int song_id) {
+        ArrayList<StoredSong> user_uploads = new ArrayList<>();
+
+        for (StoredSong storedSong : this.storedSongs) {
+            if (storedSong.uploader_id == user_id && storedSong.song_id == song_id) {
+                user_uploads.add(storedSong);
+            }
+        }
+
+        return user_uploads;
+    }
+
+    void song_share(int stored_song_id, int user_id) throws CustomException {
+        User user = this.user_find(user_id);
+
+        if (!user.stored_song_ids.contains(stored_song_id)) {
+            user.stored_song_ids.add(stored_song_id);
+        }
     }
 
     // Genre
@@ -398,17 +507,18 @@ public class Database {
         return -1;
     }
 
-    Artist artist_create(Artist artist) throws CustomException {
+    Artist artist_create(int user_id, Artist artist) throws CustomException {
         int index = this.artist_findIndexByName(artist);
 
         if (index == -1) {
+            artist.editor_ids.add(user_id);
             artist.id = this.next_artist_id;
             this.artists.add(artist);
             this.next_artist_id += 1;
+            return artist;
         } else {
             throw new CustomException("Artist already exists");
         }
-        return artist;
     }
 
     Artist artist_find(int id) throws CustomException {
@@ -419,15 +529,22 @@ public class Database {
         throw new CustomException("Artist not found");
     }
 
-    Artist artist_update(Artist new_artist) throws CustomException {
+    ArrayList<Integer> artist_update(int user_id, Artist new_artist) throws CustomException {
         int index = this.artist_findIndex(new_artist);
+        int index2 = this.artist_findIndexByName(new_artist);
 
-        if (index == -1) {
-            this.artists.set(new_artist.id, new_artist);
+        if (index != -1 || new_artist.id == this.artists.get(index2).id) {
+            this.artists.get(index).name = new_artist.name;
+            this.artists.get(index).info = new_artist.info;
+            ArrayList<Integer> author_ids = (ArrayList<Integer>)this.artists.get(index).editor_ids.clone();
+            if (!this.artists.get(index).editor_ids.contains(user_id)) {
+                this.artists.get(index).editor_ids.add(user_id);
+            }
+            return author_ids;
         } else {
             throw new CustomException("Artist name already exists");
+            // return new ArrayList<Integer>();
         }
-        return new_artist;
     }
 
     Boolean artist_delete(int id) {
@@ -442,7 +559,22 @@ public class Database {
         return true;
     }
 
-    Boolean album_song_genre_add(int song_id, int genre_id) throws CustomException {
+    ArrayList<Song> artist_songs(int id) throws CustomException {
+        Artist artist = this.artist_find(id);
+        ArrayList<Song> songs = new ArrayList<>();
+
+        for (int song_id : artist.song_ids) {
+            try {
+                songs.add(this.song_find(song_id));
+            } catch (CustomException ce) {
+                // ignore if not found
+            }
+        }
+
+        return songs;
+    }
+
+    Genre album_song_genre_add(int song_id, int genre_id) throws CustomException {
         Song song;
         Genre genre = this.genre_find(genre_id);
 
@@ -454,7 +586,7 @@ public class Database {
         }
 
         song.addGenre(genre);
-        return true;
+        return genre;
     }
 
     Boolean album_song_genre_remove(int song_id, int genre_id) {
@@ -501,5 +633,92 @@ public class Database {
             // if song, album or genre not found ignore
         }
         return true;
+    }
+}
+
+class UploadThread extends Thread {
+    StoredSong storedSong;
+    Database database;
+    ServerSocket serverSocket;
+
+    UploadThread(StoredSong storedSong, ServerSocket serverSocket, Database database) {
+        this.storedSong = storedSong;
+        this.database = database;
+        this.serverSocket = serverSocket;
+        this.start();
+    }
+
+    public void run() {
+        try {
+            Socket client = this.serverSocket.accept();
+            byte[] file_bytes = new byte[10000];
+            FileOutputStream fos = new FileOutputStream("u_song_" + this.storedSong.id + "." + this.storedSong.ext);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            InputStream is = client.getInputStream();
+
+            int bytes_read = 0;
+
+            while((bytes_read = is.read(file_bytes))!=-1)
+                bos.write(file_bytes, 0, bytes_read);
+
+            bos.flush();
+            client.close();
+            this.serverSocket.close();
+
+            this.database.storedSongs.add(storedSong);
+        } catch (IOException e) {
+            /* Wait for server to reconnect */
+        }
+    }
+}
+
+class DownloadThread extends Thread {
+    StoredSong storedSong;
+    ServerSocket serverSocket;
+
+    DownloadThread(StoredSong storedSong, ServerSocket serverSocket) {
+        this.storedSong = storedSong;
+        this.serverSocket = serverSocket;
+        this.start();
+    }
+
+    public void run() {
+        try {
+            Socket client = this.serverSocket.accept();
+
+            File file = new File("u_song_" + this.storedSong.id + "." + this.storedSong.ext);
+            FileInputStream fis = new FileInputStream(file);
+
+            OutputStream os = client.getOutputStream();
+
+            BufferedInputStream bis = new BufferedInputStream(fis);
+
+            byte[] file_bytes;
+            long file_length = file.length();
+            long sent_bytes = 0;
+
+            while (sent_bytes != file_length) {
+                int packet_size = 10000;
+                long bytes_left = file_length - sent_bytes;
+                if (bytes_left >= packet_size) {
+                    sent_bytes += packet_size;
+                } else {
+                    packet_size = (int) bytes_left;
+                    sent_bytes += packet_size;
+                }
+
+                file_bytes = new byte[packet_size];
+                bis.read(file_bytes, 0, packet_size);
+                os.write(file_bytes);
+                System.out.println("\r" + (sent_bytes * 100) / file_length + "% complete!");
+            }
+
+            os.flush();
+            client.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

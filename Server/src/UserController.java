@@ -1,17 +1,8 @@
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.json.simple.JSONObject;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.MulticastSocket;
+import java.net.Socket;
+import java.rmi.server.RemoteServer;
+import java.rmi.server.ServerNotActiveException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
@@ -21,73 +12,79 @@ public class UserController implements UserInterface {
     public UserController(Server server) { this.server = server; }
 
     // Controller
-    public User login(User user) throws CustomException, NoSuchAlgorithmException {
-        User fetched_user = null;
+    public User login(User user, int tcp) throws CustomException, NoSuchAlgorithmException {
+        System.out.println("Action user(" + user.username + ") login: ");
 
         user.encrypt_password();
 
-        System.out.println("Action user(" + user.username + ") login: ");
-
-        String stringRecieved = this.server.dbRequest("user_findByUsername", user);
-
-        System.out.print(stringRecieved);
-
-        byte stringByteRecieved [] = Base64.decode(stringRecieved);
-        ByteArrayInputStream bAIS = new ByteArrayInputStream(stringByteRecieved);
-        ObjectInputStream oIS;
-        try {
-            oIS = new ObjectInputStream(bAIS);
-            fetched_user = (User)oIS.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        System.out.print("fsadf");
+        String response = this.server.dbRequest("user_findByUsername", user);
+        User fetched_user = (User)Serializer.deserialize(response);
 
         if (!fetched_user.password.equals(user.password)) {
             System.out.println("Invalid password");
             throw new CustomException("Invalid credentials");
         }
 
-        System.out.print("Successful");
+        Socket socket = new Socket();
+
+        try {
+            String ipString = RemoteServer.getClientHost();
+            InetAddress ip = InetAddress.getByName(ipString);
+            socket = new Socket(ip, tcp);
+        } catch (ServerNotActiveException | IOException e) {}
+
+        synchronized (this.server.clientLock) {
+            this.server.clients.add(new Client(socket, fetched_user.id));
+        }
+
+        ArrayList<Job> jobs_to_perform = new ArrayList<>();
+        synchronized (this.server.jobLock) {
+            for (Job job : this.server.jobs) {
+                if (job.user_id == fetched_user.id) {
+                    jobs_to_perform.add(job);
+                }
+            }
+        }
+
+        for (Job job : jobs_to_perform) {
+            this.server.send_notifications(job);
+        }
+
+        System.out.println("success");
 
         return fetched_user;
     }
 
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
-        String stringRecieved;
         System.out.print("Action user(" + user.username + ") register: ");
 
         try {
             user.validate();
-            stringRecieved = this.server.dbRequest("user_create", user);
+            this.server.dbRequest("user_create", user);
+            System.out.println("Successful");
         } catch(CustomException ce) {
             System.out.println("failed");
             throw ce;
         }
-        System.out.println("Successful");
     }
 
-    public ArrayList<User> normal_users() {
-        ArrayList<User> normal_users = null;
-        Object obj = null;
-        String stringRecieved = this.server.dbRequest("normal_users", obj);
-
-        byte stringByteRecieved[] = Base64.decode(stringRecieved);
-        ByteArrayInputStream bAIS = new ByteArrayInputStream(stringByteRecieved);
-        ObjectInputStream oIS;
-        try {
-            oIS = new ObjectInputStream(bAIS);
-            normal_users = (ArrayList<User>) oIS.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return normal_users;
+    public ArrayList<User> normal_users() throws CustomException {
+        String response = this.server.dbRequest("normal_users", new Object());
+        return (ArrayList<User>) Serializer.deserialize(response);
     }
 
-    public void promote(int user_id) throws CustomException {
-        String stringRecieved = this.server.dbRequest("user_promote", user_id);
+    public void promote(int user_id) {
+        this.server.dbRequest("user_promote", user_id);
+        this.server.send_notifications(new Job(user_id, "You have been promoted.\nYou are now an editor."));
     }
 
+    public User read(int id) throws CustomException {
+        String response = this.server.dbRequest("user_find", id);
+        return (User)Serializer.deserialize(response);
+    }
+
+    public ArrayList<User> index() throws CustomException {
+        String response = this.server.dbRequest("user_all", new Object());
+        return (ArrayList<User>) Serializer.deserialize(response);
+    }
 }

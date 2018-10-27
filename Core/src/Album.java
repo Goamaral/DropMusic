@@ -3,13 +3,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
-public class Album extends Model implements Serializable {
+public class Album implements Serializable {
     int id;
     String name;
     String info;
@@ -21,6 +17,7 @@ public class Album extends Model implements Serializable {
     // Relationships
     ArrayList<Integer> critic_ids = new ArrayList<>();
     ArrayList<Integer> song_ids = new ArrayList<>();
+    ArrayList<Integer> editor_ids = new ArrayList<>();
 
     Album(String name, String info, String releaseDateString) {
         this.name = name;
@@ -86,28 +83,4 @@ public class Album extends Model implements Serializable {
     public void addSong(int song_id) { this.song_ids.add(song_id); }
 
     public void removeSong(int song_id) { this.song_ids.remove(song_id); }
-
-    public JSONObject toJson() {
-        JSONObject obj = new JSONObject();
-        obj.put("id", this.id);
-        obj.put("name", this.name);
-        obj.put("info", this.info);
-        obj.put("points", this.points);
-        obj.put("releaseDateString", this.releaseDateString);
-
-        JSONArray list = new JSONArray();
-        for(int critic_id : this.critic_ids ){
-            list.add(critic_id);
-        }
-        obj.put("critic_ids", list);
-
-        JSONArray list2 = new JSONArray();
-        for(int song_id : this.song_ids){
-            list.add(song_id);
-        }
-        obj.put("song_ids", list2);
-
-        return obj;
-
-    }
 }

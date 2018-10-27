@@ -1,10 +1,7 @@
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Critic extends Model implements Serializable {
+public class Critic implements Serializable {
     int id;
     int rating;
     String justification;
@@ -50,14 +47,5 @@ public class Critic extends Model implements Serializable {
 
         if (this.justification.length() == 0)
             throw new CustomException("Justification can't be empty");
-    }
-
-    public JSONObject toJson() {
-        JSONObject obj = new JSONObject();
-        obj.put("id", this.id);
-        obj.put("rating", this.rating);
-        obj.put("justification", this.justification);
-
-        return obj;
     }
 }

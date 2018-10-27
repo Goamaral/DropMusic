@@ -1,19 +1,17 @@
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class User extends Model implements Serializable {
+public class User implements Serializable {
     int id = -1;
     String username;
     String password;
     boolean password_encrypted;
     boolean isEditor = false;
+    ArrayList<Integer> stored_song_ids = new ArrayList<>();
 
-    public User(String username, String password) throws NoSuchAlgorithmException {
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -79,17 +77,11 @@ public class User extends Model implements Serializable {
         isEditor = true;
     }
 
-    public String toString() {
-        return "User: { username: " + this.username + ", password: " + this.password + " }";
+    void addStoredSong(int id) {
+        this.stored_song_ids.add(id);
     }
 
-    public JSONObject toJson() {
-        JSONObject obj = new JSONObject();
-        obj.put("id", this.id);
-        obj.put("usename", this.username);
-        obj.put("password", this.password);
-        obj.put("isEditor", this.isEditor);
-
-        return obj;
+    public String toString() {
+        return "User: { username: " + this.username + ", password: " + this.password + " }";
     }
 }
