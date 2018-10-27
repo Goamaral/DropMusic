@@ -1,5 +1,3 @@
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -20,9 +18,9 @@ public class Server implements ServerInterface {
     int port;
     InetAddress alternative_ip;
     ServerInterface primaryServerInterface;
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int MULTICASTPORT = 3000;
-    private int RMIPORT = 4040;
+    private String MULTICAST_TARGET_ADDRESS = "224.0.224.0";
+    private int MULTICAST_TARGET_PORT = 20000;
+    private int MULTICAST_SOURCE_PORT = 30000;
 
     int maxAttemps = 5;
     int connectAttemps = 0;
@@ -32,9 +30,9 @@ public class Server implements ServerInterface {
     ArrayList<Job> jobs = new ArrayList<>();
     Object jobLock = new Object();
 
-    public Server() throws UnknownHostException {}
+    public Server() {}
 
-    public static void main(String[] args) throws InterruptedException, UnknownHostException {
+    public static void main(String[] args) throws InterruptedException {
         Server server = new Server();
 
         Scanner scanner = new Scanner(System.in);
@@ -144,7 +142,7 @@ public class Server implements ServerInterface {
 
         try {
             String request_string = Serializer.serialize(request);
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            InetAddress group = InetAddress.getByName(MULTICAST_TARGET_ADDRESS);
 
             // Send
             System.out.println(" -> sending");
@@ -152,7 +150,7 @@ public class Server implements ServerInterface {
             MulticastSocket sender_socket = new MulticastSocket();
             // TODO: Join sender_socket to group?
             byte[] request_buffer = request_string.getBytes();
-            DatagramPacket sender_packet = new DatagramPacket(request_buffer, request_buffer.length, group, MULTICASTPORT);
+            DatagramPacket sender_packet = new DatagramPacket(request_buffer, request_buffer.length, group, MULTICAST_TARGET_PORT);
             sender_socket.send(sender_packet);
             sender_socket.close();
 
@@ -161,7 +159,7 @@ public class Server implements ServerInterface {
             // Receive
             System.out.println(" -> receiving");
 
-            MulticastSocket receiver_socket = new MulticastSocket(RMIPORT);  // create socket and bind it
+            MulticastSocket receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
             receiver_socket.joinGroup(group);
             byte[] response_buffer = new byte[5000];
             DatagramPacket response_packet = new DatagramPacket(response_buffer, response_buffer.length);
