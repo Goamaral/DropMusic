@@ -19,7 +19,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Album> albums = (ArrayList<Album>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Album> albums = (ArrayList<Album>) response.data;
 
         System.out.println(albums.size() + " albums");
 
@@ -48,9 +50,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (Album) response_object;
+        return (Album) response.data;
     }
 
     public void update(int user_id, Album new_album) throws CustomException {
@@ -66,7 +70,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        for (int editor_id : (ArrayList<Integer>) response_object) {
+        Response response = (Response) response_object;
+
+        for (int editor_id : (ArrayList<Integer>) response.data) {
             this.server.send_notifications(new Job(editor_id, "Album " + new_album.id + " was edited"));
         }
 
@@ -88,9 +94,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (String) response_object;
+        return (String) response.data;
     }
 
     public String genres(int id) throws CustomException {
@@ -100,9 +108,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (String) response_object;
+        return (String) response.data;
     }
 
     public Album search(String query) throws CustomException {
@@ -112,10 +122,13 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        for (Album album : (ArrayList<Album>) response_object) {
+        Response response = (Response) response_object;
+
+        for (Album album : (ArrayList<Album>) response.data) {
             System.out.println(album.name + " - " + query + " -> " + album.name.contains(query));
             if (album.name.contains(query)) {
                 System.out.println("success");
+
                 return album;
             }
         }
@@ -132,7 +145,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Critic> critics = (ArrayList<Critic>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Critic> critics = (ArrayList<Critic>) response.data;
 
         System.out.println(critics.size() + " critics");
 
@@ -161,9 +176,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (Critic) response_object;
+        return (Critic) response.data;
     }
 
     // Song
@@ -174,7 +191,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Song> songs = (ArrayList<Song>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Song> songs = (ArrayList<Song>) response.data;
 
         System.out.println(songs.size() + " songs");
 
@@ -200,9 +219,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (Song) response_object;
+        return (Song) response.data;
     }
 
     public void song_update(Song new_song) throws CustomException {
@@ -240,9 +261,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (IpPort) response_object;
+        return (IpPort) response.data;
     }
 
     public ArrayList<StoredSong> song_downloads(int song_id, int user_id) throws CustomException {
@@ -256,9 +279,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (ArrayList<StoredSong>) response_object;
+        return (ArrayList<StoredSong>) response.data;
     }
 
     public IpPort requestSongDownload(int user_id, int stored_song_id) throws UnknownHostException, CustomException {
@@ -272,7 +297,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        return (IpPort) response_object;
+        Response response = (Response) response_object;
+
+        return (IpPort) response.data;
     }
 
     public ArrayList<StoredSong> user_uploads(int user_id, int song_id) throws CustomException {
@@ -286,9 +313,11 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (ArrayList<StoredSong>) response_object;
+        return (ArrayList<StoredSong>) response.data;
     }
 
     public void song_share(int stored_song_id, int user_id) throws CustomException {
@@ -313,7 +342,9 @@ public class AlbumController implements AlbumInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Genre> genres = (ArrayList<Genre>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Genre> genres = (ArrayList<Genre>) response.data;
 
         System.out.println(genres.size() + " genres");
 
@@ -354,7 +385,9 @@ public class AlbumController implements AlbumInterface {
 
             this.server.catch_response_exception(response_object);
 
-            genres.add((Genre) response_object);
+            Response response = (Response) response_object;
+
+            genres.add((Genre) response.data);
         }
 
         System.out.println("success");
@@ -401,7 +434,9 @@ public class AlbumController implements AlbumInterface {
 
             this.server.catch_response_exception(response_object);
 
-            artists.add((Artist) response_object);
+            Response response = (Response) response_object;
+
+            artists.add((Artist) response.data);
         }
 
         System.out.println("success");

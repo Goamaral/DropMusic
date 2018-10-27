@@ -35,7 +35,7 @@ public class Database {
         return -1;
     }
 
-    Boolean user_create(User user) throws CustomException {
+    void user_create(User user) throws CustomException {
         int index = this.user_findIndexUsername(user);
 
         if (index == -1) {
@@ -47,8 +47,6 @@ public class Database {
         } else {
             throw new CustomException("Username already exists");
         }
-
-        return true;
     }
 
     User user_findByUsername(String username) throws CustomException {

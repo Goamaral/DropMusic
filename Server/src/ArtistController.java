@@ -15,7 +15,9 @@ public class ArtistController implements ArtistInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Artist> artists = (ArrayList<Artist>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Artist> artists = (ArrayList<Artist>) response.data;
 
         System.out.println(" " + artists.size() + " artists");
 
@@ -44,9 +46,11 @@ public class ArtistController implements ArtistInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (Artist) response_object;
+        return (Artist) response.data;
     }
 
     public void update(int user_id, Artist new_artist) throws CustomException {
@@ -84,9 +88,11 @@ public class ArtistController implements ArtistInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (ArrayList<Song>) response_object;
+        return (ArrayList<Song>) response.data;
     }
 
     public Artist search(String query) throws CustomException {
@@ -96,7 +102,9 @@ public class ArtistController implements ArtistInterface {
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Artist> artists = (ArrayList<Artist>) response_object;
+        Response response = (Response) response_object;
+
+        ArrayList<Artist> artists = (ArrayList<Artist>) response.data;
 
         for (Artist artist : artists) {
             if (artist.name.contains(query)) {

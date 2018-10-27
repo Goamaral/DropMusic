@@ -173,15 +173,22 @@ public class Server implements ServerInterface {
             System.out.println(" -> sending");
 
             sender_socket.send(sender_packet);
-            receiver_socket.receive(response_packet);
-            String response_string = new String(response_packet.getData(), 0, response_packet.getLength());
 
-            System.out.println(" -> received");
+            while (true) {
+                receiver_socket.receive(response_packet);
+                String response_string = new String(response_packet.getData(), 0, response_packet.getLength());
 
-            sender_socket.close();
-            receiver_socket.close();
+                System.out.println(" -> received");
 
-            return Serializer.deserialize(response_string);
+                sender_socket.close();
+                receiver_socket.close();
+
+                Response response = (Response) Serializer.deserialize(response_string);
+
+                if (response.id == id) {
+                    return response;
+                }
+            }
         } catch (IOException | CustomException e) {
             System.out.println(" -> failure ");
             return new CustomException("Internal error");

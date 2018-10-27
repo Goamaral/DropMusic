@@ -21,7 +21,9 @@ public class UserController implements UserInterface {
 
         this.server.catch_response_exception(response_object);
 
-        User fetched_user = (User) response_object;
+        Response response = (Response) response_object;
+
+        User fetched_user = (User) response.data;
 
         if (!fetched_user.password.equals(user.password)) {
             System.out.println("Invalid password");
@@ -77,9 +79,11 @@ public class UserController implements UserInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (ArrayList<User>) response_object;
+        return (ArrayList<User>) response.data;
     }
 
     public void promote(int user_id) throws CustomException {
@@ -101,9 +105,11 @@ public class UserController implements UserInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (User) response_object;
+        return (User) response.data;
     }
 
     public ArrayList<User> index() throws CustomException {
@@ -113,8 +119,10 @@ public class UserController implements UserInterface {
 
         this.server.catch_response_exception(response_object);
 
+        Response response = (Response) response_object;
+
         System.out.println("success");
 
-        return (ArrayList<User>) response_object;
+        return (ArrayList<User>) response.data;
     }
 }
