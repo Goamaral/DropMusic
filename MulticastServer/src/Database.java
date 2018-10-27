@@ -1,4 +1,3 @@
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class Database {
@@ -31,7 +30,7 @@ public class Database {
         return -1;
     }
 
-    void user_create(User user) throws CustomException {
+    User user_create(User user) throws CustomException {
         int index = this.user_findIndexUsername(user);
 
         if (index == -1) {
@@ -43,6 +42,8 @@ public class Database {
         } else {
             throw new CustomException("Username already exists");
         }
+
+        return user;
     }
 
     User user_findByUsername(String username) throws CustomException {
@@ -85,10 +86,11 @@ public class Database {
         return this.albums;
     }
 
-    void album_create(Album album) {
+    Album album_create(Album album) {
         album.id = this.next_album_id;
         this.next_album_id += 1;
         this.albums.add(album);
+        return album;
     }
 
     Album album_find(int id) throws CustomException {
@@ -111,7 +113,7 @@ public class Database {
         return -1;
     }
 
-    void album_update(Album new_album) throws CustomException {
+    Album album_update(Album new_album) throws CustomException {
         int index = this.album_findIndex(new_album);
 
         if (index == -1) {
@@ -119,6 +121,7 @@ public class Database {
         } else {
             throw new CustomException("Album not found");
         }
+        return new_album;
     }
 
     void album_delete(int id) {
@@ -227,13 +230,15 @@ public class Database {
         return critics;
     }
 
-    void album_critic_create(int album_id, Critic critic) throws CustomException {
+    Boolean album_critic_create(int album_id, Critic critic) throws CustomException {
         Album album = this.album_find(album_id);
         album.points += critic.rating;
         critic.id = this.next_critic_id;
         album.addCritic(critic);
         this.critics.add(critic);
         this.next_critic_id += 1;
+        Boolean success = true;
+        return success;
     }
 
     Critic album_critic_find(int id) throws CustomException {
@@ -264,7 +269,7 @@ public class Database {
         return songs;
     }
 
-    void album_song_create(int album_id, Song song) throws CustomException {
+    Boolean album_song_create(int album_id, Song song) throws CustomException {
         Album album;
 
         try {
@@ -278,6 +283,7 @@ public class Database {
         this.songs.add(song);
         this.next_song_id += 1;
         album.addSong(song.id);
+        return true;
     }
 
     int song_findIndex(Song new_song) {
@@ -300,7 +306,7 @@ public class Database {
         return -1;
     }
 
-    void album_song_update(Song new_song) throws CustomException {
+    Boolean album_song_update(Song new_song) throws CustomException {
         int index = this.song_findIndex(new_song);
         int index2 = this.song_findIndexByName(new_song);
 
@@ -309,9 +315,10 @@ public class Database {
         } else {
             throw new CustomException("Song not found");
         }
+        return true;
     }
 
-    void album_song_delete(int album_id, int song_id) {
+    Boolean album_song_delete(int album_id, int song_id) {
         try {
             this.album_find(album_id).removeSong(song_id);
         } catch (CustomException ce) {
@@ -323,6 +330,7 @@ public class Database {
         } catch (CustomException ce) {
             // ignore if song not found
         }
+        return true;
     }
 
     Song song_find(int song_id) throws CustomException {
@@ -344,7 +352,7 @@ public class Database {
         throw new CustomException("Genre not found");
     }
 
-    void genre_create(Genre genre) throws CustomException {
+    Boolean genre_create(Genre genre) throws CustomException {
         int index = this.genre_findIndexByName(genre);
 
         if (index == -1) {
@@ -354,6 +362,7 @@ public class Database {
         } else {
             throw new CustomException("Genre already exists");
         }
+        return true;
     }
 
     int genre_findIndexByName(Genre new_genre) {
@@ -389,7 +398,7 @@ public class Database {
         return -1;
     }
 
-    void artist_create(Artist artist) throws CustomException {
+    Artist artist_create(Artist artist) throws CustomException {
         int index = this.artist_findIndexByName(artist);
 
         if (index == -1) {
@@ -399,6 +408,7 @@ public class Database {
         } else {
             throw new CustomException("Artist already exists");
         }
+        return artist;
     }
 
     Artist artist_find(int id) throws CustomException {
@@ -409,7 +419,7 @@ public class Database {
         throw new CustomException("Artist not found");
     }
 
-    void artist_update(Artist new_artist) throws CustomException {
+    Artist artist_update(Artist new_artist) throws CustomException {
         int index = this.artist_findIndex(new_artist);
 
         if (index == -1) {
@@ -417,9 +427,10 @@ public class Database {
         } else {
             throw new CustomException("Artist name already exists");
         }
+        return new_artist;
     }
 
-    void artist_delete(int id) {
+    Boolean artist_delete(int id) {
         Artist artist;
 
         try {
@@ -428,9 +439,10 @@ public class Database {
         } catch (CustomException ce) {
             // Ignore if artist doesnt exist
         }
+        return true;
     }
 
-    void album_song_genre_add(int song_id, int genre_id) throws CustomException {
+    Boolean album_song_genre_add(int song_id, int genre_id) throws CustomException {
         Song song;
         Genre genre = this.genre_find(genre_id);
 
@@ -442,9 +454,10 @@ public class Database {
         }
 
         song.addGenre(genre);
+        return true;
     }
 
-    void album_song_genre_remove(int song_id, int genre_id) {
+    Boolean album_song_genre_remove(int song_id, int genre_id) {
         Song song;
         Genre genre;
 
@@ -455,10 +468,11 @@ public class Database {
         } catch (CustomException ce) {
             // if song, album or genre not found ignore
         }
+        return true;
     }
 
     // Song Artists
-    void album_song_artist_add(int song_id, int artist_id) throws CustomException {
+    Boolean album_song_artist_add(int song_id, int artist_id) throws CustomException {
         Song song;
         Artist artist = this.artist_find(artist_id);
 
@@ -471,9 +485,10 @@ public class Database {
 
         song.addArtist(artist);
         artist.addSong(song);
+        return true;
     }
 
-    void album_song_artist_remove(int song_id, int artist_id) {
+    Boolean album_song_artist_remove(int song_id, int artist_id) {
         Song song;
         Artist artist;
 
@@ -485,5 +500,6 @@ public class Database {
         } catch (CustomException ce) {
             // if song, album or genre not found ignore
         }
+        return true;
     }
 }

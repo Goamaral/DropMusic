@@ -1,7 +1,10 @@
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Artist implements Serializable {
+public class Artist extends Model implements Serializable {
     int id;
     String name;
 
@@ -30,5 +33,21 @@ public class Artist implements Serializable {
     void removeSong(Song song) {
         int index = this.song_ids.indexOf(song.id);
         if (index != -1) this.song_ids.remove(index);
+    }
+
+    public JSONObject toJson() {
+        JSONObject obj = new JSONObject();
+        obj.put("id", this.id);
+        obj.put("name", this.name);
+
+
+        JSONArray list = new JSONArray();
+        for(int song_id : this.song_ids){
+            list.add(song_id );
+        }
+        obj.put("song_ids", list);
+
+        return obj;
+
     }
 }

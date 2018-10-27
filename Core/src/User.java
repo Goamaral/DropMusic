@@ -1,9 +1,12 @@
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class User implements Serializable {
+public class User extends Model implements Serializable {
     int id = -1;
     String username;
     String password;
@@ -78,5 +81,15 @@ public class User implements Serializable {
 
     public String toString() {
         return "User: { username: " + this.username + ", password: " + this.password + " }";
+    }
+
+    public JSONObject toJson() {
+        JSONObject obj = new JSONObject();
+        obj.put("id", this.id);
+        obj.put("usename", this.username);
+        obj.put("password", this.password);
+        obj.put("isEditor", this.isEditor);
+
+        return obj;
     }
 }

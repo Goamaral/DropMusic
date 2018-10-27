@@ -1,4 +1,9 @@
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.json.simple.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -9,21 +14,20 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 
 public class Server implements ServerInterface {
     int currentPort;
     int alternativePort;
     ServerInterface primaryServerInterface;
+    private String type;
+    private Model resource;
+    private String MULTICAST_ADDRESS = "224.0.224.0";
+    private int MULTICASTPORT = 3000;
+    private int RMIPORT = 4040;
 
     int maxAttemps = 5;
     int connectAttemps = 0;
-
-    Database database = new Database();
-
-    public Server() {}
 
     public static void main(String[] args) throws InterruptedException {
         Server server = new Server();
@@ -49,7 +53,7 @@ public class Server implements ServerInterface {
             try {
                 System.out.println("Secundary server online at " + server.currentPort);
                 System.out.println("Start pinging");
-                while(server.primaryServerInterface.ping()) {
+                while (server.primaryServerInterface.ping()) {
                     System.out.println("PING");
                     Thread.sleep(1000);
                 }
@@ -59,7 +63,7 @@ public class Server implements ServerInterface {
                 System.out.println("Becoming primary server");
             }
 
-        } catch(RemoteException | NotBoundException e) {
+        } catch (RemoteException | NotBoundException e) {
             // Offline -> Become primary
         }
 
@@ -73,9 +77,8 @@ public class Server implements ServerInterface {
 
         System.out.println("Primary server online at " + server.currentPort);
 
+        new Scanner(System.in).nextLine();
 
-
-        while (true);
     }
 
     void setup() throws InterruptedException, RemoteException {
@@ -98,7 +101,7 @@ public class Server implements ServerInterface {
             ArtistInterface artistInterface = (ArtistInterface) UnicastRemoteObject.exportObject(artistController, this.currentPort);
             registry.rebind("ArtistInterface", artistInterface);
 
-        } catch(RemoteException re) {
+        } catch (RemoteException re) {
             this.connectAttemps += 1;
 
             if (this.connectAttemps == this.maxAttemps) {
@@ -127,53 +130,56 @@ public class Server implements ServerInterface {
         }
     }
 
-    public boolean ping() { return true; }
-}
-
-class RmiMulticastSender extends Thread {
-    private String type;
-    private Object resource;
-    private Boolean running;
-    private Object lock;
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int PORT = 3000;
-
-    public RmiMulticastSender(String type, Object resource) {
-        this.type = type;
-        this.resource = resource;
+    public boolean ping() {
+        return true;
     }
 
-    public void run() {
+    public String dbRequest(String type, Object resource) {
+
+        Request request = new Request(type, resource);
+
+        String stringData, stringDataRecieved = null;
+
         MulticastSocket socket = null;
         try {
             socket = new MulticastSocket();
-            while (true) {
-                lock.wait();
-                if(!running) break;
-                //buffer sera depois de fazer o formatMessage para json
-                InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-                byte[] buffer = new byte[256];;
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-                socket.send(packet);
+            ByteArrayOutputStream bAOS = new ByteArrayOutputStream();
+            try {
+                ObjectOutputStream oOS = new ObjectOutputStream(bAOS);
+                oOS.writeObject(request);
+                oOS.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            stringData = Base64.encode(bAOS.toByteArray());
+            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            byte[] buffer = stringData.getBytes();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICASTPORT);
+            socket.send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             socket.close();
         }
-    }
 
-    public void formatMessage() {
-        JSONObject obj = new JSONObject();
-        obj.put("type", this.type);
-        obj.put("data", this.type);
-        return;
-    }
+        MulticastSocket recieverSocket = null;
+        try {
+            recieverSocket = new MulticastSocket(RMIPORT);  // create socket and bind it
+            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            recieverSocket.joinGroup(group);
+            byte[] buffer = new byte[5000];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            recieverSocket.receive(packet);
+            stringDataRecieved = new String(packet.getData(), 0, packet.getLength());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            recieverSocket.close();
+        }
+        return stringDataRecieved;
 
+    }
 }
-
 
 interface ServerInterface extends Remote {
     boolean ping() throws RemoteException;

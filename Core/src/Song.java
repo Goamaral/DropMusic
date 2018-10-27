@@ -1,9 +1,12 @@
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Song implements Serializable {
+public class Song extends Model implements Serializable {
     int id;
     String name;
     String info;
@@ -98,10 +101,27 @@ public class Song implements Serializable {
         }
     }
 
-    public String toString() {
-        return "Song: { "
-                + "name: " + this.name + ", "
-                + "info: " + this.info
-                + " }";
+    public JSONObject toJson() {
+        JSONObject obj = new JSONObject();
+        obj.put("id", this.id);
+        obj.put("name", this.name);
+        obj.put("info", this.info);
+        obj.put("artists", this.artists);
+        obj.put("genres", this.genres);
+
+        JSONArray list = new JSONArray();
+        for(int i = 0; i < this.artist_ids.size(); i++){
+            list.add(this.artist_ids.get(i));
+        }
+        obj.put("artist_ids", list);
+
+        JSONArray list2 = new JSONArray();
+        for(int genres_id : this.genres_ids){
+            list.add(genres_id);
+        }
+        obj.put("genres_ids", list2);
+
+        return obj;
+
     }
 }

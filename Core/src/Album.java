@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-public class Album implements Serializable {
+public class Album extends Model implements Serializable {
     int id;
     String name;
     String info;
@@ -85,12 +87,27 @@ public class Album implements Serializable {
 
     public void removeSong(int song_id) { this.song_ids.remove(song_id); }
 
-    public String toString() {
-        return "Album: { "
-                + "name: " + this.name + ", "
-                + "info: " + this.info + ", "
-                + "release_date: " + this.releaseDateString + ", "
-                + "rating: " + String.format("%.2f", this.getRating()) + " / 5"
-                + " }";
+    public JSONObject toJson() {
+        JSONObject obj = new JSONObject();
+        obj.put("id", this.id);
+        obj.put("name", this.name);
+        obj.put("info", this.info);
+        obj.put("points", this.points);
+        obj.put("releaseDateString", this.releaseDateString);
+
+        JSONArray list = new JSONArray();
+        for(int critic_id : this.critic_ids ){
+            list.add(critic_id);
+        }
+        obj.put("critic_ids", list);
+
+        JSONArray list2 = new JSONArray();
+        for(int song_id : this.song_ids){
+            list.add(song_id);
+        }
+        obj.put("song_ids", list2);
+
+        return obj;
+
     }
 }

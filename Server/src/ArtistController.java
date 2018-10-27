@@ -1,3 +1,8 @@
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
 public class ArtistController implements ArtistInterface {
@@ -9,7 +14,20 @@ public class ArtistController implements ArtistInterface {
 
     // Album
     public ArrayList<Artist> index() {
-        ArrayList<Artist> artists = server.database.artist_all();
+        Object obj = null;
+        ArrayList<Artist> artists = null;
+        String stringRecieved = this.server.dbRequest("artist_all", obj);
+
+        byte stringByteRecieved[] = Base64.decode(stringRecieved);
+        ByteArrayInputStream bAIS = new ByteArrayInputStream(stringByteRecieved);
+        ObjectInputStream oIS;
+        try {
+            oIS = new ObjectInputStream(bAIS);
+            artists = (ArrayList<Artist>) oIS.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         System.out.println("Action artist index: " + artists.size() + " artists");
 
         return artists;
@@ -20,7 +38,7 @@ public class ArtistController implements ArtistInterface {
 
         try {
             artist.validate();
-            server.database.artist_create(artist);
+            String stringRecieved = this.server.dbRequest("artist_create", artist);
         } catch (CustomException ce) {
             System.out.println(" failed");
             throw ce;
@@ -30,16 +48,23 @@ public class ArtistController implements ArtistInterface {
     }
 
     public Artist read(int id) throws CustomException {
+        Artist artist = null;
         System.out.print("Action artist(" + id + ") read: ");
 
+        String stringRecieved = this.server.dbRequest("artist_find", id);
+
+        byte stringByteRecieved[] = Base64.decode(stringRecieved);
+        ByteArrayInputStream bAIS = new ByteArrayInputStream(stringByteRecieved);
+        ObjectInputStream oIS;
         try {
-            Artist artist = this.server.database.artist_find(id);
-            System.out.println("success");
-            return artist;
-        } catch (CustomException ce) {
-            System.out.println("failure");
-            throw ce;
+            oIS = new ObjectInputStream(bAIS);
+            artist = (Artist) oIS.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
+
+        System.out.println("success");
+        return artist;
     }
 
     public void update(Artist new_artist) throws CustomException {
@@ -47,7 +72,7 @@ public class ArtistController implements ArtistInterface {
 
         try {
             new_artist.validate();
-            server.database.artist_update(new_artist);
+            String stringRecieved = this.server.dbRequest("artist_update", new_artist);
         } catch (CustomException ce) {
             System.out.println("failed");
             throw ce;
@@ -59,7 +84,9 @@ public class ArtistController implements ArtistInterface {
     public void delete(int id) {
         System.out.println("Action artist(" + id + ") delete: ");
 
-        server.database.artist_delete(id);
+        String stringRecieved = this.server.dbRequest("artist_delete", id);
+
+        System.out.println("success");
     }
 
 }
