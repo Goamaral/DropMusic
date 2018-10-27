@@ -86,6 +86,8 @@ public class Database {
         user.becomeEditor();
     }
 
+    ArrayList<User> user_all() { return this.users; }
+
     // Album
     ArrayList<Album> album_all() {
         return this.albums;
@@ -419,6 +421,26 @@ public class Database {
         new DownloadThread(storedSong, serverSocket);
 
         return port;
+    }
+
+    ArrayList<StoredSong> user_uploads(int user_id, int song_id) {
+        ArrayList<StoredSong> user_uploads = new ArrayList<>();
+
+        for (StoredSong storedSong : this.storedSongs) {
+            if (storedSong.uploader_id == user_id && storedSong.song_id == song_id) {
+                user_uploads.add(storedSong);
+            }
+        }
+
+        return user_uploads;
+    }
+
+    void song_share(int stored_song_id, int user_id) throws CustomException {
+        User user = this.user_find(user_id);
+
+        if (!user.stored_song_ids.contains(stored_song_id)) {
+            user.stored_song_ids.add(stored_song_id);
+        }
     }
 
     // Genre

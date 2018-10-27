@@ -194,7 +194,12 @@ public class AlbumController implements AlbumInterface {
         return new IpPort(InetAddress.getByName("127.0.0.1"), port);
     }
 
-    public void song_share(int stored_song_id, int user_id) {
+    public ArrayList<StoredSong> user_uploads(int user_id, int song_id) {
+        System.out.println("Action user(" + user_id + ") uploads");
+        return this.server.database.user_uploads(user_id, song_id);
+    }
+
+    public void song_share(int stored_song_id, int user_id) throws CustomException {
         System.out.println("Action share music with " + user_id);
         this.server.database.song_share(stored_song_id, user_id);
     }

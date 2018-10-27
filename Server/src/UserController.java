@@ -86,6 +86,8 @@ public class UserController implements UserInterface {
         return this.server.database.user_find(id);
     }
 
-
+    public ArrayList<User> index() {
+        return this.server.database.user_all();
+    }
 }
 

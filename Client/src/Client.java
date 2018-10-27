@@ -1,7 +1,5 @@
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-
-import javax.sound.midi.Soundbank;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -32,7 +30,9 @@ public class Client {
 
     int connectAttemps = 0;
     int maxAttemps = 30;
+    InetAddress ip1;
     int port1;
+    InetAddress ip2;
     int port2;
     TcpHandler tcpHandler;
 
@@ -83,18 +83,31 @@ public class Client {
     static final int SONG_DOWNLOAD = 42;
     static final int SONG_SHARE = 43;
     static final int USERS = 44;
+    static final int USER_UPLOADS = 45;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
         Client client = new Client();
 
         try {
+            String[] ip_parts;
+
             System.out.print("Server 1(<IP>:<PORT>): ");
-            client.port1 = Integer.parseInt(client.scanner.nextLine());
+            String option = client.scanner.nextLine();
+            ip_parts = option.split(":");
+            if (ip_parts.length != 2) throw new NumberFormatException();
+
+            client.ip1 = InetAddress.getByName(ip_parts[0]);
+            client.port1 = Integer.parseInt(ip_parts[1]);
 
             System.out.print("Server 2(<IP>:<PORT>): ");
-            client.port2 = Integer.parseInt(client.scanner.nextLine());
-        } catch (NumberFormatException nfe) {
-            System.out.println("Invalid port");
+            option = client.scanner.nextLine();
+            ip_parts = option.split(":");
+            if (ip_parts.length != 2) throw new NumberFormatException();
+
+            client.ip2 = InetAddress.getByName(ip_parts[0]);
+            client.port2 = Integer.parseInt(ip_parts[1]);
+        } catch (NumberFormatException | UnknownHostException nfe) {
+            System.out.println("Invalid port or ip");
             System.exit(0);
         }
 
@@ -110,13 +123,15 @@ public class Client {
     // Connect to RMI server
     void connect() throws InterruptedException {
         int port = this.port1;
+        InetAddress ip = this.ip1;
 
         if (this.connectAttemps % 2 == 1) {
             port = this.port2;
+            ip = this.ip2;
         }
 
         try {
-            Registry registry = LocateRegistry.getRegistry(port);
+            Registry registry = LocateRegistry.getRegistry(ip.getHostAddress(), port);
             this.userInterface = (UserInterface) registry.lookup("UserInterface");
             this.albumInterface = (AlbumInterface) registry.lookup("AlbumInterface");
             this.artistInterface = (ArtistInterface) registry.lookup("ArtistInterface");
@@ -241,6 +256,8 @@ public class Client {
                     break;
                 case Client.USERS:
                     return this.userInterface.index();
+                case Client.USER_UPLOADS:
+                    return this.albumInterface.user_uploads(this.current_user.id, (int)resource);
             }
         } catch(RemoteException | UnknownHostException re) {
             re.printStackTrace();
@@ -1795,45 +1812,115 @@ public class Client {
 
     int displaySongShare() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         System.out.println("Share song");
-        System.out.println("User list");
+        System.out.println("Uploaded files");
 
-        ArrayList<User> users = new ArrayList<>();
+        ArrayList<StoredSong> storedSongs;
+
         try {
-            users = this.userInterface.users();
+            storedSongs = this.albumInterface.user_uploads(this.current_user.id, this.current_song_id);
         } catch (RemoteException re) {
-            users = this.retry(Client.USERS, null);
+            storedSongs = (ArrayList<StoredSong>) this.retry(Client.USER_UPLOADS, this.current_song_id);
         }
 
-        users.remove(this.current_user);
-
-        if (users.size() == 0) {
-            System.out.println("No users available");
-        } else {
-            for (User user : users) {
-                System.out.println("[" + user.id + "] " + user.username);
+        while(true) {
+            if (storedSongs.size() == 0) {
+                System.out.println("No songs uploaded");
+            } else {
+                for (StoredSong storedSong : storedSongs) {
+                    System.out.println("[" + storedSong.id + "] " + storedSong.ext);
+                }
             }
-        }
 
-        System.out.println("[B] Back");
+            System.out.println("[B] Back");
 
-        System.out.print("Option: ");
-        String option = this.scanner.nextLine();
+            System.out.print("Option: ");
+            String option = this.scanner.nextLine();
 
-        if (option.equals("B")) return Client.ALBUM_SONG;
-
-        try {
-            int user_id = Integer.parseInt(option);
+            if (option.equals("B")) return Client.ALBUM_SONG;
 
             try {
-                this.albumInterface.song_share(this.current_song_id, user_id);
-            } catch (RemoteException re) {
-                this.retry(Client.SONG_SHARE, user_id);
+                this.current_stored_song_id = Integer.parseInt(option);
+
+                boolean next = false;
+
+                for (StoredSong storedSong : storedSongs) {
+                    if (storedSong.id == this.current_stored_song_id) {
+                        this.current_stored_song = storedSong;
+                        next = true;
+                        break;
+                    }
+                }
+
+                if (next) break;
+
+                throw new NumberFormatException();
+            } catch (NumberFormatException nfe) {
+                this.clearScreen();
+                System.out.println("Errors:");
+                System.out.println("-> Invalid option");
             }
-        } catch (NumberFormatException nfe) {
-            this.clearScreen();
-            System.out.println("Errors:");
-            System.out.println("-> Invalid option");
-            this.displaySongShare();
+        }
+
+        ArrayList<User> users;
+        int user_id;
+
+        try {
+            users = this.userInterface.index();
+        } catch (RemoteException re) {
+            users = (ArrayList<User>) this.retry(Client.USERS, null);
+        }
+
+        User me = null;
+        for (User user : users) {
+            if (user.id == this.current_user.id) {
+                me = user;
+            }
+        }
+
+        if (me != null) users.remove(me);
+
+        while (true) {
+            if (users.size() == 0) {
+                System.out.println("No users available");
+            } else {
+                for (User user : users) {
+                    System.out.println("[" + user.id + "] " + user.username);
+                }
+            }
+
+            System.out.println("[B] Back");
+
+            System.out.print("Option: ");
+            String option = this.scanner.nextLine();
+
+            if (option.equals("B")) return displaySongShare();
+
+            try {
+                user_id = Integer.parseInt(option);
+
+                boolean next = false;
+
+                for (User user : users) {
+                    if (user.id == user_id) {
+                        next = true;
+                        break;
+                    }
+                }
+
+                if (next) break;
+
+                throw new NumberFormatException();
+            } catch (NumberFormatException nfe) {
+                this.clearScreen();
+                System.out.println("Errors:");
+                System.out.println("-> Invalid option");
+            }
+        }
+
+        try {
+            this.albumInterface.song_share(this.current_stored_song_id, user_id);
+        } catch (RemoteException e) {
+            this.retry(Client.SONG_SHARE, user_id);
         }
 
         return Client.ALBUM_SONG;

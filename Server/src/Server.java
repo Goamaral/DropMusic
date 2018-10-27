@@ -1,5 +1,6 @@
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
@@ -13,8 +14,8 @@ import java.util.Hashtable;
 import java.util.Scanner;
 
 public class Server implements ServerInterface {
-    int currentPort;
-    int alternativePort;
+    int port;
+    InetAddress alternative_ip;
     ServerInterface primaryServerInterface;
 
     int maxAttemps = 5;
@@ -35,23 +36,24 @@ public class Server implements ServerInterface {
         Scanner scanner = new Scanner(System.in);
 
         try {
-            System.out.print("Current server(<IP>:<PORT>): ");
-            server.currentPort = Integer.parseInt(scanner.nextLine());
+            System.out.print("Port: ");
+            server.port = Integer.parseInt(scanner.nextLine());
 
-            System.out.print("Alternative port(<IP>:<PORT>): ");
-            server.alternativePort = Integer.parseInt(scanner.nextLine());
-        } catch (NumberFormatException nfe) {
-            System.out.println("Invalid port");
+            System.out.print("Alternative IP: ");
+            server.alternative_ip = InetAddress.getByName(scanner.nextLine());
+
+        } catch (NumberFormatException | UnknownHostException nfe) {
+            System.out.println("Invalid port or IPs");
             System.exit(0);
         }
 
         // Check if alternative is online
         try {
-            System.out.println("Checking the alternative server at " + server.alternativePort);
+            System.out.println("Checking the alternative server at " + server.alternative_ip.getHostAddress() + ":" + server.port);
             server.connect();
             // Online -> Become secundary and ping primary
             try {
-                System.out.println("Secundary server online at " + server.currentPort);
+                System.out.println("Secundary server online at port " + server.port);
                 System.out.println("Start pinging");
                 while(server.primaryServerInterface.ping()) {
                     System.out.println("PING");
@@ -75,29 +77,30 @@ public class Server implements ServerInterface {
             System.exit(0);
         }
 
-        System.out.println("Primary server online at " + server.currentPort);
+        System.out.println("Primary server online at port " + server.port);
 
-        while (true);
+        System.out.println("Press any key to exit");
+        scanner.nextLine();
     }
 
     void setup() throws InterruptedException, RemoteException {
         try {
-            Registry registry = LocateRegistry.createRegistry(this.currentPort);
+            Registry registry = LocateRegistry.createRegistry(this.port);
 
             // Controllers
-            ServerInterface serverInterface = (ServerInterface) UnicastRemoteObject.exportObject(this, this.currentPort);
+            ServerInterface serverInterface = (ServerInterface) UnicastRemoteObject.exportObject(this, this.port);
             registry.rebind("ServerInterface", serverInterface);
 
             UserController userController = new UserController(this);
-            UserInterface userInterface = (UserInterface) UnicastRemoteObject.exportObject(userController, this.currentPort);
+            UserInterface userInterface = (UserInterface) UnicastRemoteObject.exportObject(userController, this.port);
             registry.rebind("UserInterface", userInterface);
 
             AlbumController albumController = new AlbumController(this);
-            AlbumInterface albumInterface = (AlbumInterface) UnicastRemoteObject.exportObject(albumController, this.currentPort);
+            AlbumInterface albumInterface = (AlbumInterface) UnicastRemoteObject.exportObject(albumController, this.port);
             registry.rebind("AlbumInterface", albumInterface);
 
             ArtistController artistController = new ArtistController(this);
-            ArtistInterface artistInterface = (ArtistInterface) UnicastRemoteObject.exportObject(artistController, this.currentPort);
+            ArtistInterface artistInterface = (ArtistInterface) UnicastRemoteObject.exportObject(artistController, this.port);
             registry.rebind("ArtistInterface", artistInterface);
 
         } catch(RemoteException re) {
@@ -115,7 +118,7 @@ public class Server implements ServerInterface {
 
     void connect() throws RemoteException, InterruptedException, NotBoundException {
         try {
-            Registry registry = LocateRegistry.getRegistry(this.alternativePort);
+            Registry registry = LocateRegistry.getRegistry(this.port);
             this.primaryServerInterface = (ServerInterface) registry.lookup("ServerInterface");
         } catch (RemoteException | NotBoundException e) {
             this.connectAttemps += 1;
