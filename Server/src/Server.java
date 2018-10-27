@@ -137,50 +137,44 @@ public class Server implements ServerInterface {
     }
 
 
-    public String dbRequest(String type, Object resource) {
-
+    public Object dbRequest(String type, Object resource) {
         Request request = new Request(type, resource);
 
-        String stringData, stringDataRecieved = null;
+        System.out.println("Prepare");
 
-        MulticastSocket socket = null;
         try {
-            socket = new MulticastSocket();
-            ByteArrayOutputStream bAOS = new ByteArrayOutputStream();
-            try {
-                ObjectOutputStream oOS = new ObjectOutputStream(bAOS);
-                oOS.writeObject(request);
-                oOS.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            stringData = Base64.encode(bAOS.toByteArray());
+            String request_string = Serializer.serialize(request);
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-            byte[] buffer = stringData.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICASTPORT);
-            socket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            socket.close();
-        }
 
-        MulticastSocket recieverSocket = null;
-        try {
-            recieverSocket = new MulticastSocket(RMIPORT);  // create socket and bind it
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-            recieverSocket.joinGroup(group);
-            byte[] buffer = new byte[5000];
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            recieverSocket.receive(packet);
-            stringDataRecieved = new String(packet.getData(), 0, packet.getLength());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            recieverSocket.close();
-        }
+            // Send
+            System.out.println(" -> sending");
 
-        return stringDataRecieved;
+            MulticastSocket sender_socket = new MulticastSocket();
+            // TODO: Join sender_socket to group?
+            byte[] request_buffer = request_string.getBytes();
+            DatagramPacket sender_packet = new DatagramPacket(request_buffer, request_buffer.length, group, MULTICASTPORT);
+            sender_socket.send(sender_packet);
+            sender_socket.close();
+
+            System.out.println(" -> sent");
+
+            // Receive
+            System.out.println(" -> receiving");
+
+            MulticastSocket receiver_socket = new MulticastSocket(RMIPORT);  // create socket and bind it
+            receiver_socket.joinGroup(group);
+            byte[] response_buffer = new byte[5000];
+            DatagramPacket response_packet = new DatagramPacket(response_buffer, response_buffer.length);
+            receiver_socket.receive(response_packet);
+            String response_string = new String(response_packet.getData(), 0, response_packet.getLength());
+
+            System.out.println(" -> received");
+
+            return Serializer.serialize(response_string);
+        } catch (IOException | CustomException e) {
+            System.out.println(" -> failure");
+            return new CustomException("internal error");
+        }
     }
 
     public boolean ping() { return true; }
@@ -213,6 +207,16 @@ public class Server implements ServerInterface {
             synchronized (jobLock) {
                 this.jobs.add(job);
             }
+        }
+    }
+
+    public void catch_response_exception(Object object) throws CustomException {
+        if (object instanceof Exception) {
+            System.out.println("failure");
+        }
+
+        if (object instanceof CustomException) {
+            throw (CustomException) object;
         }
     }
 }

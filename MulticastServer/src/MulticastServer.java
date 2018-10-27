@@ -1,13 +1,7 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import java.io.*;
-import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.net.*;
-import java.util.ArrayList;
 
 public class MulticastServer {
     Database database;
@@ -51,41 +45,63 @@ class RecieverSocketHandler extends Thread {
                 ByteArrayInputStream bAIS = new ByteArrayInputStream(bytesDataRecieved);
                 ObjectInputStream oIS = new ObjectInputStream(bAIS);
                 Request res = (Request)oIS.readObject();
-                System.out.println(res.type);
+                System.out.print("Action " + res.type + " ");
 
                 switch (res.type) {
                     case "user_findByUsername": {
+                        // Throws Custom Exception
                         User user = (User) res.data;
+
                         User fetched_user = this.database.user_findByUsername(user.username);
-                        System.out.println("O encontro do User " + fetched_user.username + " na base de dados foi bem bem sucedida");
-                        String packageToSend = serialize(fetched_user);
-                        sendPacket(packageToSend);
-                        System.out.println("Enviei o package com " + fetched_user.username);
+                        sendPacket(Serializer.serialize(fetched_user));
+
+                        System.out.println("success");
                         break;
                     }
                     case "user_create": {
+                        // Throws Custom Exception
                         User user = (User) res.data;
-                        User fetched_user = this.database.user_create(user);
-                        System.out.println("Criação de User " + fetched_user.username + " na base de dados bem sucedida");
-                        String packageToSend = serialize(fetched_user);
-                        sendPacket(packageToSend);
-                        System.out.println("Enviei o package com " + fetched_user.username);
+
+                        Boolean result = this.database.user_create(user);
+                        sendPacket(Serializer.serialize(result));
+
+                        System.out.println("success");
                         break;
                     }
                     case "normal_users": {
-                        ArrayList<User> normal_users;
-                        normal_users = this.database.normal_users();
-                        String packageToSend = serialize(normal_users);
-                        sendPacket(packageToSend);
+                        // Does not throw Custom Exception
+                        ArrayList<User> result = this.database.normal_users();
+                        sendPacket(Serializer.serialize(result));
+
+                        System.out.println("success");
                         break;
                     }
                     case "user_promote": {
-                        Integer id = (Integer) res.data;
+                        // Throws Custom Exception
+                        int id = (int) res.data;
+
                         this.database.user_promote(id);
-                        String packageToSend = "Success";
-                        sendPacket(packageToSend);
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
+                    case "user_find":
+                        // Throws Custom Exception
+                        int id = (int) res.data;
+
+                        User user = this.database.user_find(id);
+                        sendPacket(Serializer.serialize(user));
+
+                        System.out.println("success");
+                        break;
+                    case "user_all":
+                        // Does not throw Custom Exception
+                        ArrayList<User> users = this.database.user_all();
+                        sendPacket(Serializer.serialize(users));
+
+                        System.out.println("success");
+                        break;
                     case "artist_all": {
                         ArrayList<Artist> artists;
                         artists = this.database.artist_all();
@@ -291,8 +307,21 @@ class RecieverSocketHandler extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (CustomException e) {
-            e.printStackTrace();
+        } catch (CustomException ce) {
+            CustomException _ce = ce;
+
+            while(true) {
+                try {
+                    String response = Serializer.serialize(_ce);
+                    this.sendPacket(response);
+                    break;
+                } catch (CustomException ce1) {
+                    System.out.println(ce1.getMessage());
+                    _ce = ce1;
+                }
+            }
+
+            System.out.println("failure");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {

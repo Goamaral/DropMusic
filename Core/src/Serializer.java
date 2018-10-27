@@ -1,19 +1,27 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 
 public class Serializer {
-    public static String serialize(Object resource) {
-
+    public static String serialize(Object resource) throws CustomException {
+        try {
+            ObjectOutputStream oOS;
+            ByteArrayOutputStream bAOS = new ByteArrayOutputStream();
+            oOS = new ObjectOutputStream(bAOS);
+            oOS.writeObject(resource);
+            oOS.flush();
+            String stringData = Base64.encode(bAOS.toByteArray());
+            return stringData;
+        } catch (IOException e) {
+            System.out.println("Serialize error");
+            throw new CustomException("Internal error");
+        }
     }
 
     public static Object deserialize(String resource_string) throws CustomException {
-        byte resource_bytes[] = Base64.decode(resource_string);
-        ByteArrayInputStream bAIS = new ByteArrayInputStream(resource_bytes);
-
         try {
+            byte resource_bytes[] = Base64.decode(resource_string);
+            ByteArrayInputStream bAIS = new ByteArrayInputStream(resource_bytes);
             ObjectInputStream oIS = new ObjectInputStream(bAIS);
             return oIS.readObject();
         } catch (IOException | ClassNotFoundException e) {

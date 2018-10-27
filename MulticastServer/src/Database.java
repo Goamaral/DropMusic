@@ -24,9 +24,6 @@ public class Database {
     ArrayList<StoredSong> storedSongs = new ArrayList<StoredSong>();
     int next_stored_song_id = 0;
 
-    public Database() throws UnknownHostException {
-    }
-
     // User
     int user_findIndexUsername(User new_user) {
         for (User user : this.users) {
@@ -38,7 +35,7 @@ public class Database {
         return -1;
     }
 
-    User user_create(User user) throws CustomException {
+    Boolean user_create(User user) throws CustomException {
         int index = this.user_findIndexUsername(user);
 
         if (index == -1) {
@@ -51,7 +48,7 @@ public class Database {
             throw new CustomException("Username already exists");
         }
 
-        return user;
+        return true;
     }
 
     User user_findByUsername(String username) throws CustomException {
