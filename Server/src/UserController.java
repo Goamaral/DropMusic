@@ -17,7 +17,7 @@ public class UserController implements UserInterface {
 
         user.encrypt_password();
 
-        Object response_object = this.server.dbRequest("user_findByUsername", user);
+        Object response_object = this.server.dbRequest("user_findByUsername", user.username);
 
         this.server.catch_response_exception(response_object);
 
@@ -61,18 +61,13 @@ public class UserController implements UserInterface {
     public void register(User user) throws CustomException, NoSuchAlgorithmException {
         System.out.print("Action user(" + user.username + ") register: ");
 
-        try {
-            user.validate();
+        user.validate();
 
-            Object response_object = this.server.dbRequest("user_create", user);
+        Object response_object = this.server.dbRequest("user_create", user);
 
-            this.server.catch_response_exception(response_object);
+        this.server.catch_response_exception(response_object);
 
-            System.out.println("success");
-        } catch(CustomException ce) {
-            System.out.println("failure");
-            throw ce;
-        }
+        System.out.println("success");
     }
 
     public ArrayList<User> normal_users() throws CustomException {

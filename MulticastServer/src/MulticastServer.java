@@ -19,8 +19,8 @@ public class MulticastServer {
 
 class RecieverSocketHandler extends Thread {
     private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int BDPORT = 3000;
-    private int RMIPORT = 4040;
+    private int MULTICAST_SOURCE_PORT = 30000;
+    private int MULTICAST_TARGET_PORT = 20000;
     Database database;
 
     RecieverSocketHandler(MulticastServer multicast){
@@ -28,31 +28,32 @@ class RecieverSocketHandler extends Thread {
     }
 
     public void run() {
-        MulticastSocket recieverSocket = null;
+        MulticastSocket receiver_socket = null;
 
         try {
-            recieverSocket = new MulticastSocket(BDPORT);  // create socket and bind it
+            // Receive
+            receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-            recieverSocket.joinGroup(group);
+            receiver_socket.joinGroup(group);
 
             while (true) {
-                byte[] buffer = new byte[5000];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                recieverSocket.receive(packet);
+                byte[] request_buffer = new byte[5000];
+                DatagramPacket request_packet = new DatagramPacket(request_buffer, request_buffer.length);
+                receiver_socket.receive(request_packet);
 
-                String stringDataRecieved = new String(packet.getData(), 0, packet.getLength());
-                byte bytesDataRecieved [] = Base64.decode(stringDataRecieved);
-                ByteArrayInputStream bAIS = new ByteArrayInputStream(bytesDataRecieved);
+                String request_string = new String(request_packet.getData(), 0, request_packet.getLength());
+                byte request_bytes[] = Base64.decode(request_string);
+                ByteArrayInputStream bAIS = new ByteArrayInputStream(request_bytes);
                 ObjectInputStream oIS = new ObjectInputStream(bAIS);
-                Request res = (Request)oIS.readObject();
-                System.out.print("Action " + res.type + " ");
+                Request request = (Request)oIS.readObject();
 
-                switch (res.type) {
+                System.out.print("Action " + request.type + " ");
+
+                switch (request.type) {
                     case "user_findByUsername": {
                         // Throws Custom Exception
-                        User user = (User) res.data;
 
-                        User fetched_user = this.database.user_findByUsername(user.username);
+                        User fetched_user = this.database.user_findByUsername((String) request.data);
                         sendPacket(Serializer.serialize(fetched_user));
 
                         System.out.println("success");
@@ -60,9 +61,7 @@ class RecieverSocketHandler extends Thread {
                     }
                     case "user_create": {
                         // Throws Custom Exception
-                        User user = (User) res.data;
-
-                        Boolean result = this.database.user_create(user);
+                        Boolean result = this.database.user_create((User) request.data);
                         sendPacket(Serializer.serialize(result));
 
                         System.out.println("success");
@@ -78,9 +77,7 @@ class RecieverSocketHandler extends Thread {
                     }
                     case "user_promote": {
                         // Throws Custom Exception
-                        int id = (int) res.data;
-
-                        this.database.user_promote(id);
+                        this.database.user_promote((Integer) request.data);
                         sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
@@ -88,9 +85,7 @@ class RecieverSocketHandler extends Thread {
                     }
                     case "user_find":
                         // Throws Custom Exception
-                        int id = (int) res.data;
-
-                        User user = this.database.user_find(id);
+                        User user = this.database.user_find((int) request.data);
                         sendPacket(Serializer.serialize(user));
 
                         System.out.println("success");
@@ -103,204 +98,290 @@ class RecieverSocketHandler extends Thread {
                         System.out.println("success");
                         break;
                     case "artist_all": {
-                        ArrayList<Artist> artists;
-                        artists = this.database.artist_all();
-                        String packageToSend = serialize(artists);
-                        sendPacket(packageToSend);
+                        // Does not throw Custom Exception
+                        ArrayList<Artist> artists = this.database.artist_all();
+                        sendPacket(Serializer.serialize(artists));
+
+                        System.out.println("success");
                         break;
                     }
                     case "artist_create": {
-                        Artist artist = (Artist) res.data;
-                        Artist final_artist = this.database.artist_create(artist);
-                        String packageToSend = serialize(final_artist);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        this.database.artist_create((int) args.get(0), (Artist) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "artist_find": {
-                        Integer id = (Integer) res.data;
-                        Artist artist = this.database.artist_find(id);
-                        String packageToSend = serialize(artist);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        Artist artist = this.database.artist_find((Integer) request.data);
+                        sendPacket(Serializer.serialize(artist));
+
+                        System.out.println("success");
                         break;
                     }
                     case "artist_update": {
-                        Artist new_artist = (Artist) res.data;
-                        Artist artist = this.database.artist_update(new_artist);
-                        String packageToSend = serialize(artist);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        ArrayList<Integer> editor_ids = this.database.artist_update((int) args.get(0), (Artist) args.get(1));
+                        sendPacket(Serializer.serialize(editor_ids));
+
+                        System.out.println("success");
                         break;
                     }
                     case "artist_delete": {
-                        Integer id = (Integer) res.data;
-                        Boolean success = this.database.artist_delete(id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Does not throw Custom Exception
+                        this.database.artist_delete((Integer) request.data);
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "artist_songs": {
+                        // Throws Custom Exception
+                        ArrayList<Song> songs = this.database.artist_songs((Integer) request.data);
+                        sendPacket(Serializer.serialize(songs));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_all": {
+                        // Throws Custom Exception
                         ArrayList<Album> albums = this.database.album_all();
-                        String packageToSend = serialize(albums);
-                        sendPacket(packageToSend);
+                        sendPacket(Serializer.serialize(albums));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_create": {
-                        Album album = (Album) res.data;
-                        Album new_album = this.database.album_create(album);
-                        String packageToSend = serialize(new_album );
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        Album new_album = this.database.album_create((int) args.get(0), (Album) args.get(1));
+                        sendPacket(Serializer.serialize(new_album));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_find": {
-                        Integer id = (Integer) res.data;
-                        Album album = this.database.album_find(id);
-                        String packageToSend = serialize(album);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        Album album = this.database.album_find((int) request.data);
+                        sendPacket(Serializer.serialize(album));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_update": {
-                        Album new_album = (Album) res.data;
-                        Album album= this.database.album_update(new_album);
-                        String packageToSend = serialize(album);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        ArrayList<Integer> editor_ids = this.database.album_update((int) args.get(0), (Album) args.get(1));
+                        sendPacket(Serializer.serialize(editor_ids));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_delete": {
-                        Integer id = (Integer) res.data;
-                        Boolean success = this.database.artist_delete(id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Does not throw Custom Exception
+                        this.database.album_delete((Integer) request.data);
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_artists": {
-                        Integer id = (Integer) res.data;
-                        String new_string = this.database.album_artists(id);
-                        String packageToSend = serialize(new_string);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        String new_string = this.database.album_artists((int) request.data);
+                        sendPacket(Serializer.serialize(new_string));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_genres": {
-                        Integer id = (Integer) res.data;
-                        String new_string = this.database.album_genres(id);
-                        String packageToSend = serialize(new_string);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        String new_string = this.database.album_genres((int) request.data);
+                        sendPacket(Serializer.serialize(new_string));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_critics": {
-                        Integer id = (Integer) res.data;
-                        ArrayList<Critic> critics = this.database.album_critics(id);
-                        String packageToSend = serialize(critics);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Critic> critics = this.database.album_critics((int) request.data);
+                        sendPacket(Serializer.serialize(critics));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_critic_create": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer id = (Integer) obj.get(0);
-                        Critic critic = (Critic) obj.get(1);
-                        Boolean success = this.database.album_critic_create(id, critic);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        this.database.album_critic_create((int) args.get(0), (Critic) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_critic_find": {
-                        Integer id = (Integer) res.data;
-                        Critic critic = this.database.album_critic_find(id);
-                        String packageToSend = serialize(critic);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        Critic critic = this.database.album_critic_find((int) request.data);
+                        sendPacket(Serializer.serialize(critic));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_all": {
-                        Integer id = (Integer) res.data;
-                        ArrayList<Song> songs = this.database.album_song_all(id);
-                        String packageToSend = serialize(songs);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Song> album_songs = this.database.album_song_all((int) request.data);
+                        sendPacket(Serializer.serialize(album_songs));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_create": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer id = (Integer) obj.get(0);
-                        Song song = (Song) obj.get(1);
-                        Boolean success = this.database.album_song_create(id, song);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        this.database.album_song_create((int) args.get(0), (Song) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "user_uploads": {
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        ArrayList<StoredSong> uploads = this.database.user_uploads((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(uploads));
+
+                        System.out.println("success");
                         break;
                     }
                     case "song_find": {
-                        Integer id = (Integer) res.data;
-                        Song song= this.database.song_find(id);
-                        String packageToSend = serialize(song);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        Song song = this.database.song_find((Integer) request.data);
+                        sendPacket(Serializer.serialize(song));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_update": {
-                        Song song = (Song) res.data;
-                        Boolean success = this.database.album_song_update(song);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        this.database.album_song_update((Song) request.data);
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_delete": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer album_id = (Integer) obj.get(0);
-                        Integer song_id = (Integer) obj.get(1);
-                        Boolean success = this.database.album_song_delete(album_id, song_id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+                        this.database.album_song_delete((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "request_song_upload": {
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        int port = this.database.requestSongUpload((int) args.get(0), (int) args.get(1), (String) args.get(2));
+                        sendPacket(Serializer.serialize(new IpPort(InetAddress.getLocalHost(), port)));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "song_downloads": {
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        ArrayList<StoredSong> songs = this.database.song_downloads((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(songs));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "request_song_download": {
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        int port = this.database.requestSongDownload((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(new IpPort(InetAddress.getLocalHost(), port)));
+
+                        System.out.println("success");
+                        break;
+                    }
+                    case "song_share": {
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        this.database.song_share((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "genre_all": {
-                        ArrayList<Genre> genres= this.database.genre_all();
-                        String packageToSend = serialize(genres);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Genre> genres = this.database.genre_all();
+                        sendPacket(Serializer.serialize(genres));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_genre_add": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer song_id = (Integer) obj.get(0);
-                        Integer genre_id = (Integer) obj.get(1);
-                        Boolean success = this.database.album_song_genre_add(song_id, genre_id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        this.database.album_song_genre_add((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "genre_create": {
-                        Genre genre = (Genre) res.data;
-                        Boolean success = this.database.genre_create(genre);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        this.database.genre_create((Genre) request.data);
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "genre_find": {
-                        Integer genre_id = (Integer) res.data;
-                        Genre genre = this.database.genre_find(genre_id);
-                        String packageToSend = serialize(genre);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        Genre genre = this.database.genre_find((Integer) request.data);
+                        sendPacket(Serializer.serialize(genre));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_genre_remove": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer song_id = (Integer) obj.get(0);
-                        Integer genre_id = (Integer) obj.get(1);
-                        Boolean success = this.database.album_song_genre_remove(song_id, genre_id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        this.database.album_song_genre_remove((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
                         break;
                     }
                     case "album_song_artist_add": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer song_id = (Integer) obj.get(0);
-                        Integer artist_id = (Integer) obj.get(1);
-                        Boolean success = this.database.album_song_artist_add(song_id, artist_id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        this.database.album_song_artist_add((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                     case "album_song_artist_remove": {
-                        ArrayList<Object> obj = (ArrayList<Object>) res.data;
-                        Integer song_id = (Integer) obj.get(0);
-                        Integer genre_id = (Integer) obj.get(1);
-                        Boolean success = this.database.album_song_artist_remove(song_id, genre_id);
-                        String packageToSend = serialize(success);
-                        sendPacket(packageToSend);
+                        // Throws Custom Exception
+                        ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                        this.database.album_song_artist_remove((int) args.get(0), (int) args.get(1));
+                        sendPacket(Serializer.serialize(true));
+
+                        System.out.println("success");
                         break;
                     }
                 }
@@ -324,8 +405,10 @@ class RecieverSocketHandler extends Thread {
             System.out.println("failure");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } finally {
-            recieverSocket.close();
+        }
+
+        if (receiver_socket != null) {
+            receiver_socket.close();
         }
     }
 
@@ -345,7 +428,7 @@ class RecieverSocketHandler extends Thread {
             sendingSocket = new MulticastSocket();
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             byte[] buffer = stringData.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, RMIPORT);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICAST_TARGET_PORT);
             sendingSocket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();

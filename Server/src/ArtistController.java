@@ -9,10 +9,15 @@ public class ArtistController implements ArtistInterface {
 
     // Album
     public ArrayList<Artist> index() throws CustomException {
-        String response = this.server.dbRequest("artist_all", new Object());
-        ArrayList<Artist> artists = (ArrayList<Artist>) Serializer.deserialize(response);
+        System.out.print("Action artist index ");
 
-        System.out.println("Action artist index: " + artists.size() + " artists");
+        Object response_object = this.server.dbRequest("artist_all", true);
+
+        this.server.catch_response_exception(response_object);
+
+        ArrayList<Artist> artists = (ArrayList<Artist>) response_object;
+
+        System.out.println(" " + artists.size() + " artists");
 
         return artists;
     }
@@ -24,13 +29,10 @@ public class ArtistController implements ArtistInterface {
         args.add(user_id);
         args.add(artist);
 
-        try {
-            artist.validate();
-            this.server.dbRequest("artist_create", args);
-        } catch (CustomException ce) {
-            System.out.println("failure");
-            throw ce;
-        }
+        artist.validate();
+        Object response_object = this.server.dbRequest("artist_create", args);
+
+        this.server.catch_response_exception(response_object);
 
         System.out.println("success");
     }
@@ -38,13 +40,13 @@ public class ArtistController implements ArtistInterface {
     public Artist read(int id) throws CustomException {
         System.out.print("Action artist(" + id + ") read: ");
 
-        String response = this.server.dbRequest("artist_find", id);
+        Object response_object = this.server.dbRequest("artist_find", id);
 
-        Artist artist = (Artist) Serializer.deserialize(response);
+        this.server.catch_response_exception(response_object);
 
         System.out.println("success");
 
-        return artist;
+        return (Artist) response_object;
     }
 
     public void update(int user_id, Artist new_artist) throws CustomException {
@@ -54,19 +56,14 @@ public class ArtistController implements ArtistInterface {
         args.add(user_id);
         args.add(new_artist);
 
-        try {
-            new_artist.validate();
+        new_artist.validate();
 
-            String response = this.server.dbRequest("artist_update", args);
-            ArrayList<Integer> editor_ids = (ArrayList<Integer>) Serializer.deserialize(response);
+        Object response_object = this.server.dbRequest("artist_update", args);
 
-            for (int editor_id : editor_ids) {
-                this.server.send_notifications(new Job(editor_id, "Artist " + new_artist.id + " was edited"));
-            }
+        this.server.catch_response_exception(response_object);
 
-        } catch (CustomException ce) {
-            System.out.println("failed");
-            throw ce;
+        for (int editor_id : (ArrayList<Integer>) response_object) {
+            this.server.send_notifications(new Job(editor_id, "Artist " + new_artist.id + " was edited"));
         }
 
         System.out.println("success");
@@ -83,16 +80,23 @@ public class ArtistController implements ArtistInterface {
     public ArrayList<Song> songs(int id) throws CustomException {
         System.out.println("Artist(" + id + ") songs");
 
-        String response = this.server.dbRequest("artist_songs", id);
+        Object response_object = this.server.dbRequest("artist_songs", id);
 
-        return (ArrayList<Song>) Serializer.deserialize(response);
+        this.server.catch_response_exception(response_object);
+
+        System.out.println("success");
+
+        return (ArrayList<Song>) response_object;
     }
 
     public Artist search(String query) throws CustomException {
         System.out.print("Actions search artist (" + query + "): ");
 
-        String response = this.server.dbRequest("artist_all", new Object());
-        ArrayList<Artist> artists = (ArrayList<Artist>) Serializer.deserialize(response);
+        Object response_object = this.server.dbRequest("artist_all", true);
+
+        this.server.catch_response_exception(response_object);
+
+        ArrayList<Artist> artists = (ArrayList<Artist>) response_object;
 
         for (Artist artist : artists) {
             if (artist.name.contains(query)) {
@@ -104,5 +108,4 @@ public class ArtistController implements ArtistInterface {
         System.out.println("failure");
         throw new CustomException("Artist not found");
     }
-
 }
