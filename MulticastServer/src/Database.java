@@ -371,6 +371,11 @@ public class Database {
         User user = this.user_find(user_id);
         user.addStoredSong(stored_song_id);
 
+        user = this.user_find(user_id);
+
+        System.out.println("SONGS: " + user.stored_song_ids.size());
+
+
         return port;
     }
 

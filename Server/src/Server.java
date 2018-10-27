@@ -167,8 +167,8 @@ public class Server implements ServerInterface {
 
             return Serializer.deserialize(response_string);
         } catch (IOException | CustomException e) {
-            System.out.println(" -> failure");
-            return new CustomException("internal error");
+            System.out.println(" -> failure ");
+            return new CustomException("Internal error");
         }
     }
 

@@ -9,10 +9,8 @@ public class Album implements Serializable {
     int id;
     String name;
     String info;
-    Date releaseDate;
     int points = 0;
     String releaseDateString;
-    DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     // Relationships
     ArrayList<Integer> critic_ids = new ArrayList<>();
@@ -62,9 +60,11 @@ public class Album implements Serializable {
     }
 
     private void dateValidator() throws CustomException {
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
         try {
-            this.releaseDate = this.dateFormat.parse(this.releaseDateString);
-            this.releaseDateString = this.dateFormat.format(this.releaseDate);
+            Date date = dateFormat.parse(this.releaseDateString);
+            this.releaseDateString = dateFormat.format(date);
         } catch (ParseException pe) {
             throw new CustomException("Invalid date format");
         }

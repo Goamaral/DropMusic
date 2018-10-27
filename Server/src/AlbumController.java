@@ -108,7 +108,9 @@ public class AlbumController implements AlbumInterface {
     public Album search(String query) throws CustomException {
         System.out.println("Actions search album (" + query + "): ");
 
-        Object response_object = this.server.dbRequest("album_all", new Object());
+        Object response_object = this.server.dbRequest("album_all", true);
+
+        this.server.catch_response_exception(response_object);
 
         for (Album album : (ArrayList<Album>) response_object) {
             System.out.println(album.name + " - " + query + " -> " + album.name.contains(query));

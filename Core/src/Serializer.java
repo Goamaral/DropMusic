@@ -13,6 +13,7 @@ public class Serializer {
             String stringData = Base64.encode(bAOS.toByteArray());
             return stringData;
         } catch (IOException e) {
+            e.printStackTrace();
             System.out.println("Serialize error");
             throw new CustomException("Internal error");
         }
