@@ -1665,7 +1665,6 @@ public class Client {
         System.out.print("Song file name: ");
         String song_file_name = this.scanner.nextLine();
         String song_file_path = System.getProperty("user.dir") + "/" + song_file_name;
-        String song_ext = song_file_name.split("\\.")[1];
 
         System.out.println("Uploading song");
         File file;
@@ -1677,6 +1676,8 @@ public class Client {
         } catch (IOException ioe) {
             throw new CustomException("File not found");
         }
+
+        String song_ext = song_file_name.split("\\.")[1];
 
         try {
             ip_port = this.albumInterface.requestSongUpload(this.current_user.id, this.current_song_id, song_ext);

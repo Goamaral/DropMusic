@@ -18,9 +18,10 @@ public class Server implements ServerInterface {
     int port;
     InetAddress alternative_ip;
     ServerInterface primaryServerInterface;
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int MULTICAST_SOURCE_PORT = 20000;
-    private int MULTICAST_TARGET_PORT = 30000;
+    InetAddress MULTICAST_ADDRESS;
+    int MULTICAST_SOURCE_PORT;
+    int MULTICAST_TARGET_PORT;
+    Integer request_id = 0;
 
     int maxAttemps = 5;
     int connectAttemps = 0;
@@ -30,9 +31,9 @@ public class Server implements ServerInterface {
     ArrayList<Job> jobs = new ArrayList<>();
     Object jobLock = new Object();
 
-    public Server() {}
+    public Server() throws UnknownHostException {}
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, UnknownHostException {
         Server server = new Server();
 
         Scanner scanner = new Scanner(System.in);
@@ -44,8 +45,17 @@ public class Server implements ServerInterface {
             System.out.print("Alternative IP: ");
             server.alternative_ip = InetAddress.getByName(scanner.nextLine());
 
+            System.out.print("Multicast address: ");
+            server.MULTICAST_ADDRESS = InetAddress.getByName(scanner.nextLine());
+
+            System.out.print("My multicast port: ");
+            server.MULTICAST_SOURCE_PORT = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Server multicast port: ");
+            server.MULTICAST_TARGET_PORT = Integer.parseInt(scanner.nextLine());
+
         } catch (NumberFormatException | UnknownHostException nfe) {
-            System.out.println("Invalid port or IPs");
+            System.out.println("Invalid ports or IPs");
             System.exit(0);
         }
 
@@ -136,20 +146,26 @@ public class Server implements ServerInterface {
 
 
     public Object dbRequest(String type, Object resource) {
-        Request request = new Request(type, resource);
+        int id;
+
+        synchronized (this.request_id) {
+            id = request_id;
+            request_id += 1;
+        }
+
+        Request request = new Request(id, type, resource);
 
         System.out.println("Prepare");
 
         try {
             String request_string = Serializer.serialize(request);
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
 
             MulticastSocket sender_socket = new MulticastSocket();
             byte[] request_buffer = request_string.getBytes();
-            DatagramPacket sender_packet = new DatagramPacket(request_buffer, request_buffer.length, group, MULTICAST_TARGET_PORT);
+            DatagramPacket sender_packet = new DatagramPacket(request_buffer, request_buffer.length, this.MULTICAST_ADDRESS, MULTICAST_TARGET_PORT);
 
             MulticastSocket receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
-            receiver_socket.joinGroup(group);
+            receiver_socket.joinGroup(this.MULTICAST_ADDRESS);
             byte[] response_buffer = new byte[5000];
             DatagramPacket response_packet = new DatagramPacket(response_buffer, response_buffer.length);
 

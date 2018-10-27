@@ -2,29 +2,48 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.*;
 import java.util.ArrayList;
 import java.net.*;
+import java.util.Scanner;
 
 public class MulticastServer {
     Database database;
+    InetAddress MULTICAST_ADDRESS;
+    int MULTICAST_SOURCE_PORT;
+    int MULTICAST_TARGET_PORT;
 
     public static void main(String[] args) {
         MulticastServer multicastServer = new MulticastServer();
         multicastServer.database = new Database();
 
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Running multicast");
+
+        try {
+            System.out.print("Multicast address: ");
+            multicastServer.MULTICAST_ADDRESS = InetAddress.getByName(scanner.nextLine());
+
+            System.out.print("My multicast port: ");
+            multicastServer.MULTICAST_SOURCE_PORT = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Rmi server multicast port: ");
+            multicastServer.MULTICAST_TARGET_PORT = Integer.parseInt(scanner.nextLine());
+        } catch (UnknownHostException e) {
+            System.out.println("Invalid ports or IPs");
+            System.exit(0);
+        }
+
         RecieverSocketHandler recieverSocket = new RecieverSocketHandler(multicastServer);
         recieverSocket.start();
-
-        System.out.println("Running");
     }
 }
 
 class RecieverSocketHandler extends Thread {
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int MULTICAST_SOURCE_PORT = 30000;
-    private int MULTICAST_TARGET_PORT = 20000;
     Database database;
+    MulticastServer multicastServer;
 
     RecieverSocketHandler(MulticastServer multicast){
         this.database = multicast.database;
+        this.multicastServer = multicast;
     }
 
     public void run() {
@@ -32,8 +51,8 @@ class RecieverSocketHandler extends Thread {
 
         try {
             // Receive
-            receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            receiver_socket = new MulticastSocket(multicastServer.MULTICAST_SOURCE_PORT);  // create socket and bind it
+            InetAddress group = multicastServer.MULTICAST_ADDRESS;
             receiver_socket.joinGroup(group);
 
             while (true) {
@@ -426,9 +445,9 @@ class RecieverSocketHandler extends Thread {
         MulticastSocket sendingSocket = null;
         try {
             sendingSocket = new MulticastSocket();
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            InetAddress group = multicastServer.MULTICAST_ADDRESS;
             byte[] buffer = stringData.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICAST_TARGET_PORT);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, multicastServer.MULTICAST_TARGET_PORT);
             sendingSocket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();
