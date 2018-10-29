@@ -48,7 +48,6 @@ class RecieverSocketHandler extends Thread {
 
     public void run() {
         MulticastSocket receiver_socket = null;
-        Request request = null;
 
         try {
             // Receive
@@ -65,7 +64,7 @@ class RecieverSocketHandler extends Thread {
                 byte request_bytes[] = Base64.decode(request_string);
                 ByteArrayInputStream bAIS = new ByteArrayInputStream(request_bytes);
                 ObjectInputStream oIS = new ObjectInputStream(bAIS);
-                request = (Request)oIS.readObject();
+                Request request = (Request)oIS.readObject();
 
                 System.out.print("Action " + request.type + " ");
 
@@ -74,15 +73,15 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
 
                         User fetched_user = this.database.user_findByUsername((String) request.data);
-                        sendPacket(new Response(request.id, fetched_user));
+                        sendPacket(Serializer.serialize(fetched_user));
 
                         System.out.println("success");
                         break;
                     }
                     case "user_create": {
                         // Throws Custom Exception
-                        this.database.user_create((User) request.data);
-                        sendPacket(new Response(request.id, true));
+                        Boolean result = this.database.user_create((User) request.data);
+                        sendPacket(Serializer.serialize(result));
 
                         System.out.println("success");
                         break;
@@ -90,7 +89,7 @@ class RecieverSocketHandler extends Thread {
                     case "normal_users": {
                         // Does not throw Custom Exception
                         ArrayList<User> result = this.database.normal_users();
-                        sendPacket(new Response(request.id, result));
+                        sendPacket(Serializer.serialize(result));
 
                         System.out.println("success");
                         break;
@@ -98,7 +97,7 @@ class RecieverSocketHandler extends Thread {
                     case "user_promote": {
                         // Throws Custom Exception
                         this.database.user_promote((Integer) request.data);
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -106,21 +105,21 @@ class RecieverSocketHandler extends Thread {
                     case "user_find":
                         // Throws Custom Exception
                         User user = this.database.user_find((int) request.data);
-                        sendPacket(new Response(request.id, user));
+                        sendPacket(Serializer.serialize(user));
 
                         System.out.println("success");
                         break;
                     case "user_all":
                         // Does not throw Custom Exception
                         ArrayList<User> users = this.database.user_all();
-                        sendPacket(new Response(request.id, users));
+                        sendPacket(Serializer.serialize(users));
 
                         System.out.println("success");
                         break;
                     case "artist_all": {
                         // Does not throw Custom Exception
                         ArrayList<Artist> artists = this.database.artist_all();
-                        sendPacket(new Response(request.id, artists));
+                        sendPacket(Serializer.serialize(artists));
 
                         System.out.println("success");
                         break;
@@ -129,7 +128,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         this.database.artist_create((int) args.get(0), (Artist) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -137,7 +136,7 @@ class RecieverSocketHandler extends Thread {
                     case "artist_find": {
                         // Throws Custom Exception
                         Artist artist = this.database.artist_find((Integer) request.data);
-                        sendPacket(new Response(request.id, artist));
+                        sendPacket(Serializer.serialize(artist));
 
                         System.out.println("success");
                         break;
@@ -146,7 +145,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         ArrayList<Integer> editor_ids = this.database.artist_update((int) args.get(0), (Artist) args.get(1));
-                        sendPacket(new Response(request.id, editor_ids));
+                        sendPacket(Serializer.serialize(editor_ids));
 
                         System.out.println("success");
                         break;
@@ -154,7 +153,7 @@ class RecieverSocketHandler extends Thread {
                     case "artist_delete": {
                         // Does not throw Custom Exception
                         this.database.artist_delete((Integer) request.data);
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -162,7 +161,7 @@ class RecieverSocketHandler extends Thread {
                     case "artist_songs": {
                         // Throws Custom Exception
                         ArrayList<Song> songs = this.database.artist_songs((Integer) request.data);
-                        sendPacket(new Response(request.id, songs));
+                        sendPacket(Serializer.serialize(songs));
 
                         System.out.println("success");
                         break;
@@ -170,7 +169,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_all": {
                         // Throws Custom Exception
                         ArrayList<Album> albums = this.database.album_all();
-                        sendPacket(new Response(request.id, albums));
+                        sendPacket(Serializer.serialize(albums));
 
                         System.out.println("success");
                         break;
@@ -179,7 +178,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         Album new_album = this.database.album_create((int) args.get(0), (Album) args.get(1));
-                        sendPacket(new Response(request.id, new_album));
+                        sendPacket(Serializer.serialize(new_album));
 
                         System.out.println("success");
                         break;
@@ -187,7 +186,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_find": {
                         // Throws Custom Exception
                         Album album = this.database.album_find((int) request.data);
-                        sendPacket(new Response(request.id, album));
+                        sendPacket(Serializer.serialize(album));
 
                         System.out.println("success");
                         break;
@@ -196,7 +195,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         ArrayList<Integer> editor_ids = this.database.album_update((int) args.get(0), (Album) args.get(1));
-                        sendPacket(new Response(request.id, editor_ids));
+                        sendPacket(Serializer.serialize(editor_ids));
 
                         System.out.println("success");
                         break;
@@ -204,7 +203,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_delete": {
                         // Does not throw Custom Exception
                         this.database.album_delete((Integer) request.data);
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -212,7 +211,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_artists": {
                         // Throws Custom Exception
                         String new_string = this.database.album_artists((int) request.data);
-                        sendPacket(new Response(request.id, new_string));
+                        sendPacket(Serializer.serialize(new_string));
 
                         System.out.println("success");
                         break;
@@ -220,7 +219,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_genres": {
                         // Throws Custom Exception
                         String new_string = this.database.album_genres((int) request.data);
-                        sendPacket(new Response(request.id, new_string));
+                        sendPacket(Serializer.serialize(new_string));
 
                         System.out.println("success");
                         break;
@@ -228,7 +227,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_critics": {
                         // Throws Custom Exception
                         ArrayList<Critic> critics = this.database.album_critics((int) request.data);
-                        sendPacket(new Response(request.id, critics));
+                        sendPacket(Serializer.serialize(critics));
 
                         System.out.println("success");
                         break;
@@ -237,7 +236,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         this.database.album_critic_create((int) args.get(0), (Critic) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -245,7 +244,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_critic_find": {
                         // Throws Custom Exception
                         Critic critic = this.database.album_critic_find((int) request.data);
-                        sendPacket(new Response(request.id, critic));
+                        sendPacket(Serializer.serialize(critic));
 
                         System.out.println("success");
                         break;
@@ -253,7 +252,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_song_all": {
                         // Throws Custom Exception
                         ArrayList<Song> album_songs = this.database.album_song_all((int) request.data);
-                        sendPacket(new Response(request.id, album_songs));
+                        sendPacket(Serializer.serialize(album_songs));
 
                         System.out.println("success");
                         break;
@@ -262,7 +261,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         this.database.album_song_create((int) args.get(0), (Song) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -272,7 +271,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         ArrayList<StoredSong> uploads = this.database.user_uploads((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, uploads));
+                        sendPacket(Serializer.serialize(uploads));
 
                         System.out.println("success");
                         break;
@@ -280,7 +279,7 @@ class RecieverSocketHandler extends Thread {
                     case "song_find": {
                         // Throws Custom Exception
                         Song song = this.database.song_find((Integer) request.data);
-                        sendPacket(new Response(request.id, song));
+                        sendPacket(Serializer.serialize(song));
 
                         System.out.println("success");
                         break;
@@ -288,7 +287,7 @@ class RecieverSocketHandler extends Thread {
                     case "album_song_update": {
                         // Throws Custom Exception
                         this.database.album_song_update((Song) request.data);
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -297,7 +296,7 @@ class RecieverSocketHandler extends Thread {
                         // Throws Custom Exception
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
                         this.database.album_song_delete((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -307,8 +306,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         int port = this.database.requestSongUpload((int) args.get(0), (int) args.get(1), (String) args.get(2));
-                        IpPort ipPort = new IpPort(InetAddress.getLocalHost(), port);
-                        sendPacket(new Response(request.id, ipPort));
+                        sendPacket(Serializer.serialize(new IpPort(InetAddress.getLocalHost(), port)));
 
                         System.out.println("success");
                         break;
@@ -318,7 +316,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         ArrayList<StoredSong> songs = this.database.song_downloads((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, songs));
+                        sendPacket(Serializer.serialize(songs));
 
                         System.out.println("success");
                         break;
@@ -328,8 +326,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         int port = this.database.requestSongDownload((int) args.get(0), (int) args.get(1));
-                        IpPort ipPort =new IpPort(InetAddress.getLocalHost(), port);
-                        sendPacket(new Response(request.id, ipPort));
+                        sendPacket(Serializer.serialize(new IpPort(InetAddress.getLocalHost(), port)));
 
                         System.out.println("success");
                         break;
@@ -339,7 +336,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         this.database.song_share((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -347,7 +344,7 @@ class RecieverSocketHandler extends Thread {
                     case "genre_all": {
                         // Throws Custom Exception
                         ArrayList<Genre> genres = this.database.genre_all();
-                        sendPacket(new Response(request.id, genres));
+                        sendPacket(Serializer.serialize(genres));
 
                         System.out.println("success");
                         break;
@@ -357,7 +354,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         this.database.album_song_genre_add((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -365,7 +362,7 @@ class RecieverSocketHandler extends Thread {
                     case "genre_create": {
                         // Throws Custom Exception
                         this.database.genre_create((Genre) request.data);
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -373,7 +370,7 @@ class RecieverSocketHandler extends Thread {
                     case "genre_find": {
                         // Throws Custom Exception
                         Genre genre = this.database.genre_find((Integer) request.data);
-                        sendPacket(new Response(request.id, genre));
+                        sendPacket(Serializer.serialize(genre));
 
                         System.out.println("success");
                         break;
@@ -383,7 +380,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         this.database.album_song_genre_remove((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
                         break;
                     }
                     case "album_song_artist_add": {
@@ -391,7 +388,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         this.database.album_song_artist_add((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -401,7 +398,7 @@ class RecieverSocketHandler extends Thread {
                         ArrayList<Object> args = (ArrayList<Object>) request.data;
 
                         this.database.album_song_artist_remove((int) args.get(0), (int) args.get(1));
-                        sendPacket(new Response(request.id, true));
+                        sendPacket(Serializer.serialize(true));
 
                         System.out.println("success");
                         break;
@@ -415,7 +412,8 @@ class RecieverSocketHandler extends Thread {
 
             while(true) {
                 try {
-                    this.sendPacket(new Response(request.id, _ce));
+                    String response = Serializer.serialize(_ce);
+                    this.sendPacket(response);
                     break;
                 } catch (CustomException ce1) {
                     System.out.println(ce1.getMessage());
@@ -433,10 +431,18 @@ class RecieverSocketHandler extends Thread {
         }
     }
 
-    public void sendPacket(Response response) throws CustomException {
-        MulticastSocket sendingSocket = null;
-        String stringData = Serializer.serialize(response);
+    public static String serialize(Object obj) throws IOException {
+        ObjectOutputStream oOS;
+        ByteArrayOutputStream bAOS = new ByteArrayOutputStream();
+        oOS = new ObjectOutputStream(bAOS);
+        oOS.writeObject(obj);
+        oOS.flush();
+        String stringData = Base64.encode(bAOS.toByteArray());
+        return stringData;
+    }
 
+    public void sendPacket(String stringData){
+        MulticastSocket sendingSocket = null;
         try {
             sendingSocket = new MulticastSocket();
             InetAddress group = multicastServer.MULTICAST_ADDRESS;
