@@ -1,15 +1,11 @@
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 public class Client {
     UserInterface userInterface;
@@ -85,7 +81,7 @@ public class Client {
     static final int USERS = 44;
     static final int USER_UPLOADS = 45;
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, InterruptedException, SocketException {
         Client client = new Client();
 
         try {

@@ -1,9 +1,5 @@
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -11,6 +7,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Scanner;
 
 
@@ -33,17 +31,13 @@ public class Server implements ServerInterface {
 
     public Server() throws UnknownHostException {}
 
-    public static void main(String[] args) throws InterruptedException, UnknownHostException {
+    public static void main(String[] args) throws InterruptedException, UnknownHostException, SocketException {
         Server server = new Server();
 
         Scanner scanner = new Scanner(System.in);
 
         try {
-            System.out.print("Port: ");
-            server.port = Integer.parseInt(scanner.nextLine());
-
-            System.out.print("Alternative IP: ");
-            server.alternative_ip = InetAddress.getByName(scanner.nextLine());
+            server.chooseNetworkInterface(scanner);
 
             System.out.print("Multicast address: ");
             server.MULTICAST_ADDRESS = InetAddress.getByName(scanner.nextLine());
@@ -93,6 +87,48 @@ public class Server implements ServerInterface {
 
         System.out.println("Press any key to exit");
         scanner.nextLine();
+    }
+
+    public int chooseNetworkInterface(Scanner scanner) throws SocketException {
+        System.setProperty("java.net.preferIPv4Stack", "true");
+        Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+
+        int i = 0;
+        ArrayList<InetAddress> ips = new ArrayList<>();
+        System.out.println("Choose network interface to use");
+        for (NetworkInterface networkInterface : Collections.list(networkInterfaces)) {
+            Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+
+            for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+                if (inetAddress instanceof Inet4Address) {
+                    System.out.println("[" + i + "] " + inetAddress.getHostAddress()  + " -> " + networkInterface.getName());
+                    ips.add(inetAddress);
+                    ++i;
+                }
+            }
+        }
+
+        System.out.print("Option: ");
+        String option = scanner.nextLine();
+
+        try {
+            this.alternative_ip = ips.get(Integer.parseInt(option));
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            return chooseNetworkInterface(scanner);
+        }
+
+        System.out.print("Port: ");
+        option = scanner.nextLine();
+
+        try {
+            this.port = Integer.parseInt(option);
+        } catch (NumberFormatException nfe) {
+            return chooseNetworkInterface(scanner);
+        }
+
+        System.setProperty("java.rmi.server.hostname", this.alternative_ip.getHostAddress());
+
+        return 0;
     }
 
     void setup() throws InterruptedException, RemoteException {
@@ -166,25 +202,43 @@ public class Server implements ServerInterface {
 
             MulticastSocket receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
             receiver_socket.joinGroup(this.MULTICAST_ADDRESS);
-            byte[] response_buffer = new byte[5000];
+            byte[] response_buffer = new byte[50000];
             DatagramPacket response_packet = new DatagramPacket(response_buffer, response_buffer.length);
 
-            // Send
-            System.out.println(" -> sending");
+            while (true) {
+                try {
+                    // Send
+                    System.out.println(" -> sending");
 
-            sender_socket.send(sender_packet);
-            receiver_socket.receive(response_packet);
-            String response_string = new String(response_packet.getData(), 0, response_packet.getLength());
+                    receiver_socket.setSoTimeout(5000);
+                    sender_socket.send(sender_packet);
+                    receiver_socket.receive(response_packet);
 
-            System.out.println(" -> received");
+                    System.out.println(" -> received");
 
-            sender_socket.close();
-            receiver_socket.close();
+                    String response_string = new String(response_packet.getData(), 0, response_packet.getLength());
+                    Response response = (Response) Serializer.deserialize(response_string);
 
-            return Serializer.deserialize(response_string);
-        } catch (IOException | CustomException e) {
-            System.out.println(" -> failure ");
-            return new CustomException("Internal error");
+
+                    if (response.id == request.id) {
+                        sender_socket.close();
+                        receiver_socket.close();
+                        return response.data;
+                    } else {
+                        throw new SocketTimeoutException();
+                    }
+                } catch (SocketTimeoutException e) {
+                    System.out.println("Packet was considered lost. Retrying...");
+                    response_packet = new DatagramPacket(new byte[request_buffer.length], request_buffer.length);
+                }
+            }
+        } catch (CustomException e) {
+            e.printStackTrace();
+            System.out.println("Failed to serialize request");
+            return e;
+        } catch (IOException e) {
+            System.out.println("Failed to open multicast socket");
+            return new CustomException("Server internal failure");
         }
     }
 
