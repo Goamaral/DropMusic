@@ -5,4 +5,24 @@
         "http://struts.apache.org/dtds/struts-2.0.dtd">
 
 <struts>
+    <constant name="struts.devMode" value="true" />
+
+    <package name="controllers" extends="struts-default">
+        <default-action-ref name="general_index" />
+
+        <!-- General Controller -->
+        <action name="general_index" class="controllers.GeneralController" method="index">
+            <result name="success">/general/index.jsp</result>
+        </action>
+
+        <!-- User Controller -->
+        <action name="user_login" class="controllers.UserController" method="login">
+            <result name="success">/user/login.jsp</result>
+        </action>
+
+        <action name="user_register" class="controllers.UserController" method="register">
+            <result name="success">/user/register.jsp</result>
+        </action>
+    </package>
 </struts>
+
