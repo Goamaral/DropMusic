@@ -14,10 +14,10 @@
 </s:if>
 <s:else>
     <ul>
-    <s:iterator value="albums">
+    <s:iterator value="albums" var="album">
         <li>
-            <a href="<s:url action="album_show" ><s:param name="id"><s:property value="id"/></s:param></s:url>">
-                <s:property value="name"/>
+            <a href="<s:url action="album_show" ><s:param name="id"><s:property value="#album.id"/></s:param></s:url>">
+                <s:property value="#album.name"/>
             </a>
         </li>
     </s:iterator>

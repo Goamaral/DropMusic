@@ -1,11 +1,13 @@
 package controllers;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import core.Album;
 import core.Critic;
 import core.Genre;
 import core.Song;
+import services.Service;
 
-public class AlbumController extends ActionSupport {
+public class AlbumController extends ActionSupport implements Preparable {
     int id;
     Album album;
 
@@ -17,6 +19,13 @@ public class AlbumController extends ActionSupport {
 
     int genre_id;
     Genre genre;
+
+    Service service;
+
+    @Override
+    public void prepare() throws InterruptedException {
+        // Auth service
+    }
 
     // Actions
     public String index() {

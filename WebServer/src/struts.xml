@@ -23,7 +23,8 @@
             </action>
 
             <action name="user_login_post" class="controllers.UserController" method="login_post">
-                <result name="success">/post_done.jsp</result>
+                <result name="success" type="redirectAction">user_dashboard</result>
+                <result name="error">/user/login.jsp</result>
             </action>
 
             <action name="user_register" class="controllers.UserController" method="register">

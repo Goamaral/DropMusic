@@ -10,6 +10,8 @@
   <body>
     <h1>Login</h1>
 
+    <s:include value="/general/errors.jsp" />
+
     <s:form action="user_login_post">
       <s:textfield name="user.username" label="Username" />
       <s:textfield name="user.password" label="Password" />

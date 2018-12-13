@@ -3,8 +3,7 @@ package core;
 import java.util.ArrayList;
 
 public class CustomException extends Exception {
-    ArrayList<String> errors;
-    int extraFlag = 0;
+    public ArrayList<String> errors = new ArrayList<>();
 
     CustomException(ArrayList<String> errors) {
         super();
@@ -13,17 +12,6 @@ public class CustomException extends Exception {
 
     CustomException(String error) {
         super();
-        this.errors = new ArrayList<>(1);
         this.errors.add(error);
-    }
-
-    void printErrors() {
-        if (this.errors == null) return;
-
-        System.out.println("Errors:");
-
-        for (String error : this.errors) {
-            System.out.println("-> " + error);
-        }
     }
 }

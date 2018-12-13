@@ -8,23 +8,7 @@ import java.io.Serializable;
 public class User implements Serializable {
     int id = -1;
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    String username;
+    public String username;
     String password;
     boolean password_encrypted;
     boolean isEditor = false;
@@ -34,6 +18,8 @@ public class User implements Serializable {
         this.username = username;
         this.password = password;
     }
+
+    public User() {}
 
     // https://stackoverflow.com/questions/6592010/encrypt-and-decrypt-a-password-in-java
     void encrypt_password() throws NoSuchAlgorithmException {
@@ -52,7 +38,7 @@ public class User implements Serializable {
         }
     }
 
-    void validate() throws CustomException, NoSuchAlgorithmException {
+    public void validate() throws CustomException, NoSuchAlgorithmException {
         ArrayList<String> errors = new ArrayList();
 
         try {
@@ -102,5 +88,13 @@ public class User implements Serializable {
 
     public String toString() {
         return "User: { username: " + this.username + ", password: " + this.password + " }";
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

@@ -8,6 +8,8 @@
     </head>
 
     <body>
+        <h1>Dashboard</h1>
+
         <p><a href="<s:url action="user_register" />">Register</a></p>
         <p><a href="<s:url action="user_login" />">Login</a></p>
     </body>
