@@ -8,7 +8,7 @@
     </head>
 
     <body>
-        <a href="<s:url action="user_register" />">Register</a>
-        <a href="<s:url action="user_login" />">Login</a>
+        <p><a href="<s:url action="user_register" />">Register</a></p>
+        <p><a href="<s:url action="user_login" />">Login</a></p>
     </body>
 </html>

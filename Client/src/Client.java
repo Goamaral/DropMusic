@@ -719,7 +719,7 @@ public class Client {
     }
 
     int displayAlbumCreate() throws InterruptedException, CustomException, NoSuchAlgorithmException {
-        String name, info, realeaseDateString;
+        String name, info, releaseDateString;
         Album album;
 
         System.out.println("Create album");
@@ -731,9 +731,9 @@ public class Client {
         info = scanner.nextLine();
 
         System.out.print("Release date(dd/mm/yyyy): ");
-        realeaseDateString = scanner.nextLine();
+        releaseDateString = scanner.nextLine();
 
-        album = new Album(name, info, realeaseDateString);
+        album = new Album(name, info, releaseDateString);
 
         try {
             this.albumInterface.create(this.current_user.id, album);

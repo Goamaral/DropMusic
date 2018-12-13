@@ -100,4 +100,12 @@ public class Song implements Serializable {
             this.artist_ids.remove(index);
         }
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
 }

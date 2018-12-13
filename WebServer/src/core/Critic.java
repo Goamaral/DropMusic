@@ -50,4 +50,12 @@ public class Critic implements Serializable {
         if (this.justification.length() == 0)
             throw new CustomException("Justification can't be empty");
     }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public void setJustification(String justification) {
+        this.justification = justification;
+    }
 }

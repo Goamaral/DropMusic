@@ -1,21 +1,13 @@
 package controllers;
 
 import com.opensymphony.xwork2.ActionSupport;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 
-import core.UserInterface;
+import core.User;
 
 public class UserController extends ActionSupport {
-    UserInterface userInterface;
+    User user;
 
-    UserController() throws RemoteException, NotBoundException {
-        Registry registry = LocateRegistry.getRegistry("localhost", 8000);
-        this.userInterface = (UserInterface) registry.lookup("UserInterface");
-    }
-
+    // Methods
     public String login() {
         return SUCCESS;
     }
@@ -29,6 +21,14 @@ public class UserController extends ActionSupport {
     }
 
     public String register_post() {
+        return SUCCESS;
+    }
+
+    public String dashboard() {
+        return SUCCESS;
+    }
+
+    public String logout() {
         return SUCCESS;
     }
 
@@ -46,5 +46,15 @@ public class UserController extends ActionSupport {
 
     public String index() {
         return SUCCESS;
+    }
+
+    // Beans
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+
+    public User getUser() {
+        return this.user;
     }
 }

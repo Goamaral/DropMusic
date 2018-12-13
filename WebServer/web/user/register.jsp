@@ -1,16 +1,19 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: goa
-  Date: 12-12-2018
-  Time: 0:53
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="s" uri="/struts-tags" %>
 <html>
-<head>
-    <title>Title</title>
-</head>
-<body>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>DropMusic</title>
+    </head>
 
-</body>
+    <body>
+        <h1>Login</h1>
+
+        <s:form action="user_register_post">
+            <s:textfield name="user.username" label="Username" />
+            <s:textfield name="user.password" label="Password" />
+            <s:submit value="Register"/>
+        </s:form>
+    </body>
 </html>

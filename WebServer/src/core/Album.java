@@ -85,4 +85,28 @@ public class Album implements Serializable {
     public void addSong(int song_id) { this.song_ids.add(song_id); }
 
     public void removeSong(int song_id) { this.song_ids.remove(song_id); }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public String getReleaseDateString() {
+        return releaseDateString;
+    }
+
+    public void setReleaseDateString(String releaseDateString) {
+        this.releaseDateString = releaseDateString;
+    }
 }

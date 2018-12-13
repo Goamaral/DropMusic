@@ -16,4 +16,12 @@ public class Genre implements Serializable {
         if (this.name.length() == 0)
             throw new CustomException("Name can't be empty");
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }
