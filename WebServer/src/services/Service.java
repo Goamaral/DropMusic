@@ -60,6 +60,7 @@ public class Service {
 
                         return response.data;
                     } else {
+                        System.out.println("RQ " + id + " RS " + response.id);
                         throw new SocketTimeoutException();
                     }
                 } catch (SocketTimeoutException ste) {

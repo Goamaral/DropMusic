@@ -4,7 +4,6 @@ import core.*;
 import services.Service;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
@@ -128,7 +127,17 @@ public class UserController extends Controller {
     }
 
     public String promote_post() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("user_promote", id);
+            Service.catchException(response_object);
+            //this.server.send_notifications(new Job(user_id, "You have been promoted.\nYou are now an editor."));
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (IOException e) {
+            return ERROR;
+        }
     }
 
     public String read() {

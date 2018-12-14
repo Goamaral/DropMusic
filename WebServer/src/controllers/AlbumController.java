@@ -1,31 +1,53 @@
 package controllers;
-import com.opensymphony.xwork2.ActionSupport;
-import com.opensymphony.xwork2.Preparable;
-import core.Album;
-import core.Critic;
-import core.Genre;
-import core.Song;
+import core.*;
 import services.Service;
 
-public class AlbumController extends ActionSupport {
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class AlbumController extends Controller {
     int id;
-    Album album;
-
     int critic_id;
-    Critic critic;
-
     int song_id;
-    Song song;
-
     int genre_id;
+    String query;
+
+    Album album = new Album();
+    Critic critic = new Critic();
+    Song song;
     Genre genre;
+    ArrayList<Album> albums = new ArrayList<>();
+    ArrayList<Critic> critics = new ArrayList<>();
 
     // Actions
     public String index() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("album_all", true);
+            Service.catchException(response_object);
+            albums = (ArrayList<Album>) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     public String show() {
+        try {
+            Object response_object = Service.request("album_find", id);
+            Service.catchException(response_object);
+            album = (Album) response_object;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
+
         return SUCCESS;
     }
 
@@ -34,24 +56,114 @@ public class AlbumController extends ActionSupport {
     }
 
     public String create_post() {
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(current_user.id);
+        args.add(album);
+
+        try {
+            album.validate();
+            Object response_object = Service.request("album_create", args);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        }
+    }
+
+    public String search() {
+        return index();
+    }
+
+    public String search_post() {
+        try {
+            Object response_object = Service.request("album_all", true);
+            Service.catchException(response_object);
+            ArrayList<Album> _albums = (ArrayList<Album>) response_object;
+            albums = new ArrayList<>();
+
+            for (Album album : _albums) {
+                if (album.name.contains(query)) {
+                    albums.add(album);
+                }
+            }
+
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
+    }
+
+    public String edit() {
+        try {
+            Object response_object = Service.request("album_find", id);
+            Service.catchException(response_object);
+            album = (Album) response_object;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CustomException e) {
+            errors = e.errors;
+        }
+
         return SUCCESS;
     }
 
-    public String search() { return SUCCESS; }
-
-    public String edit() { return SUCCESS; }
-
     public String edit_post() {
-        return SUCCESS;
+        try {
+            album.validate();
+            ArrayList<Object> args = new ArrayList<>();
+            args.add(current_user.id);
+            args.add(album);
+
+            Object response_object = Service.request("album_update", args);
+            Service.catchException(response_object);
+
+             /*
+            for (int editor_id : (ArrayList<Integer>) response_object) {
+                this.server.send_notifications(new Job(editor_id, "Album " + new_album.id + " was edited"));
+            }
+            */
+             return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        }
     }
 
     public String delete() {
+        try {
+            Service.request("album_delete", id);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return SUCCESS;
     }
 
     // Critic Actions
     public String critics() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("album_critics", id);
+            Service.catchException(response_object);
+            critics = (ArrayList<Critic>) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     public String critic_create() {
@@ -142,39 +254,39 @@ public class AlbumController extends ActionSupport {
     }
 
     // Accessors
-    public void setId(String id) {
-        this.id = Integer.parseInt(id);
+    public ArrayList<Album> getAlbums() {
+        return albums;
     }
 
-    public Integer getId() {
-        return this.id;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setAlbum(Album album) {
+        this.album = album;
     }
 
     public Album getAlbum() {
-        return this.album;
+        return album;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public ArrayList<Critic> getCritics() {
+        return critics;
+    }
+
+    public void setCritic(Critic critic) {
+        this.critic = critic;
     }
 
     public Critic getCritic() {
-        return this.critic;
-    }
-
-    public void setSong(Song song) {
-        this.song = song;
-    }
-
-    public Song getSong() {
-        return this.song;
-    }
-
-    public void setGenre_id(int genre_id) {
-        this.genre_id = genre_id;
-    }
-
-    public void setGenre(Genre genre) {
-        this.genre = genre;
-    }
-
-    public Genre getGenre() {
-        return genre;
+        return critic;
     }
 }

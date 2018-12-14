@@ -19,6 +19,8 @@ public class Album implements Serializable {
     public ArrayList<Integer> song_ids = new ArrayList<>();
     public ArrayList<Integer> editor_ids = new ArrayList<>();
 
+    public Album() {}
+
     Album(String name, String info, String releaseDateString) {
         this.name = name;
         this.info = info;
@@ -85,6 +87,22 @@ public class Album implements Serializable {
     public void addSong(int song_id) { this.song_ids.add(song_id); }
 
     public void removeSong(int song_id) { this.song_ids.remove(song_id); }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
 
     public String getName() {
         return name;

@@ -12,10 +12,36 @@ public class Critic implements Serializable {
     Album album;
     User author;
 
+    public Critic() {}
+
     Critic(int rating, String justification, Album album, User author) {
         this.rating = rating;
         this.justification = justification;
         this.album = album;
+        this.author = author;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public String getJustification() {
+        return justification;
+    }
+
+    public Album getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
         this.author = author;
     }
 

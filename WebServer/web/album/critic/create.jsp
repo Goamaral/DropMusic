@@ -10,6 +10,8 @@
 <body>
 <h1>Add critic</h1>
 
+<s:include value="/general/errors.jsp" />
+
 <s:form action="album_critic_create_post">
     <s:textfield name="critic.rating" label="Rating(x/5)" />
     <s:textfield name="critic.justification" label="Justification" />

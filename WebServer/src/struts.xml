@@ -44,57 +44,63 @@
             <result name="success">/user/promote.jsp</result>
         </action>
 
-            <action name="user_promote_post" class="controllers.UserController" method="promote_post">
-                <result name="success">/post_done.jsp</result>
-            </action>
+        <action name="user_promote_post" class="controllers.UserController" method="promote_post">
+            <result name="success">/user/partials/promote.jsp</result>
+        </action>
 
-            <action name="user_logout" class="controllers.UserController" method="logout">
-                <result name="success" type="redirectAction">general_index</result>
-            </action>
+        <action name="user_logout" class="controllers.UserController" method="logout">
+            <result name="success" type="redirectAction">general_index</result>
+        </action>
 
         <!-- Album Controller -->
 
-            <action name="album_index" class="controllers.AlbumController" method="index">
-                <result name="success">/album/index.jsp</result>
-            </action>
+        <action name="album_index" class="controllers.AlbumController" method="index">
+            <result name="success">/album/index.jsp</result>
+        </action>
 
-            <action name="album_show" class="controllers.AlbumController" method="show">
-                <result name="success">/album/show.jsp</result>
-            </action>
+        <action name="album_show" class="controllers.AlbumController" method="show">
+            <result name="success">/album/show.jsp</result>
+        </action>
 
-            <action name="album_create" class="controllers.AlbumController" method="create">
-                <result name="success">/album/create.jsp</result>
-            </action>
+        <action name="album_create" class="controllers.AlbumController" method="create">
+            <result name="success">/album/create.jsp</result>
+        </action>
 
-            <action name="album_create_post" class="controllers.AlbumController" method="create_post">
-                <result name="success">/post_done.jsp</result>
-            </action>
+        <action name="album_create_post" class="controllers.AlbumController" method="create_post">
+            <result name="success" type="redirectAction">album_index</result>
+            <result name="error">/album/create.jsp</result>
+        </action>
 
-            <action name="album_search" class="controllers.AlbumController" method="search">
-                <result name="success">/album/search.jsp</result>
-            </action>
+        <action name="album_search" class="controllers.AlbumController" method="search">
+            <result name="success">/album/search.jsp</result>
+        </action>
 
-            <action name="album_edit" class="controllers.AlbumController" method="edit">
-                <result name="success">/album/edit.jsp</result>
-            </action>
+        <action name="album_search_post" class="controllers.AlbumController" method="search_post">
+            <result name="success">/album/partials/index.jsp</result>
+        </action>
 
-            <action name="album_edit_post" class="controllers.AlbumController" method="edit_post">
-                <result name="success">/album/edit.jsp</result>
-            </action>
+        <action name="album_edit" class="controllers.AlbumController" method="edit">
+            <result name="success">/album/edit.jsp</result>
+        </action>
 
-            <action name="album_delete" class="controllers.AlbumController" method="delete">
-                <result name="success">/post_done.jsp</result>
-            </action>
+        <action name="album_edit_post" class="controllers.AlbumController" method="edit_post">
+            <result name="success" type="redirectAction">album_index</result>
+            <result name="error">/album/edit.jsp</result>
+        </action>
+
+        <action name="album_delete" class="controllers.AlbumController" method="delete">
+            <result name="success">/album/index.jsp</result>
+        </action>
 
             <!-- Album Critic Controller -->
 
-                <action name="album_critics" class="controllers.AlbumController" method="critics">
-                    <result name="success">/album/critic/index.jsp</result>
-                </action>
+            <action name="album_critics" class="controllers.AlbumController" method="critics">
+                <result name="success">/album/critic/index.jsp</result>
+            </action>
 
-                <action name="album_critic_create" class="controllers.AlbumController" method="critic_create">
-                    <result name="success">/album/critic/create.jsp</result>
-                </action>
+            <action name="album_critic_create" class="controllers.AlbumController" method="critic_create">
+                <result name="success">/album/critic/create.jsp</result>
+            </action>
 
                 <action name="album_critic_create_post" class="controllers.AlbumController" method="critic_create_post">
                     <result name="success">/post_done.jsp</result>

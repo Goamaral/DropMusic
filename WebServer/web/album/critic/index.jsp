@@ -10,21 +10,21 @@
 <body>
 <h1>Critics</h1>
 
-<s:if test="%{#critics.size() == 0}" >
+<s:if test="%{critics.size() == 0}" >
     <p>No critics available</p>
 </s:if>
 <s:else>
     <ul>
-        <s:iterator value="critics">
+        <s:iterator value="critics" var="critic">
             <li>
-                <a href="<s:url action="album_critic_show" ><s:param name="critic_id"><s:property value="id"/></s:param></s:url>">
-                    By <s:property value="author_username" /> with <s:property value="rating" /> /5 rating
+                <a href="<s:url action="album_critic_show" />?id=<s:property value="id" />&critic_id=<s:property value="#critic.id" />">
+                    By <s:property value="#critic.author.username" /> with <s:property value="#critic.rating" /> /5 rating
                 </a>
             </li>
         </s:iterator>
     </ul>
 </s:else>
 
-<p><a href="<s:url action="album_critic_create" />">Add critic</a></p>
+<p><a href="<s:url action="album_critic_create" />?id=<s:property value="id" />">Add critic</a></p>
 </body>
 </html>

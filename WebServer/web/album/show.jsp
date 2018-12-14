@@ -9,19 +9,19 @@
 
 <body>
 <h1>Album</h1>
-<b>Name</b><p><s:property value="current_album.name" /></p>
-<b>Rating</b><p><s:property value="current_album.rating" />/5</p>
-<b>Info</b><p><s:property value="current_album.info" />/5</p>
-<b>Artists</b><p><s:property value="artists" /></p>
-<b>Genres</b><p><s:property value="genres" /></p>
-<b>Release date</b><p><s:property value="current_album.releaseDateString" /></p>
+<p><b>Name </b><s:property value="album.name" /></p>
+<p><b>Rating </b><s:property value="album.rating" />/5</p>
+<p><b>Info </b><s:property value="album.info" /></p>
+<p><b>Artists </b><s:property value="artists" /></p>
+<p><b>Genres </b><s:property value="genres" /></p>
+<p><b>Release date </b><s:property value="abum.releaseDateString" /></p>
 
-<p><a href="<s:url action="album_critics" />">Critics</a></p>
-<p><a href="<s:url action="album_songs" />">Songs</a></p>
+<p><a href="<s:url action="album_critics" />?id=<s:property value="album.id" />">Critics</a></p>
+<p><a href="<s:url action="album_songs" />?id=<s:property value="album.id" />">Songs</a></p>
 
-<s:if test="%{#current_user.isEditor}">
-    <p><a href="<s:url action="album_edit" />">Edit album</a></p>
-    <p><a href="<s:url action="album_delete" />">Delete album</a></p>
+<s:if test="%{current_user.isEditor}">
+    <p><a href="<s:url action="album_edit" />?id=<s:property value="album.id" />">Edit album</a></p>
+    <p><a href="<s:url action="album_delete" />?id=<s:property value="album.id" />">Delete album</a></p>
 </s:if>
 
 </body>

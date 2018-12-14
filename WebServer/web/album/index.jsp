@@ -9,22 +9,9 @@
 
 <body>
 <h1>Albums</h1>
-<s:if test="%{#albums.size() == 0}" >
-    <p>No albums available</p>
-</s:if>
-<s:else>
-    <ul>
-    <s:iterator value="albums" var="album">
-        <li>
-            <a href="<s:url action="album_show" ><s:param name="id"><s:property value="#album.id"/></s:param></s:url>">
-                <s:property value="#album.name"/>
-            </a>
-        </li>
-    </s:iterator>
-    </ul>
-</s:else>
+<s:include value="/album/partials/index.jsp" />
 
-<s:if test="%{#current_user.isEditor}" >
+<s:if test="%{current_user.isEditor}" >
     <p><a href="<s:url action="album_create" />">Create album</a></p>
 </s:if>
 

@@ -10,6 +10,8 @@
 <body>
 <h1>Create album</h1>
 
+<s:include value="/general/errors.jsp" />
+
 <s:form action="album_create_post">
     <s:textfield name="album.name" label="Name" />
     <s:textfield name="album.info" label="Info" />
