@@ -17,7 +17,7 @@ public class Service {
     static Integer request_id = 1;
 
     public static Object request(String type, Object resource) throws IOException {
-        MULTICAST_ADDRESS = InetAddress.getByName("localhost");
+        MULTICAST_ADDRESS = InetAddress.getByName("224.224.224.224");
         sender_socket = new MulticastSocket();
         receiver_socket = new MulticastSocket(MULTICAST_SOURCE_PORT);  // create socket and bind it
         receiver_socket.joinGroup(Service.MULTICAST_ADDRESS);

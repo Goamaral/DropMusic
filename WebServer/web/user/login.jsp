@@ -14,8 +14,10 @@
 
     <s:form action="user_login_post">
       <s:textfield name="user.username" label="Username" />
-      <s:textfield name="user.password" label="Password" />
+      <s:password name="user.password" label="Password" />
       <s:submit value="Login"/>
     </s:form>
+
+    <p><a href="<s:url action="general_index" />">Home</a></p>
   </body>
 </html>

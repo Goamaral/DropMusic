@@ -32,7 +32,8 @@
             </action>
 
             <action name="user_register_post" class="controllers.UserController" method="register_post">
-                <result name="success">/post_done.jsp</result>
+                <result name="success" type="redirectAction">general_index</result>
+                <result name="error">/user/register.jsp</result>
             </action>
 
             <action name="user_dashboard" class="controllers.UserController" method="dashboard">

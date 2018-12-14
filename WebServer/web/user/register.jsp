@@ -8,12 +8,16 @@
     </head>
 
     <body>
-        <h1>Login</h1>
+        <h1>Register</h1>
+
+        <s:include value="/general/errors.jsp" />
 
         <s:form action="user_register_post">
             <s:textfield name="user.username" label="Username" />
-            <s:textfield name="user.password" label="Password" />
+            <s:password name="user.password" label="Password" />
             <s:submit value="Register"/>
         </s:form>
+
+        <p><a href="<s:url action="general_index" />">Home</a></p>
     </body>
 </html>

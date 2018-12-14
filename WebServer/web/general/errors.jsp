@@ -1,4 +1,4 @@
-<%@ s:taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="s" uri="/struts-tags" %>
 
 <s:if test="%{errors.size() != 0}">
     <ul>

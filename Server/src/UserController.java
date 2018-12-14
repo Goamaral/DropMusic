@@ -5,6 +5,7 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import core.*;
 
 public class UserController implements UserInterface {
     Server server;

@@ -7,7 +7,7 @@ import core.Genre;
 import core.Song;
 import services.Service;
 
-public class AlbumController extends ActionSupport implements Preparable {
+public class AlbumController extends ActionSupport {
     int id;
     Album album;
 
@@ -19,13 +19,6 @@ public class AlbumController extends ActionSupport implements Preparable {
 
     int genre_id;
     Genre genre;
-
-    Service service;
-
-    @Override
-    public void prepare() throws InterruptedException {
-        // Auth service
-    }
 
     // Actions
     public String index() {
