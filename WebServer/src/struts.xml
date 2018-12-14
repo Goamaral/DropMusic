@@ -12,36 +12,40 @@
 
         <!-- General Controller -->
 
-            <action name="general_index" class="controllers.GeneralController" method="index">
-                <result name="success">/general/index.jsp</result>
-            </action>
+        <action name="general_index" class="controllers.GeneralController" method="index">
+            <result name="success">/general/index.jsp</result>
+        </action>
 
         <!-- User Controller -->
 
-            <action name="user_login" class="controllers.UserController" method="login">
-                <result name="success">/user/login.jsp</result>
-            </action>
+        <action name="user_login" class="controllers.UserController" method="login">
+            <result name="success">/user/login.jsp</result>
+        </action>
 
-            <action name="user_login_post" class="controllers.UserController" method="login_post">
-                <result name="success" type="redirectAction">user_dashboard</result>
-                <result name="error">/user/login.jsp</result>
-            </action>
+        <action name="user_login_post" class="controllers.UserController" method="login_post">
+            <result name="success" type="redirectAction">user_dashboard</result>
+            <result name="error">/user/login.jsp</result>
+        </action>
 
-            <action name="user_register" class="controllers.UserController" method="register">
-                <result name="success">/user/register.jsp</result>
-            </action>
+        <action name="user_register" class="controllers.UserController" method="register">
+            <result name="success">/user/register.jsp</result>
+        </action>
 
-            <action name="user_register_post" class="controllers.UserController" method="register_post">
-                <result name="success" type="redirectAction">general_index</result>
-                <result name="error">/user/register.jsp</result>
-            </action>
+        <action name="user_register_post" class="controllers.UserController" method="register_post">
+            <result name="success" type="redirectAction">general_index</result>
+            <result name="error">/user/register.jsp</result>
+        </action>
 
-            <action name="user_dashboard" class="controllers.UserController" method="dashboard">
-                <result name="success">/user/dashboard.jsp</result>
-            </action>
+        <action name="user_dashboard" class="controllers.UserController" method="dashboard">
+            <result name="success">/user/dashboard.jsp</result>
+        </action>
 
-            <action name="user_promote" class="controllers.UserController" method="promote">
-                <result name="success">/user/promote.jsp</result>
+        <action name="user_promote" class="controllers.UserController" method="promote">
+            <result name="success">/user/promote.jsp</result>
+        </action>
+
+            <action name="user_promote_post" class="controllers.UserController" method="promote_post">
+                <result name="success">/post_done.jsp</result>
             </action>
 
             <action name="user_logout" class="controllers.UserController" method="logout">

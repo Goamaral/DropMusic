@@ -4,10 +4,14 @@ import core.*;
 import services.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 public class UserController extends Controller {
     User user = new User();
+    int id;
+    ArrayList<User> users = new ArrayList<>();
 
     // Methods
     public String login() {
@@ -43,7 +47,7 @@ public class UserController extends Controller {
             } catch (ServerNotActiveException | IOException e) {}
             */
 
-            session.put("current_user", user);
+            session.put("current_user", fetched_user);
 
             /*
             ArrayList<Job> jobs_to_perform = new ArrayList<>();
@@ -102,14 +106,28 @@ public class UserController extends Controller {
     }
 
     public String logout() {
-        return SUCCESS;
-    }
-
-    public String normal_users() {
+        session.clear();
         return SUCCESS;
     }
 
     public String promote() {
+        try {
+            Object response_object  = Service.request("normal_users", true);
+            Service.catchException(response_object);
+            this.users = (ArrayList<User>) response_object;
+            return SUCCESS;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
+    }
+
+    public String promote_post() {
         return SUCCESS;
     }
 
@@ -124,5 +142,13 @@ public class UserController extends Controller {
     // Beans
     public User getUser() {
         return this.user;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public ArrayList<User> getUsers() {
+        return users;
     }
 }

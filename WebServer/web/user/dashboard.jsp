@@ -13,7 +13,7 @@
 
 <p><a href="<s:url action="album_index" />">Albums</a></p>
 <p><a href="<s:url action="artist_index" />">Artists</a></p>
-<s:if test="%{#current_user.isEditor}" >
+<s:if test="%{current_user.isEditor}" >
     <p><a href="<s:url action="user_promote" />">Promote user to editor</a></p>
 </s:if>
 <p><a href="<s:url action="user_logout" />">Logout</a></p>

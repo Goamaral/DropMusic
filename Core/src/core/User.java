@@ -87,7 +87,7 @@ public class User implements Serializable {
     }
 
     public String toString() {
-        return "User: { username: " + this.username + ", password: " + this.password + " }";
+        return "User: { username: " + this.username + ", isEditor: " + this.isEditor + " }";
     }
 
     public void setPassword(String password) {
