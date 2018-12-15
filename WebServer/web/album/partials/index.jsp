@@ -8,7 +8,7 @@
         <ul>
             <s:iterator value="albums" var="album">
                 <li>
-                    <a href="<s:url action="album_show" />?id=<s:property value="#album.id"/>">
+                    <a href="<s:url action="album_show" />?album_id=<s:property value="#album.id"/>">
                         <s:property value="#album.name"/>
                     </a>
                 </li>

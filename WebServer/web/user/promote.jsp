@@ -15,7 +15,7 @@
 
 <s:include value="/user/partials/promote.jsp" />
 
-<p><a href="<s:url action="user_dashboard" />">Dashboard</a></p>
+<p><a href="<s:url action="user_dashboard" />">Back</a></p>
 
 <script>
     window.onload = function() {

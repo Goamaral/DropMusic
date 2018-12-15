@@ -16,13 +16,15 @@
 <p><b>Genres </b><s:property value="genres" /></p>
 <p><b>Release date </b><s:property value="abum.releaseDateString" /></p>
 
-<p><a href="<s:url action="album_critics" />?id=<s:property value="album.id" />">Critics</a></p>
-<p><a href="<s:url action="album_songs" />?id=<s:property value="album.id" />">Songs</a></p>
+<p><a href="<s:url action="album_critics" />?album_id=<s:property value="album.id" />">Critics</a></p>
+<p><a href="<s:url action="album_songs" />?album_id=<s:property value="album.id" />">Songs</a></p>
 
 <s:if test="%{current_user.isEditor}">
-    <p><a href="<s:url action="album_edit" />?id=<s:property value="album.id" />">Edit album</a></p>
-    <p><a href="<s:url action="album_delete" />?id=<s:property value="album.id" />">Delete album</a></p>
+    <p><a href="<s:url action="album_edit" />?album_id=<s:property value="album.id" />">Edit album</a></p>
+    <p><a href="<s:url action="album_delete" />?album_id=<s:property value="album.id" />">Delete album</a></p>
 </s:if>
+
+<a href="<s:url action="album_index" />">Back</a>
 
 </body>
 </html>

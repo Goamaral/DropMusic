@@ -13,11 +13,13 @@
 <s:include value="/general/errors.jsp" />
 
 <s:form action="album_edit_post" >
-    <s:hidden value="album.id" />
+    <s:hidden name="album.id" />
     <s:textfield name="album.name" label='Name' />
     <s:textfield name="album.info" label='Info' />
     <s:textfield name="album.releaseDateString" label="Release date" />
     <s:submit value="Update" />
 </s:form>
+
+<a href="<s:url action="album_show" />?album_id=<s:property value="album.id" />">Back</a>
 </body>
 </html>

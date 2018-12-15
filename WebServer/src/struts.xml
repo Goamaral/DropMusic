@@ -102,13 +102,15 @@
                 <result name="success">/album/critic/create.jsp</result>
             </action>
 
-                <action name="album_critic_create_post" class="controllers.AlbumController" method="critic_create_post">
-                    <result name="success">/post_done.jsp</result>
-                </action>
+            <action name="album_critic_create_post" class="controllers.AlbumController" method="critic_create_post">
+                <result name="success" type="redirectAction">album_critics?album_id=${album_id}</result>
+                <result name="error">/album/critic/create.jsp</result>
+            </action>
 
-                <action name="album_critic_show" class="controllers.AlbumController" method="critic_show">
-                    <result name="success">/album/critic/show.jsp</result>
-                </action>
+            <action name="album_critic_show" class="controllers.AlbumController" method="critic_show">
+                <result name="success">/album/critic/show.jsp</result>
+                <result name="error">/album/critic/show.jsp</result>
+            </action>
 
             <!-- Album Song Controller -->
 

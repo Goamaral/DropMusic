@@ -14,6 +14,8 @@
 
 <s:include value="/album/partials/index.jsp" />
 
+<a href="<s:url action="album_index" />">Back</a>
+
 <script>
     window.onload = function() {
         $("#query_button").click(function() {

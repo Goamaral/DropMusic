@@ -18,6 +18,6 @@
             <s:submit value="Register"/>
         </s:form>
 
-        <p><a href="<s:url action="general_index" />">Home</a></p>
+        <p><a href="<s:url action="general_index" />">Back</a></p>
     </body>
 </html>

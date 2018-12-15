@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class AlbumController extends Controller {
-    int id;
+    int album_id;
     int critic_id;
     int song_id;
     int genre_id;
@@ -37,7 +37,7 @@ public class AlbumController extends Controller {
 
     public String show() {
         try {
-            Object response_object = Service.request("album_find", id);
+            Object response_object = Service.request("album_find", album_id);
             Service.catchException(response_object);
             album = (Album) response_object;
         } catch (IOException e) {
@@ -103,7 +103,7 @@ public class AlbumController extends Controller {
 
     public String edit() {
         try {
-            Object response_object = Service.request("album_find", id);
+            Object response_object = Service.request("album_find", album_id);
             Service.catchException(response_object);
             album = (Album) response_object;
         } catch (IOException e) {
@@ -142,7 +142,7 @@ public class AlbumController extends Controller {
 
     public String delete() {
         try {
-            Service.request("album_delete", id);
+            Service.request("album_delete", album_id);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -153,7 +153,7 @@ public class AlbumController extends Controller {
     // Critic Actions
     public String critics() {
         try {
-            Object response_object = Service.request("album_critics", id);
+            Object response_object = Service.request("album_critics", album_id);
             Service.catchException(response_object);
             critics = (ArrayList<Critic>) response_object;
             return SUCCESS;
@@ -171,11 +171,40 @@ public class AlbumController extends Controller {
     }
 
     public String critic_create_post() {
-        return SUCCESS;
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(album_id);
+        args.add(critic);
+
+        try {
+            critic.validate();
+            Object response_object = Service.request("album_critic_create", args);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        }
     }
 
     public String critic_show() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("album_critic_find", critic_id);
+            Service.catchException(response_object);
+            critic = (Critic) response_object;
+            response_object = Service.request("album_find", album_id);
+            Service.catchException(response_object);
+            critic.album = (Album) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     // Song Actions
@@ -258,12 +287,12 @@ public class AlbumController extends Controller {
         return albums;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setAlbum_id(int album_id) {
+        this.album_id = album_id;
     }
 
-    public int getId() {
-        return id;
+    public int getAlbum_id() {
+        return album_id;
     }
 
     public void setAlbum(Album album) {
@@ -288,5 +317,9 @@ public class AlbumController extends Controller {
 
     public Critic getCritic() {
         return critic;
+    }
+
+    public void setCritic_id(int critic_id) {
+        this.critic_id = critic_id;
     }
 }

@@ -15,6 +15,7 @@
     <p><a href="<s:url action="album_create" />">Create album</a></p>
 </s:if>
 
-<a href="<s:url action="album_search" />">Search songs</a>
+<p><a href="<s:url action="album_search" />">Search songs</a></p>
+<p><a href="<s:url action="user_dashboard" />">Back</a></p>
 </body>
 </html>

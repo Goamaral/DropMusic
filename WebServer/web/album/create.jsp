@@ -18,5 +18,7 @@
     <s:textfield name="album.releaseDateString" label="Release date(dd/mm/yyyy)" />
     <s:submit value="Create"/>
 </s:form>
+
+<a href="<s:url action="album_index" />">Back</a>
 </body>
 </html>

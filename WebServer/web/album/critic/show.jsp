@@ -10,8 +10,12 @@
 <body>
 <h1>Critic</h1>
 
-<b>Album</b><p><s:property value="current_critic.album_name" /></p>
-<b>Rating</b><p><s:property value="current_critic.rating" />/5</p>
-<b>Justification</b><p><s:property value="current_critic.justification" /></p>
+<s:include value="/general/errors.jsp" />
+
+<p><b>Album </b><s:property value="critic.album.name" /></p>
+<p><b>Rating </b><s:property value="critic.rating" />/5</p>
+<p><b>Justification </b><s:property value="critic.justification" /></p>
+
+<p><a href="<s:url action="album_critics" />?album_id=<s:property value="album_id" />">Back</a></p>
 </body>
 </html>

@@ -9,10 +9,18 @@ public class Critic implements Serializable {
     String justification;
 
     // Relationships
-    Album album;
+    public Album album;
     User author;
 
     public Critic() {}
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     Critic(int rating, String justification, Album album, User author) {
         this.rating = rating;
@@ -83,5 +91,9 @@ public class Critic implements Serializable {
 
     public void setJustification(String justification) {
         this.justification = justification;
+    }
+
+    public String getAlbum_name() {
+        return album.name;
     }
 }
