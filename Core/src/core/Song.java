@@ -17,18 +17,43 @@ public class Song implements Serializable {
     public ArrayList<Integer> artist_ids = new ArrayList<>();
     public ArrayList<Integer> genres_ids = new ArrayList<>();
 
+    public Song() {}
+
     Song(String name, String info) {
         this.name = name;
         this.info = info;
     }
 
-    void validate() throws CustomException { this.nameValidator(); }
+    public void validate() throws CustomException {
+        ArrayList<String> errors = new ArrayList();
+
+        try {
+            this.nameValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        try {
+            this.infoValidator();
+        } catch (CustomException ce) {
+            errors.add(ce.errors.get(0));
+        }
+
+        if (errors.size() > 0) throw new CustomException(errors);
+    }
 
     void nameValidator() throws CustomException {
         this.name.replaceAll("\\s","");
 
         if (this.name.length() == 0)
             throw new CustomException("Name can't be empty");
+    }
+
+    void infoValidator() throws CustomException {
+        this.info.replaceAll("\\s","");
+
+        if (this.info.length() == 0)
+            throw new CustomException("Info can't be empty");
     }
 
     public void addArtist(Artist artist) throws CustomException {
@@ -107,5 +132,37 @@ public class Song implements Serializable {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public String getArtists() {
+        return artists;
+    }
+
+    public void setArtists(String artists) {
+        this.artists = artists;
+    }
+
+    public String getGenres() {
+        return genres;
+    }
+
+    public void setGenres(String genres) {
+        this.genres = genres;
     }
 }

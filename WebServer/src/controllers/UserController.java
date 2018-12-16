@@ -17,9 +17,9 @@ public class UserController extends Controller {
         return SUCCESS;
     }
 
+    // TODO OPEN WEBSOCKET
+    // TODO SEND NOTIFICATIONS
     public String login_post() {
-        System.out.println("Action user (" + user.username + ") login");
-
         try {
             user.encrypt_password();
         } catch (NoSuchAlgorithmException e) {
@@ -77,8 +77,6 @@ public class UserController extends Controller {
     }
 
     public String register_post() {
-        System.out.println("Action user (" + user.username + ") register");
-
         try {
             user.validate();
         } catch (CustomException ce) {

@@ -12,9 +12,9 @@
 <p><b>Name </b><s:property value="album.name" /></p>
 <p><b>Rating </b><s:property value="album.rating" />/5</p>
 <p><b>Info </b><s:property value="album.info" /></p>
-<p><b>Artists </b><s:property value="artists" /></p>
-<p><b>Genres </b><s:property value="genres" /></p>
-<p><b>Release date </b><s:property value="abum.releaseDateString" /></p>
+<p><b>Artists </b><s:property value="album.artists" /></p>
+<p><b>Genres </b><s:property value="album.genres" /></p>
+<p><b>Release date </b><s:property value="album.releaseDateString" /></p>
 
 <p><a href="<s:url action="album_critics" />?album_id=<s:property value="album.id" />">Critics</a></p>
 <p><a href="<s:url action="album_songs" />?album_id=<s:property value="album.id" />">Songs</a></p>

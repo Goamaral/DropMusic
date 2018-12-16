@@ -6,7 +6,9 @@ public class Genre implements Serializable {
     public int id;
     public String name;
 
-    Genre(String name) { this.name = name; }
+    public Genre(String name) { this.name = name; }
+
+    public Genre() { }
 
     public void validate() throws CustomException { this.nameValidator(); }
 
