@@ -74,20 +74,17 @@ public class AlbumController extends Controller {
     }
 
     public String search_post() {
-        String result = requestAlbums();
-
-        if (result == ERROR) return ERROR;
-
-        ArrayList<Album> _albums = new ArrayList<>();
-
-        for (Album album : albums) {
-            if (album.name.contains(query)) {
-                _albums.add(album);
-            }
+        try {
+            albums = RmiService.getInstance().albumInterface.search(query);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-
-        albums = _albums;
-        return SUCCESS;
     }
 
     public String edit() {

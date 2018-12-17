@@ -263,10 +263,11 @@
 
         <action name="artist_search" class="controllers.ArtistController" method="search">
             <result name="success">/artist/search.jsp</result>
+            <result name="error">/artist/search.jsp</result>
         </action>
 
         <action name="artist_search_post" class="controllers.ArtistController" method="search_post">
-            <result name="success">/artist/partials/index.jsp</result>
+            <result name="success">/artist/partials/search.jsp</result>
         </action>
 
         <action name="artist_show" class="controllers.ArtistController" method="show">

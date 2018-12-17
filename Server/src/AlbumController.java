@@ -107,23 +107,24 @@ public class AlbumController implements AlbumInterface {
         return (String) response_object;
     }
 
-    public Album search(String query) throws CustomException {
+    public ArrayList<Album> search(String query) throws CustomException {
         System.out.println("Actions search album (" + query + "): ");
 
         Object response_object = this.server.dbRequest("album_all", true);
 
         this.server.catch_response_exception(response_object);
 
+        ArrayList<Album> albums = new ArrayList<>();
+
         for (Album album : (ArrayList<Album>) response_object) {
             System.out.println(album.name + " - " + query + " -> " + album.name.contains(query));
             if (album.name.contains(query)) {
                 System.out.println("success");
-                return album;
+                albums.add(album);
             }
         }
 
-        System.out.println("failure");
-        throw new CustomException("Album not found");
+        return albums;
     }
 
     // Critic

@@ -1,5 +1,6 @@
 package controllers;
 
+import core.Album;
 import core.Artist;
 import core.CustomException;
 import services.RmiService;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 
 public class ArtistController extends Controller {
     ArrayList<Artist> artists = new ArrayList<>();
+    ArrayList<Album> albums = new ArrayList<>();
     int artist_id;
     String query;
 
@@ -38,24 +40,31 @@ public class ArtistController extends Controller {
     }
 
     public String search() {
-        return requestArtists();
+        try {
+            albums = RmiService.getInstance().artistInterface.search("");
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
+        }
     }
 
     public String search_post() {
-        String result = requestArtists();
-
-        if (result == ERROR) return ERROR;
-
-        ArrayList<Artist> _artists = new ArrayList<>();
-
-        for (Artist artist : artists) {
-            if (artist.name.contains(query)) {
-                _artists.add(artist);
-            }
+        try {
+            albums = RmiService.getInstance().artistInterface.search(query);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-
-        artists = _artists;
-        return SUCCESS;
     }
 
     public String edit() {
@@ -121,6 +130,14 @@ public class ArtistController extends Controller {
 
     public String getQuery() {
         return query;
+    }
+
+    public ArrayList<Album> getAlbums() {
+        return albums;
+    }
+
+    public void setAlbums(ArrayList<Album> albums) {
+        this.albums = albums;
     }
 
     public void setQuery(String query) {

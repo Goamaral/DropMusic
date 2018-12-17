@@ -91,23 +91,25 @@ public class ArtistController implements ArtistInterface {
         return (ArrayList<Song>) response_object;
     }
 
-    public Artist search(String query) throws CustomException {
+    public ArrayList<Album> search(String query) throws CustomException {
         System.out.print("Actions search artist (" + query + "): ");
 
-        Object response_object = this.server.dbRequest("artist_all", true);
+        Object response_object = this.server.dbRequest("album_all", true);
 
         this.server.catch_response_exception(response_object);
 
-        ArrayList<Artist> artists = (ArrayList<Artist>) response_object;
+        ArrayList<Album> albums = new ArrayList<>();
 
-        for (Artist artist : artists) {
-            if (artist.name.contains(query)) {
-                System.out.println("success");
-                return artist;
+        for (Album album : (ArrayList<Album>) response_object) {
+            response_object = this.server.dbRequest("album_artists", album.id);
+            this.server.catch_response_exception(response_object);
+            String artistsString = (String) response_object;
+
+            if (artistsString.contains(query)) {
+                albums.add(album);
             }
         }
 
-        System.out.println("failure");
-        throw new CustomException("Artist not found");
+        return albums;
     }
 }

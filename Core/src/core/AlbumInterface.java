@@ -13,7 +13,7 @@ public interface AlbumInterface extends Remote {
     void delete(int id) throws RemoteException;
     String artists(int id) throws RemoteException, CustomException;
     String genres(int id) throws RemoteException, CustomException;
-    Album search(String query) throws RemoteException, CustomException;
+    ArrayList<Album> search(String query) throws RemoteException, CustomException;
 
     // Critic
     ArrayList<Critic> critics(int album_id) throws RemoteException, CustomException;

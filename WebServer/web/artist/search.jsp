@@ -12,9 +12,11 @@
 <h1>Search</h1>
 <input type="text" id="query"><button id="query_button">Search</button>
 
-<s:include value="/artist/partials/index.jsp" />
+<s:include value="/artist/partials/search.jsp" />
 
-<a href="<s:url action="artist_index" />">Back</a>
+<s:include value="/general/errors.jsp" />
+
+<p><a href="<s:url action="album_index" />">Back</a></p>
 
 <script>
     window.onload = function() {
