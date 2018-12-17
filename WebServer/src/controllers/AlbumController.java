@@ -21,6 +21,7 @@ public class AlbumController extends Controller {
     ArrayList<Critic> critics = new ArrayList<>();
     ArrayList<Song> songs = new ArrayList<>();
     ArrayList<Artist> artists = new ArrayList<>();
+    ArrayList<Genre> genres = new ArrayList<>();
 
     // Actions
     public String index() {
@@ -370,23 +371,82 @@ public class AlbumController extends Controller {
 
     // Song Genre Actions
     public String song_genres() {
-        return SUCCESS;
+        return requestSong();
     }
 
     public String song_genre_add() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("genre_all", true);
+            Service.catchException(response_object);
+            genres = (ArrayList<Genre>) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     public String song_genre_add_post() {
-        return SUCCESS;
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(song_id);
+        args.add(genre_id);
+
+        try {
+            Object response_object = Service.request("album_song_genre_add", args);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     public String song_genre_remove() {
+        genres = new ArrayList<>();
+
+        String result = requestSong();
+
+        if (result == ERROR) return ERROR;
+
+        for (int genre_id : song.genres_ids) {
+            try {
+                Object response_object = Service.request("genre_find", genre_id);
+                Service.catchException(response_object);
+                genres.add((Genre)response_object);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return ERROR;
+            } catch (CustomException e) {
+                errors = e.errors;
+                return ERROR;
+            }
+        }
+
         return SUCCESS;
     }
 
     public String song_genre_remove_post() {
-        return SUCCESS;
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(song_id);
+        args.add(genre_id);
+
+        try {
+            Object response_object = Service.request("album_song_genre_remove", args);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     public String song_genre_create() {
@@ -394,7 +454,17 @@ public class AlbumController extends Controller {
     }
 
     public String song_genre_create_post() {
-        return SUCCESS;
+        try {
+            Object response_object = Service.request("genre_create", genre);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 
     // Accessors
@@ -508,6 +578,14 @@ public class AlbumController extends Controller {
 
     public void setArtist_id(int artist_id) {
         this.artist_id = artist_id;
+    }
+
+    public ArrayList<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(ArrayList<Genre> genres) {
+        this.genres = genres;
     }
 
     // Requests

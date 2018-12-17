@@ -9,8 +9,8 @@ public class Song implements Serializable {
     public int id;
     public String name;
     public String info;
-    String artists = "";
-    String genres = "";
+    public String artists = "";
+    public String genres = "";
     public int album_id;
 
     // Relationships

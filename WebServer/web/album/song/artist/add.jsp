@@ -19,7 +19,7 @@
     <ul>
         <s:iterator value="artists" var="artist">
             <li>
-                <a href='<s:url action="album_song_artist_add_post" />?album_id=<s:property value="album_id" />&song_id=<s:property value="song_id" />&artist_id=<s:property value="artist_id" />'>
+                <a href='<s:url action="album_song_artist_add_post" />?album_id=<s:property value="album_id" />&song_id=<s:property value="song_id" />&artist_id=<s:property value="#artist.id" />'>
                     <s:property value="#artist.name" />
                 </a>
             </li>
