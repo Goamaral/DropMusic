@@ -12,9 +12,13 @@ public class Artist implements Serializable {
     public ArrayList<Integer> song_ids = new ArrayList<>();
     public ArrayList<Integer> editor_ids = new ArrayList<>();
 
-    Artist(String name, String info) {
+    public Artist(String name, String info) {
         this.name = name;
         this.info = info;
+    }
+
+    public Artist() {
+
     }
 
     public void validate() throws CustomException {
@@ -61,5 +65,29 @@ public class Artist implements Serializable {
     public void removeSong(Song song) {
         int index = this.song_ids.indexOf(song.id);
         if (index != -1) this.song_ids.remove(index);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

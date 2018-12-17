@@ -10,7 +10,7 @@ public class AlbumController extends Controller {
     int critic_id;
     int song_id;
     int genre_id;
-    int user_id;
+    int artist_id;
     String query;
 
     Album album = new Album();
@@ -228,18 +228,7 @@ public class AlbumController extends Controller {
     }
 
     public String song_show() {
-        try {
-            Object response_object = Service.request("song_find", song_id);
-            Service.catchException(response_object);
-            song = (Song) response_object;
-            return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
-        } catch (CustomException e) {
-            errors = e.errors;
-            return ERROR;
-        }
+        return requestSong();
     }
 
     public String song_create() {
@@ -316,6 +305,46 @@ public class AlbumController extends Controller {
 
     // Song Artist Actions
     public String song_artists() {
+        return requestSong();
+    }
+
+    // TODO TEST
+    public String song_artist_add() {
+        try {
+            Object response_object = Service.request("artist_all", true);
+            Service.catchException(response_object);
+            artists = (ArrayList<Artist>) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
+    }
+
+    // TODO TEST
+    public String song_artist_add_post() {
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(song_id);
+        args.add(artist_id);
+
+        try {
+            Object response_object = Service.request("album_song_artist_add", args);
+            Service.catchException(response_object);
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
+    }
+
+    // TODO TEST
+    public String song_artist_remove() {
         artists = new ArrayList<>();
 
         for (int artist_id : song.artist_ids) {
@@ -325,13 +354,17 @@ public class AlbumController extends Controller {
                 artists.add((Artist) response_object);
             } catch (IOException e) {
                 e.printStackTrace();
-                return SUCCESS;
+                return ERROR;
             } catch (CustomException e) {
                 errors = e.errors;
                 return ERROR;
             }
         }
+        return SUCCESS;
+    }
 
+    // TODO TEST
+    public String song_artist_remove_post() {
         return SUCCESS;
     }
 
@@ -461,19 +494,35 @@ public class AlbumController extends Controller {
         this.songs = songs;
     }
 
-    public int getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
-    }
-
     public ArrayList<Artist> getArtists() {
         return artists;
     }
 
     public void setArtists(ArrayList<Artist> artists) {
         this.artists = artists;
+    }
+
+    public int getArtist_id() {
+        return artist_id;
+    }
+
+    public void setArtist_id(int artist_id) {
+        this.artist_id = artist_id;
+    }
+
+    // Requests
+    public String requestSong() {
+        try {
+            Object response_object = Service.request("song_find", song_id);
+            Service.catchException(response_object);
+            song = (Song) response_object;
+            return SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ERROR;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        }
     }
 }

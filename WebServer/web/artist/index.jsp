@@ -9,6 +9,13 @@
 
 <body>
 <h1>Artists</h1>
+<s:include value="/artist/partials/index.jsp" />
 
+<s:if test="%{current_user.isEditor}" >
+    <p><a href="<s:url action="artist_create" />">Create artist</a></p>
+</s:if>
+
+<p><a href="<s:url action="artist_search" />">Search songs</a></p>
+<p><a href="<s:url action="user_dashboard" />">Back</a></p>
 </body>
 </html>
