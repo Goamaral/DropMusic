@@ -12,4 +12,6 @@ public interface UserInterface extends Remote {
     void promote(int user_id) throws RemoteException, CustomException;
     User read(int id) throws RemoteException, CustomException;
     ArrayList<User> index() throws RemoteException, CustomException;
+    User findByUid(String uid) throws RemoteException, CustomException;
+    void setUid(ArrayList<Object> args) throws RemoteException, CustomException;
 }

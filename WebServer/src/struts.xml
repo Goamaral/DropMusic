@@ -35,6 +35,22 @@
 
         <!-- User Controller -->
 
+        <action name="dropboxoauth" class="controllers.UserController" method="dropboxoauth">
+            <result name="success" type="redirect">${url}</result>
+        </action>
+
+        <action name="dropboxoauth_redirect" class="controllers.UserController" method="dropboxoauth_redirect">
+            <result name="success" type="redirectAction">user_dashboard</result>
+            <result name="error" type="redirectAction">general_index</result>
+        </action>
+
+
+        <action name="user_associate_dropbox" class="controllers.UserController" method="associate_dropbox">
+            <result name="success" type="redirectAction">user_dashboard</result>
+            <result name="error" type="redirectAction">user_dashboard</result>
+        </action>
+
+
         <action name="user_login" class="controllers.UserController" method="login">
             <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success">/user/login.jsp</result>

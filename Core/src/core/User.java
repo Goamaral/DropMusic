@@ -10,6 +10,7 @@ public class User implements Serializable {
 
     public String username;
     public String password;
+    public String uid;
     boolean password_encrypted;
     public boolean isEditor = false;
     public ArrayList<Integer> stored_song_ids = new ArrayList<>();
@@ -96,5 +97,13 @@ public class User implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

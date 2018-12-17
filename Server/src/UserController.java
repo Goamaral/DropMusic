@@ -117,4 +117,18 @@ public class UserController implements UserInterface {
 
         return (ArrayList<User>) response_object;
     }
+
+    public User findByUid(String uid) throws CustomException {
+        Object response_object = this.server.dbRequest("user_findByUid", uid);
+
+        this.server.catch_response_exception(response_object);
+
+        return (User) response_object;
+    }
+
+    public void setUid(ArrayList<Object> args) throws CustomException {
+        Object response_object = this.server.dbRequest("user_setUid", args);
+
+        this.server.catch_response_exception(response_object);
+    }
 }

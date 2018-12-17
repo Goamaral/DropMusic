@@ -44,4 +44,8 @@ public class Controller extends ActionSupport implements SessionAware, Preparabl
     public User getCurrent_user() {
         return current_user;
     }
+
+    public String getUid() {
+        return (String) this.session.get("uid");
+    }
 }

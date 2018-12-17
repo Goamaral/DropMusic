@@ -1,9 +1,19 @@
 package controllers;
 
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.Token;
+import com.github.scribejava.core.model.Verifier;
+import com.github.scribejava.core.oauth.OAuthService;
 import core.*;
 import services.RmiService;
 import websocket.WebSocketService;
+import net.projectmonkey.object.mapper.ObjectMapper;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import uc.sd.apis.DropBoxApi2;
 
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
@@ -13,6 +23,16 @@ public class UserController extends Controller {
     User user = new User();
     int id;
     ArrayList<User> users = new ArrayList<>();
+    String url;
+    String code;
+
+
+    OAuthService service = new ServiceBuilder()
+            .provider(DropBoxApi2.class)
+            .apiKey("lgyjmqsl7169pij")
+            .apiSecret("9nin5ivu1d2a35q")
+            .callback("http://localhost:8080/webserver/dropboxoauth_redirect")
+            .build();
 
     // Methods
     public String login() {
@@ -90,6 +110,55 @@ public class UserController extends Controller {
         }
     }
 
+    public String dropboxoauth() {
+        url = service.getAuthorizationUrl(null);
+        System.out.println(url);
+        return SUCCESS;
+    }
+
+    public String dropboxoauth_redirect() {
+        JSONObject json = null;
+        try {
+            System.out.println("Fez redirect do dropbox");
+            Verifier verifier = new Verifier(code);
+            System.out.println(verifier);
+            Token accessToken = service.getAccessToken(null, verifier);
+            System.out.println(accessToken.getRawResponse());
+            JSONParser parser = new JSONParser();
+            json = (JSONObject) parser.parse(accessToken.getRawResponse());
+            User user = RmiService.getInstance().userInterface.findByUid(json.get("uid"));
+            session.put("user_id", user.id);
+            return SUCCESS;
+        } catch (CustomException e) {
+            session.put("uid", json.get("uid"));
+            errors = e.errors;
+            return ERROR;
+        } catch (IOException | ParseException | NotBoundException e) {
+            errors = internal_error;
+            return ERROR;
+        }
+    }
+
+    public String associate_dropbox() {
+        try {
+            ArrayList<Object> args = new ArrayList<>();
+            args.add(current_user.id);
+            args.add(getUid());
+            RmiService.getInstance().userInterface.setUid(args);
+            session.put("uid", null);
+            return SUCCESS;
+        } catch (IOException | NotBoundException e) {
+            e.printStackTrace();
+            session.put("uid", null);
+            errors = internal_error;
+            return ERROR;
+        } catch (CustomException e) {
+            session.put("uid", null);
+            errors = e.errors;
+            return ERROR;
+        }
+    }
+
     public String read() {
         return SUCCESS;
     }
@@ -110,4 +179,25 @@ public class UserController extends Controller {
     public ArrayList<User> getUsers() {
         return users;
     }
+
+    public String setUrl(){
+        return this.url = url;
+    }
+
+    public String getUrl(){
+        return this.url = url;
+    }
+
+    public String getCode(){
+        return this.code;
+    }
+
+    public void setCode(String code){
+        this.code = code;
+    }
+
+
+
 }
+
+
