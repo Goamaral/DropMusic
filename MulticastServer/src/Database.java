@@ -36,6 +36,26 @@ public class Database {
         return -1;
     }
 
+    User user_findByUid(String uid) throws CustomException {
+        for (User user : this.users) {
+            if (user.getUid().equals(uid)) {
+                return user;
+            }
+        }
+
+        throw new CustomException("User not found");
+    }
+
+    void user_setUid(Integer user_id, String uid) {
+        for (User user : this.users) {
+            if (user.id == user_id) {
+                user.setUid(uid);
+                break;
+            }
+        }
+    }
+
+
     Boolean user_create(User user) throws CustomException {
         int index = this.user_findIndexUsername(user);
 

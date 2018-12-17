@@ -75,6 +75,26 @@ class RecieverSocketHandler extends Thread {
 
                 try {
                     switch (request.type) {
+                        case "user_setUid": {
+                            // Throws Custom Exception
+
+                            ArrayList<Object> args = (ArrayList<Object>) request.data;
+
+                            this.database.user_setUid((int)args.get(0), (String) args.get(1));
+                            sendPacket(true, request.id);
+
+                            System.out.println("success");
+                            break;
+                        }
+                        case "user_findByUid": {
+                            // Throws Custom Exception
+
+                            User fetched_user = this.database.user_findByUid((String) request.data);
+                            sendPacket(fetched_user, request.id);
+
+                            System.out.println("success");
+                            break;
+                        }
                         case "user_findByUsername": {
                             // Throws Custom Exception
 

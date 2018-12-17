@@ -16,6 +16,12 @@
 <s:if test="%{current_user.isEditor}" >
     <p><a href="<s:url action="user_promote" />">Promote user to editor</a></p>
 </s:if>
+
+<s:if test="%{uid != null}" >
+    <p><a href="<s:url action="user_associate_dropbox" />">Associate with dropbox</a></p>
+</s:if>
+
+
 <p><a href="<s:url action="user_logout" />">Logout</a></p>
 
 </body>
