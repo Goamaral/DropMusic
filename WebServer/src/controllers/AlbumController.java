@@ -24,11 +24,22 @@ public class AlbumController extends Controller {
     ArrayList<Song> songs = new ArrayList<>();
     ArrayList<Artist> artists = new ArrayList<>();
     ArrayList<Genre> genres = new ArrayList<>();
+    String artistsString;
+    String genresString;
 
     // Actions
     public String index() {
+        return requestAlbums();
+    }
+
+    public String show() {
+        String result = requestAlbum();
+
+        if (result == ERROR) return ERROR;
+
         try {
-            albums = RmiService.getInstance().albumInterface.index();
+            artistsString = RmiService.getInstance().albumInterface.artists(album_id);
+            genresString = RmiService.getInstance().albumInterface.genres(album_id);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
@@ -38,10 +49,6 @@ public class AlbumController extends Controller {
             errors = internal_error;
             return ERROR;
         }
-    }
-
-    public String show() {
-        return requestAlbum();
     }
 
     public String create() {
@@ -67,17 +74,20 @@ public class AlbumController extends Controller {
     }
 
     public String search_post() {
-        try {
-            album = RmiService.getInstance().albumInterface.search(query);
-            return SUCCESS;
-        } catch (CustomException e) {
-            errors = e.errors;
-            return ERROR;
-        } catch (RemoteException | NotBoundException e) {
-            e.printStackTrace();
-            errors = internal_error;
-            return ERROR;
+        String result = requestAlbums();
+
+        if (result == ERROR) return ERROR;
+
+        ArrayList<Album> _albums = new ArrayList<>();
+
+        for (Album album : albums) {
+            if (album.name.contains(query)) {
+                _albums.add(album);
+            }
         }
+
+        albums = _albums;
+        return SUCCESS;
     }
 
     public String edit() {
@@ -503,6 +513,22 @@ public class AlbumController extends Controller {
         this.genres = genres;
     }
 
+    public String getArtistsString() {
+        return artistsString;
+    }
+
+    public void setArtistsString(String artistsString) {
+        this.artistsString = artistsString;
+    }
+
+    public String getGenresString() {
+        return genresString;
+    }
+
+    public void setGenresString(String genresString) {
+        this.genresString = genresString;
+    }
+
     // Requests
     public String requestSong() {
         try {
@@ -521,6 +547,20 @@ public class AlbumController extends Controller {
     public String requestAlbum() {
         try {
             album = RmiService.getInstance().albumInterface.read(album_id);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
+        }
+    }
+
+    public String requestAlbums() {
+        try {
+            albums = RmiService.getInstance().albumInterface.index();
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
