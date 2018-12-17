@@ -2,10 +2,10 @@ package controllers;
 
 import core.Artist;
 import core.CustomException;
-import core.Song;
-import services.Service;
+import services.RmiService;
 
-import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class ArtistController extends Controller {
@@ -13,43 +13,34 @@ public class ArtistController extends Controller {
 
     Artist artist = new Artist();
 
-    // TODO TEST
     public String index() {
         try {
-            Object response_object = Service.request("artist_all", true);
-            Service.catchException(response_object);
-            artists = (ArrayList<Artist>) response_object;
+            artists = RmiService.getInstance().artistInterface.index();
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
-    // TODO TEST
     public String artist_create() {
         return SUCCESS;
     }
 
-    // TODO TEST
     public String artist_create_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(current_user.id);
-        args.add(artist);
-
         try {
-            artist.validate();
-            Object response_object = Service.request("artist_create", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().artistInterface.create(current_user.id, artist);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }

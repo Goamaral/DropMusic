@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import core.*;
+
 public class ArtistController implements ArtistInterface {
     Server server;
 

@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import core.*;
+
 public class AlbumController implements AlbumInterface {
     Server server;
 

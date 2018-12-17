@@ -1,9 +1,11 @@
 package controllers;
 
 import core.*;
-import services.Service;
+import services.RmiService;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
@@ -21,53 +23,15 @@ public class UserController extends Controller {
     // TODO SEND NOTIFICATIONS
     public String login_post() {
         try {
-            user.encrypt_password();
-        } catch (NoSuchAlgorithmException e) {
-            return ERROR;
-        }
-
-        try {
-            Object response_object = Service.request("user_findByUsername", user.username);
-            Service.catchException(response_object);
-            User fetched_user = (User) response_object;
-
-            if (!fetched_user.password.equals(user.password)) {
-                CustomException ce = new CustomException("Invalid credentials");
-                errors = ce.errors;
-                return ERROR;
-            }
-
-            /*
-            Socket socket = new Socket();
-            try {
-                String ipString = RemoteServer.getClientHost();
-                InetAddress ip = InetAddress.getByName(ipString);
-                socket = new Socket(ip, tcp);
-            } catch (ServerNotActiveException | IOException e) {}
-            */
-
-            session.put("current_user", fetched_user);
-
-            /*
-            ArrayList<Job> jobs_to_perform = new ArrayList<>();
-            synchronized (this.server.jobLock) {
-                for (Job job : this.server.jobs) {
-                    if (job.user_id == fetched_user.id) {
-                        jobs_to_perform.add(job);
-                    }
-                }
-            }
-
-            for (Job job : jobs_to_perform) {
-                this.server.send_notifications(job);
-            }
-            */
-
+            user = RmiService.getInstance().userInterface.login(user, 0);
+            session.put("current_user", user);
             return SUCCESS;
-        } catch (IOException e) {
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -78,22 +42,14 @@ public class UserController extends Controller {
 
     public String register_post() {
         try {
-            user.validate();
-        } catch (CustomException ce) {
-            errors = ce.errors;
-            return ERROR;
-        } catch (NoSuchAlgorithmException e) {
-            return ERROR;
-        }
-
-        try {
-            Object response_object = Service.request("user_create", user);
-            Service.catchException(response_object);
+            RmiService.getInstance().userInterface.register(user);
             return SUCCESS;
-        } catch (CustomException ce) {
-            errors = ce.errors;
+        } catch (CustomException e) {
+            errors = e.errors;
             return ERROR;
-        } catch (IOException ioe) {
+        } catch (RemoteException | NotBoundException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -109,31 +65,28 @@ public class UserController extends Controller {
 
     public String promote() {
         try {
-            Object response_object  = Service.request("normal_users", true);
-            Service.catchException(response_object);
-            this.users = (ArrayList<User>) response_object;
+            RmiService.getInstance().userInterface.normal_users();
             return SUCCESS;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
-
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String promote_post() {
         try {
-            Object response_object = Service.request("user_promote", id);
-            Service.catchException(response_object);
-            //this.server.send_notifications(new Job(user_id, "You have been promoted.\nYou are now an editor."));
+            RmiService.getInstance().userInterface.promote(user.id);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }

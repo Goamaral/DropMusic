@@ -29,17 +29,17 @@ public class UserController implements UserInterface {
             throw new CustomException("Invalid credentials");
         }
 
-        Socket socket = new Socket();
-
+        /*
         try {
-            String ipString = RemoteServer.getClientHost();
-            InetAddress ip = InetAddress.getByName(ipString);
-            socket = new Socket(ip, tcp);
-        } catch (ServerNotActiveException | IOException e) {}
-
-        synchronized (this.server.clientLock) {
-            this.server.clients.add(new Client(socket, fetched_user.id));
+            Socket socket = new Socket(RemoteServer.getClientHost(), tcp);
+            synchronized (this.server.clientLock) {
+                this.server.clients.add(new Client(socket, fetched_user.id));
+            }
+        } catch (IOException | ServerNotActiveException e) {
+            e.printStackTrace();
+            throw new CustomException("Internal error");
         }
+        */
 
         ArrayList<Job> jobs_to_perform = new ArrayList<>();
         synchronized (this.server.jobLock) {

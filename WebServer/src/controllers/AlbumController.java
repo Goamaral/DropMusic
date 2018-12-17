@@ -1,8 +1,10 @@
 package controllers;
 import core.*;
-import services.Service;
+import services.RmiService;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class AlbumController extends Controller {
@@ -26,33 +28,20 @@ public class AlbumController extends Controller {
     // Actions
     public String index() {
         try {
-            Object response_object = Service.request("album_all", true);
-            Service.catchException(response_object);
-            albums = (ArrayList<Album>) response_object;
+            albums = RmiService.getInstance().albumInterface.index();
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String show() {
-        try {
-            Object response_object = Service.request("album_find", album_id);
-            Service.catchException(response_object);
-            album = (Album) response_object;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
-        } catch (CustomException e) {
-            errors = e.errors;
-            return ERROR;
-        }
-
-        return SUCCESS;
+        return requestAlbum();
     }
 
     public String create() {
@@ -60,20 +49,15 @@ public class AlbumController extends Controller {
     }
 
     public String create_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(current_user.id);
-        args.add(album);
-
         try {
-            album.validate();
-            Object response_object = Service.request("album_create", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.create(current_user.id, album);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -84,89 +68,59 @@ public class AlbumController extends Controller {
 
     public String search_post() {
         try {
-            Object response_object = Service.request("album_all", true);
-            Service.catchException(response_object);
-            ArrayList<Album> _albums = (ArrayList<Album>) response_object;
-            albums = new ArrayList<>();
-
-            for (Album album : _albums) {
-                if (album.name.contains(query)) {
-                    albums.add(album);
-                }
-            }
-
+            album = RmiService.getInstance().albumInterface.search(query);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String edit() {
-        try {
-            Object response_object = Service.request("album_find", album_id);
-            Service.catchException(response_object);
-            album = (Album) response_object;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CustomException e) {
-            errors = e.errors;
-        }
-
-        return SUCCESS;
+        return requestAlbum();
     }
 
     // TODO SEND NOTIFICATIONS
     public String edit_post() {
         try {
-            album.validate();
-            ArrayList<Object> args = new ArrayList<>();
-            args.add(current_user.id);
-            args.add(album);
-
-            Object response_object = Service.request("album_update", args);
-            Service.catchException(response_object);
-
-             /*
-            for (int editor_id : (ArrayList<Integer>) response_object) {
-                this.server.send_notifications(new Job(editor_id, "Album " + new_album.id + " was edited"));
-            }
-            */
-             return SUCCESS;
+            RmiService.getInstance().albumInterface.update(current_user.id, album);
+            return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String delete() {
         try {
-            Service.request("album_delete", album_id);
-        } catch (IOException e) {
+            RmiService.getInstance().albumInterface.delete(album_id);
+            return SUCCESS;
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-
-        return SUCCESS;
     }
 
     // Critic Actions
     public String critics() {
         try {
-            Object response_object = Service.request("album_critics", album_id);
-            Service.catchException(response_object);
-            critics = (ArrayList<Critic>) response_object;
+            critics = RmiService.getInstance().albumInterface.critics(album_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -176,38 +130,30 @@ public class AlbumController extends Controller {
     }
 
     public String critic_create_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(album_id);
-        args.add(critic);
-
         try {
-            critic.validate();
-            Object response_object = Service.request("album_critic_create", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.critic_create(album_id, critic);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String critic_show() {
         try {
-            Object response_object = Service.request("album_critic_find", critic_id);
-            Service.catchException(response_object);
-            critic = (Critic) response_object;
-            response_object = Service.request("album_find", album_id);
-            Service.catchException(response_object);
-            critic.album = (Album) response_object;
+            critic = RmiService.getInstance().albumInterface.critic(critic_id);
+            critic.album = RmiService.getInstance().albumInterface.read(album_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -215,15 +161,14 @@ public class AlbumController extends Controller {
     // Song Actions
     public String songs() {
         try {
-            Object response_object = Service.request("album_song_all", album_id);
-            Service.catchException(response_object);
-            songs = (ArrayList<Song>) response_object;
+            songs = RmiService.getInstance().albumInterface.songs(album_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -237,20 +182,15 @@ public class AlbumController extends Controller {
     }
 
     public String song_create_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(album_id);
-        args.add(song);
-
         try {
-            song.validate();
-            Object response_object = Service.request("album_song_create", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_create(album_id, song);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
-        } catch (IOException e) {
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -261,32 +201,30 @@ public class AlbumController extends Controller {
 
     public String song_edit_post() {
         try {
-            song_id = song.id;
-            song.validate();
-            Object response_object = Service.request("album_song_update", song);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_update(song);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String song_delete() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(album_id);
-        args.add(song_id);
-
         try {
-            Service.request("album_song_delete", args);
-        } catch (IOException e) {
+            RmiService.getInstance().albumInterface.song_delete(album_id, song_id);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-
-        return SUCCESS;
     }
 
     // TODO NOT IMPLEMENTED
@@ -309,64 +247,60 @@ public class AlbumController extends Controller {
         return requestSong();
     }
 
-    // TODO TEST
     public String song_artist_add() {
         try {
-            Object response_object = Service.request("artist_all", true);
-            Service.catchException(response_object);
-            artists = (ArrayList<Artist>) response_object;
+            artists = RmiService.getInstance().artistInterface.index();
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
-    // TODO TEST
     public String song_artist_add_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(song_id);
-        args.add(artist_id);
-
         try {
-            Object response_object = Service.request("album_song_artist_add", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_artist_add(song_id, artist_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
             return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
     }
 
-    // TODO TEST
     public String song_artist_remove() {
-        artists = new ArrayList<>();
-
-        for (int artist_id : song.artist_ids) {
-            try {
-                Object response_object = Service.request("artist_find", artist_id);
-                Service.catchException(response_object);
-                artists.add((Artist) response_object);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return ERROR;
-            } catch (CustomException e) {
-                errors = e.errors;
-                return ERROR;
-            }
+        try {
+            artists = RmiService.getInstance().albumInterface.song_artists(song);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-        return SUCCESS;
     }
 
-    // TODO TEST
     public String song_artist_remove_post() {
-        return SUCCESS;
+        try {
+            RmiService.getInstance().albumInterface.song_artist_delete(song_id, artist_id);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
+        }
     }
 
     // Song Genre Actions
@@ -376,75 +310,56 @@ public class AlbumController extends Controller {
 
     public String song_genre_add() {
         try {
-            Object response_object = Service.request("genre_all", true);
-            Service.catchException(response_object);
-            genres = (ArrayList<Genre>) response_object;
+            genres = RmiService.getInstance().albumInterface.genres_all();
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String song_genre_add_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(song_id);
-        args.add(genre_id);
-
         try {
-            Object response_object = Service.request("album_song_genre_add", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_genre_add(song_id, genre_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
 
     public String song_genre_remove() {
-        genres = new ArrayList<>();
-
-        String result = requestSong();
-
-        if (result == ERROR) return ERROR;
-
-        for (int genre_id : song.genres_ids) {
-            try {
-                Object response_object = Service.request("genre_find", genre_id);
-                Service.catchException(response_object);
-                genres.add((Genre)response_object);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return ERROR;
-            } catch (CustomException e) {
-                errors = e.errors;
-                return ERROR;
-            }
+        try {
+            genres = RmiService.getInstance().albumInterface.song_genres(song);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
         }
-
-        return SUCCESS;
     }
 
     public String song_genre_remove_post() {
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(song_id);
-        args.add(genre_id);
-
         try {
-            Object response_object = Service.request("album_song_genre_remove", args);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_genre_delete(song_id, genre_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -455,14 +370,14 @@ public class AlbumController extends Controller {
 
     public String song_genre_create_post() {
         try {
-            Object response_object = Service.request("genre_create", genre);
-            Service.catchException(response_object);
+            RmiService.getInstance().albumInterface.song_genre_create(genre);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
@@ -591,15 +506,28 @@ public class AlbumController extends Controller {
     // Requests
     public String requestSong() {
         try {
-            Object response_object = Service.request("song_find", song_id);
-            Service.catchException(response_object);
-            song = (Song) response_object;
+            song = RmiService.getInstance().albumInterface.song(song_id);
             return SUCCESS;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ERROR;
         } catch (CustomException e) {
             errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+            return ERROR;
+        }
+    }
+
+    public String requestAlbum() {
+        try {
+            album = RmiService.getInstance().albumInterface.read(album_id);
+            return SUCCESS;
+        } catch (CustomException e) {
+            errors = e.errors;
+            return ERROR;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
             return ERROR;
         }
     }
