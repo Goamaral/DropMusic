@@ -255,7 +255,9 @@ public class Server implements ServerInterface {
             if (client.user_id == job.user_id) {
                 try {
                     DataOutputStream output = new DataOutputStream(client.socket.getOutputStream());
-                    output.writeBytes(job.message);
+                    String message = job.message;
+                    if (client.websocket) message = job.user_id + "|" + message;
+                    output.writeBytes(message);
                     output.flush();
                     output.close();
                     sent = true;
@@ -293,22 +295,14 @@ interface ServerInterface extends Remote {
     boolean ping() throws RemoteException;
 }
 
-class Job {
-    int user_id;
-    String message;
-
-    Job(int user_id, String message) {
-        this.user_id = user_id;
-        this.message = message;
-    }
-}
-
 class Client {
     Socket socket;
     int user_id;
+    boolean websocket;
 
-    Client(Socket socket, int user_id) {
+    Client(Socket socket, int user_id, boolean websocket) {
         this.socket = socket;
         this.user_id = user_id;
+        this.websocket = websocket;
     }
 }

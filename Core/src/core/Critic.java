@@ -6,11 +6,11 @@ import java.util.ArrayList;
 public class Critic implements Serializable {
     public int id;
     public int rating;
-    String justification;
+    public String justification;
 
     // Relationships
     public Album album;
-    User author;
+    public User author;
 
     public Critic() {}
 
@@ -22,7 +22,7 @@ public class Critic implements Serializable {
         this.id = id;
     }
 
-    Critic(int rating, String justification, Album album, User author) {
+    public Critic(int rating, String justification, Album album, User author) {
         this.rating = rating;
         this.justification = justification;
         this.album = album;

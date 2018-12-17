@@ -1,5 +1,7 @@
 <%@ taglib prefix="s" uri="/struts-tags" %>
 
+<s:include value="/general/errors.jsp" />
+
 <div id="container">
     <s:if test="%{users.size() == 0}">
         <p>No normal users available</p>

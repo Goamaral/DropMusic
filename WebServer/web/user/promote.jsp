@@ -9,9 +9,9 @@
 </head>
 
 <body>
-<h1>Promote user to editor</h1>
+<s:include value="/websocket.jsp" />
 
-<s:include value="/general/errors.jsp" />
+<h1>Promote user to editor</h1>
 
 <s:include value="/user/partials/promote.jsp" />
 

@@ -9,6 +9,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Search</h1>
 <input type="text" id="query"><button id="query_button">Search</button>
 

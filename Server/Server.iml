@@ -18,5 +18,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="Core" />
+    <orderEntry type="library" name="Struts 2-2.5.14.1" level="project" />
   </component>
 </module>

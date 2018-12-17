@@ -2,7 +2,6 @@ package controllers;
 import core.*;
 import services.RmiService;
 
-import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -91,7 +90,6 @@ public class AlbumController extends Controller {
         return requestAlbum();
     }
 
-    // TODO SEND NOTIFICATIONS
     public String edit_post() {
         try {
             RmiService.getInstance().albumInterface.update(current_user.id, album);

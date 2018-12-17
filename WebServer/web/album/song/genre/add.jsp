@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Add genre</h1>
 
 <s:if test="%{genres.size() == 0}" >

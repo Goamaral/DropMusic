@@ -20,7 +20,17 @@ public class Controller extends ActionSupport implements SessionAware, Preparabl
     ArrayList<String> internal_error = new CustomException("Internal Error").errors;
 
     public void prepare() {
-        current_user = (User)session.get("current_user");
+        if (!session.containsKey("user_id")) return;
+
+        int user_id = (int)session.get("user_id");
+        try {
+            current_user = RmiService.getInstance().userInterface.read(user_id);
+        } catch (CustomException e) {
+            errors = e.errors;
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+            errors = internal_error;
+        }
     }
 
     public void setSession(Map<String, Object> session) {

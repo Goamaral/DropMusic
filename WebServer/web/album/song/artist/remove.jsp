@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Remove artist</h1>
 
 <s:include value="/general/errors.jsp" />

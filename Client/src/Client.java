@@ -156,7 +156,7 @@ public class Client {
         try {
             switch (method_id) {
                 case Client.LOGIN:
-                    this.current_user = userInterface.login((User)resource, this.tcpHandler.port);
+                    this.current_user = userInterface.login((User)resource, this.tcpHandler.port, false);
                     break;
                 case Client.REGISTER:
                     userInterface.register((User)resource);
@@ -602,7 +602,7 @@ public class Client {
 
         try {
             this.tcpHandler = new TcpHandler(this);
-            this.current_user = userInterface.login(user, this.tcpHandler.port);
+            this.current_user = userInterface.login(user, this.tcpHandler.port, false);
             this.tcpHandler.start();
         } catch (RemoteException re) {
             this.retry(Client.LOGIN, user);
@@ -1552,9 +1552,12 @@ public class Client {
         query = this.scanner.nextLine();
 
         try {
-            this.current_album = this.albumInterface.search(query);
+            this.current_album = this.albumInterface.search(query).get(0);
         } catch (RemoteException re) {
             this.current_album = (Album) this.retry(Client.SEARCH_ALBUM, query);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("No albums found");
+            return ALBUMS;
         }
 
         this.current_album_id = this.current_album.id;
@@ -1597,61 +1600,23 @@ public class Client {
     // Search artist
     int displaySearchArtist() throws InterruptedException, CustomException, NoSuchAlgorithmException {
         String query;
-        ArrayList<Song> songs;
 
-        System.out.println("Artist songs");
+        System.out.println("Artist album");
         System.out.print("Artist name: ");
         query = this.scanner.nextLine();
 
         try {
-            this.current_artist = this.artistInterface.search(query);
+            this.current_album = this.artistInterface.search(query).get(0);
         } catch (RemoteException re) {
-            this.current_artist = (Artist) this.retry(Client.SEARCH_ARTIST, query);
+            this.current_album = (Album) this.retry(Client.SEARCH_ARTIST, query);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("No albums found");
+            return ARTISTS;
         }
 
-        this.current_artist_id = this.current_artist.id;
+        this.current_album_id = this.current_album.id;
 
-        try {
-            songs = this.artistInterface.songs(this.current_artist_id);
-        } catch (RemoteException re) {
-            songs = (ArrayList<Song>)this.retry(Client.ARTIST_SONGS, this.current_artist_id);
-        }
-
-        while (true) {
-            if (songs.size() == 0) {
-                System.out.println("No songs available");
-            } else {
-                for (Song song : songs) {
-                    System.out.println("[" + song.id + "] " + song.name);
-                }
-            }
-
-            System.out.println("[B] Back");
-
-            System.out.print("Option: ");
-            query = this.scanner.nextLine();
-
-            if (query.equals("B")) return Client.ARTISTS;
-
-            try {
-                this.current_song_id = Integer.parseInt(query);
-
-                try {
-                    this.current_song = this.albumInterface.song(this.current_song_id);
-                } catch(RemoteException re) {
-                    this.current_song = (Song)this.retry(Client.ALBUM_SONG, this.current_song_id);
-                }
-
-                this.current_album_id = this.current_song.album_id;
-                break;
-            } catch (NumberFormatException nfe) {
-                this.clearScreen();
-                System.out.println("Errors:");
-                System.out.println("-> Invalid option");
-            }
-        }
-
-        return Client.ALBUM_SONG;
+        return ALBUM;
     }
 
     // Upload song

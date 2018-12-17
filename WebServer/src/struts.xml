@@ -7,31 +7,52 @@
 <struts>
     <constant name="struts.devMode" value="true" />
 
+    <constant name="struts.action.excludePattern" value="/ws"/>
+
     <package name="controllers" extends="struts-default">
+        <interceptors>
+            <interceptor name="authInterceptor" class="interceptor.AuthInterceptor" />
+            <interceptor-stack name="dropStack">
+                <interceptor-ref name="authInterceptor" />
+                <interceptor-ref name="defaultStack" />
+            </interceptor-stack>
+        </interceptors>
+
+        <default-interceptor-ref name="dropStack" />
+
         <default-action-ref name="general_index" />
+        
+        <global-results>
+            <result name="auth_failed" type="redirectAction">general_index</result>
+        </global-results>
 
         <!-- General Controller -->
 
         <action name="general_index" class="controllers.GeneralController" method="index">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success">/general/index.jsp</result>
         </action>
 
         <!-- User Controller -->
 
         <action name="user_login" class="controllers.UserController" method="login">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success">/user/login.jsp</result>
         </action>
 
         <action name="user_login_post" class="controllers.UserController" method="login_post">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success" type="redirectAction">user_dashboard</result>
             <result name="error">/user/login.jsp</result>
         </action>
 
         <action name="user_register" class="controllers.UserController" method="register">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success">/user/register.jsp</result>
         </action>
 
         <action name="user_register_post" class="controllers.UserController" method="register_post">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success" type="redirectAction">general_index</result>
             <result name="error">/user/register.jsp</result>
         </action>
@@ -46,6 +67,7 @@
 
         <action name="user_promote_post" class="controllers.UserController" method="promote_post">
             <result name="success">/user/partials/promote.jsp</result>
+            <result name="error">/user/partials/promote.jsp</result>
         </action>
 
         <action name="user_logout" class="controllers.UserController" method="logout">

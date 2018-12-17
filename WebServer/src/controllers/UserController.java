@@ -2,8 +2,8 @@ package controllers;
 
 import core.*;
 import services.RmiService;
+import websocket.WebSocketService;
 
-import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
@@ -19,12 +19,10 @@ public class UserController extends Controller {
         return SUCCESS;
     }
 
-    // TODO OPEN WEBSOCKET
-    // TODO SEND NOTIFICATIONS
     public String login_post() {
         try {
-            user = RmiService.getInstance().userInterface.login(user, 0);
-            session.put("current_user", user);
+            user = RmiService.getInstance().userInterface.login(user, WebSocketService.port, true);
+            session.put("user_id", user.id);
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
@@ -65,7 +63,7 @@ public class UserController extends Controller {
 
     public String promote() {
         try {
-            RmiService.getInstance().userInterface.normal_users();
+            users = RmiService.getInstance().userInterface.normal_users();
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;
@@ -79,7 +77,8 @@ public class UserController extends Controller {
 
     public String promote_post() {
         try {
-            RmiService.getInstance().userInterface.promote(user.id);
+            RmiService.getInstance().userInterface.promote(id);
+            users = RmiService.getInstance().userInterface.normal_users();
             return SUCCESS;
         } catch (CustomException e) {
             errors = e.errors;

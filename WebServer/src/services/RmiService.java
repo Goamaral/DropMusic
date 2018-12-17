@@ -17,7 +17,9 @@ public class RmiService {
     int RMI_PORT = 8000;
     String RMI_IP = "localhost";
 
-    private RmiService() { }
+    private RmiService() throws RemoteException, NotBoundException {
+        this.connect();
+    }
 
     public void connect() throws RemoteException, NotBoundException {
         Registry registry = LocateRegistry.getRegistry(RMI_IP, RMI_PORT);
@@ -29,8 +31,8 @@ public class RmiService {
     public static synchronized RmiService getInstance() throws RemoteException, NotBoundException {
         if (instance == null) {
             instance = new RmiService();
-            instance.connect();
         }
+
         return instance;
     }
 }

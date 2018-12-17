@@ -19,7 +19,7 @@ public class Song implements Serializable {
 
     public Song() {}
 
-    Song(String name, String info) {
+    public Song(String name, String info) {
         this.name = name;
         this.info = info;
     }

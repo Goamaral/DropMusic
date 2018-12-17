@@ -13,7 +13,7 @@ public class UserController implements UserInterface {
     public UserController(Server server) { this.server = server; }
 
     // Controller
-    public User login(User user, int tcp) throws CustomException, NoSuchAlgorithmException {
+    public User login(User user, int tcp, boolean websocket) throws CustomException, NoSuchAlgorithmException {
         System.out.println("Action user(" + user.username + ") login: ");
 
         user.encrypt_password();
@@ -29,17 +29,16 @@ public class UserController implements UserInterface {
             throw new CustomException("Invalid credentials");
         }
 
-        /*
+
         try {
             Socket socket = new Socket(RemoteServer.getClientHost(), tcp);
             synchronized (this.server.clientLock) {
-                this.server.clients.add(new Client(socket, fetched_user.id));
+                this.server.clients.add(new Client(socket, fetched_user.id, websocket));
             }
         } catch (IOException | ServerNotActiveException e) {
             e.printStackTrace();
             throw new CustomException("Internal error");
         }
-        */
 
         ArrayList<Job> jobs_to_perform = new ArrayList<>();
         synchronized (this.server.jobLock) {

@@ -8,6 +8,7 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
 
 <h1>Dashboard</h1>
 

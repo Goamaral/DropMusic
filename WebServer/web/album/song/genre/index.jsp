@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Song genres</h1>
 <p><b>Genres </b><s:property value="song.genres" /></p>
 

@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Critics</h1>
 
 <s:if test="%{critics.size() == 0}" >

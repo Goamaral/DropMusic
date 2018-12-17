@@ -21,7 +21,7 @@ public class Album implements Serializable {
 
     public Album() {}
 
-    Album(String name, String info, String releaseDateString) {
+    public Album(String name, String info, String releaseDateString) {
         this.name = name;
         this.info = info;
         this.releaseDateString = releaseDateString;

@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Album</h1>
 <p><b>Name </b><s:property value="album.name" /></p>
 <p><b>Rating </b><s:property value="album.rating" />/5</p>

@@ -8,6 +8,8 @@
 </head>
 
 <body>
+<s:include value="/websocket.jsp" />
+
 <h1>Upload song</h1>
 
 <p><a href='<s:url action="album_song_show" />?album_id=<s:property value="album_id" />&song_id=<s:property value="song_id" />'>Back</a></p>
