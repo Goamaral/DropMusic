@@ -229,25 +229,41 @@
             <result name="success">/artist/index.jsp</result>
         </action>
 
-        <action name="artist_create" class="controllers.ArtistController" method="artist_create">
-            <result name="success">/artist/index.jsp</result>
+        <action name="artist_create" class="controllers.ArtistController" method="create">
+            <result name="success">/artist/create.jsp</result>
         </action>
 
-        <action name="artist_create_post" class="controllers.ArtistController" method="artist_create_post">
-            <result name="success">/artist/index.jsp</result>
+        <action name="artist_create_post" class="controllers.ArtistController" method="create_post">
+            <result name="success" type="redirectAction">artist_index</result>
+            <result name="error">/artist/create.jsp</result>
         </action>
 
-        <action name="artist_search" class="controllers.ArtistController" method="artist_search">
-            <result name="success">/artist/index.jsp</result>
+        <action name="artist_search" class="controllers.ArtistController" method="search">
+            <result name="success">/artist/search.jsp</result>
         </action>
 
-        <action name="artist_search_post" class="controllers.ArtistController" method="artist_search_post">
-            <result name="success">/artist/index.jsp</result>
+        <action name="artist_search_post" class="controllers.ArtistController" method="search_post">
+            <result name="success">/artist/partials/index.jsp</result>
         </action>
 
-        <action name="artist_show" class="controllers.ArtistController" method="artist_show">
+
+        <action name="artist_show" class="controllers.ArtistController" method="show">
             <result name="success">/artist/show.jsp</result>
         </action>
+
+        <action name="artist_edit" class="controllers.ArtistController" method="edit">
+            <result name="success">/artist/edit.jsp</result>
+        </action>
+
+        <action name="artist_edit_post" class="controllers.ArtistController" method="edit_post">
+            <result name="success" type="redirectAction">artist_index</result>
+            <result name="error">/artist/edit.jsp</result>
+        </action>
+
+        <action name="artist_delete" class="controllers.ArtistController" method="delete">
+            <result name="success">/artist/index.jsp</result>
+        </action>
+
     </package>
 </struts>
 
