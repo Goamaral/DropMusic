@@ -36,10 +36,12 @@
         <!-- User Controller -->
 
         <action name="dropboxoauth" class="controllers.UserController" method="dropboxoauth">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success" type="redirect">${url}</result>
         </action>
 
         <action name="dropboxoauth_redirect" class="controllers.UserController" method="dropboxoauth_redirect">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success" type="redirectAction">user_dashboard</result>
             <result name="error" type="redirectAction">general_index</result>
         </action>

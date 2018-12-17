@@ -5,12 +5,10 @@ import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.model.Verifier;
 import com.github.scribejava.core.oauth.OAuthService;
 import core.*;
+import org.json.simple.JSONObject;
 import services.RmiService;
 import websocket.WebSocketService;
-import net.projectmonkey.object.mapper.ObjectMapper;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.simple.parser.*;
 import uc.sd.apis.DropBoxApi2;
 
 import java.io.IOException;
@@ -31,7 +29,7 @@ public class UserController extends Controller {
             .provider(DropBoxApi2.class)
             .apiKey("lgyjmqsl7169pij")
             .apiSecret("9nin5ivu1d2a35q")
-            .callback("http://localhost:8080/webserver/dropboxoauth_redirect")
+            .callback("http://localhost:8080/WebServer/dropboxoauth_redirect")
             .build();
 
     // Methods
@@ -112,7 +110,7 @@ public class UserController extends Controller {
 
     public String dropboxoauth() {
         url = service.getAuthorizationUrl(null);
-        System.out.println(url);
+        System.out.println("U " + url);
         return SUCCESS;
     }
 
@@ -126,14 +124,14 @@ public class UserController extends Controller {
             System.out.println(accessToken.getRawResponse());
             JSONParser parser = new JSONParser();
             json = (JSONObject) parser.parse(accessToken.getRawResponse());
-            User user = RmiService.getInstance().userInterface.findByUid(json.get("uid"));
+            User user = RmiService.getInstance().userInterface.findByUid((String)json.get("uid"));
             session.put("user_id", user.id);
             return SUCCESS;
         } catch (CustomException e) {
             session.put("uid", json.get("uid"));
             errors = e.errors;
             return ERROR;
-        } catch (IOException | ParseException | NotBoundException e) {
+        } catch (IOException | NotBoundException | ParseException e) {
             errors = internal_error;
             return ERROR;
         }
