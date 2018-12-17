@@ -204,7 +204,16 @@
                 </action>
 
                 <action name="album_song_genre_add_post" class="controllers.AlbumController" method="song_genre_add_post">
-                    <result name="success">/post_done.jsp</result>
+                    <result name="success" type="redirectAction">
+                        <param name="actionName">album_song_genres</param>
+                        <param name="album_id">${album_id}</param>
+                        <param name="song_id">${song_id}</param>
+                    </result>
+                    <result name="error" type="redirectAction">
+                        <param name="actionName">album_song_genres</param>
+                        <param name="album_id">${album_id}</param>
+                        <param name="song_id">${song_id}</param>
+                    </result>
                 </action>
 
                 <action name="album_song_genre_remove" class="controllers.AlbumController" method="song_genre_remove">
@@ -212,7 +221,11 @@
                 </action>
 
                 <action name="album_song_genre_remove_post" class="controllers.AlbumController" method="song_genre_remove_post">
-                    <result name="success">/post_done.jsp</result>
+                    <result name="success" type="redirectAction">
+                        <param name="actionName">album_song_genres</param>
+                        <param name="album_id">${album_id}</param>
+                        <param name="song_id">${song_id}</param>
+                    </result>
                 </action>
 
                 <action name="album_song_genre_create" class="controllers.AlbumController" method="song_genre_create">
@@ -220,7 +233,12 @@
                 </action>
 
                 <action name="album_song_genre_create_post" class="controllers.AlbumController" method="song_genre_create_post">
-                    <result name="success">/post_done.jsp</result>
+                    <result name="success" type="redirectAction">
+                        <param name="actionName">album_song_genre_add</param>
+                        <param name="album_id">${album_id}</param>
+                        <param name="song_id">${song_id}</param>
+                    </result>
+                    <result name="error">/album/song/genre/create.jsp</result>
                 </action>
 
         <!-- Artist Controller -->
@@ -245,7 +263,6 @@
         <action name="artist_search_post" class="controllers.ArtistController" method="search_post">
             <result name="success">/artist/partials/index.jsp</result>
         </action>
-
 
         <action name="artist_show" class="controllers.ArtistController" method="show">
             <result name="success">/artist/show.jsp</result>

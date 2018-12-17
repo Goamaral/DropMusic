@@ -16,7 +16,7 @@ public class CustomException extends Exception {
         this.errors.add(error);
     }
 
-    void printErrors() {
+    public void printErrors() {
         if (this.errors == null) return;
 
         System.out.println("Errors:");
