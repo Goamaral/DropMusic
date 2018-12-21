@@ -38,8 +38,10 @@ public class Database {
 
     User user_findByUid(String uid) throws CustomException {
         for (User user : this.users) {
-            if (user.getUid().equals(uid)) {
-                return user;
+            if (user.getUid() != null) {
+                if (user.getUid().equals(uid)) {
+                    return user;
+                }
             }
         }
 

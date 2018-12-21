@@ -5,7 +5,8 @@
 
 <script>
     var user_id = <s:property value="current_user.id" />
-    var host = "ws://localhost:8080/WebServer/ws"
+    var host = "ws://" + window.location.host + "/WebServer/ws"
+    console.log(host);
 
     if ('WebSocket' in window) {
         window.websocket = new WebSocket(host)
